@@ -2,8 +2,8 @@ import os
 
 from flask import Flask
 
-from small_objects_counter.api import blueprint, api
-from small_objects_counter.consts import UPLOAD_FOLDER
+from objects_counter.api import blueprint, api
+from objects_counter.consts import UPLOAD_FOLDER
 
 
 def create_app(test_config=None):

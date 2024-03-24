@@ -1,5 +1,5 @@
 from flask_restx import fields
-from small_objects_counter.api import api
+from objects_counter.api import api
 
 submit = api.model('Submit', {
     'image': fields.String(required=True, description='The image to process'),

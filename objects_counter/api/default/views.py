@@ -1,6 +1,6 @@
 from flask_restx import Resource
 
-from small_objects_counter.api import api
+from objects_counter.api import api
 
 
 @api.route('/is-alive')
