@@ -59,7 +59,10 @@
 }
 
 body {
-  min-height: 100vh;
+  height: 100vh;          /* added for compatibility */
+  height: 100dvh;
+  min-height: 100vh;      /* added for compatibility */
+  min-height: 100dvh;
   color: var(--color-text);
   background: var(--color-background);
   transition:
