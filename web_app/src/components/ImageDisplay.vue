@@ -14,14 +14,12 @@ onMounted(() => {
 
 <template>
     <div class="image-display">
-        <img id="displayed-image" alt="Uploaded image" ref="displayedImage" />
+        <img id="displayed-image" alt="Uploaded image" ref="displayedImage" src="../assets/logo.svg" />
     </div>
 </template>
 
 <style scoped>
 .image-display {
-    width: 100vw;
-    height: 100vh;
     overflow: hidden;
 }
 

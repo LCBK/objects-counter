@@ -1,10 +1,9 @@
 @import './base.css';
 
-#app {
+#app,
+.view {
     height: 100vh;
+    height: 100dvh;
     width: 100vw;
-    overflow: auto;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
+    overflow: hidden;
 }

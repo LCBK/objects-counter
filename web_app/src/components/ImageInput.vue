@@ -36,19 +36,19 @@ function onImageUpload(event: Event) {
     <div class="image-select">
         <VButton label="Capture image" icon="pi pi-camera" @click="onCaptureClick()"></VButton>
         <VButton label="Upload image" icon="pi pi-upload" @click="onUploadClick()"></VButton>
-        <div class="image-select-inputs">
-            <input type="file" name="image-capture" ref="captureInput"
-                accept="image/*" capture="environment" @change.prevent="onImageUpload($event)" />
-            <input type="file" name="image-upload" ref="uploadInput"
-                accept="image/*" @change.prevent="onImageUpload($event)" />
-        </div>
+    </div>
+    <div class="image-select-inputs">
+        <input type="file" name="image-capture" ref="captureInput"
+            accept="image/*" capture="environment" @change.prevent="onImageUpload($event)" />
+        <input type="file" name="image-upload" ref="uploadInput"
+            accept="image/*" @change.prevent="onImageUpload($event)" />
     </div>
 </template>
 
 <style scoped>
 .image-select {
     display: flex;
-    margin: 0 auto;
+    margin: auto 0;
     flex-direction: column;
     align-items: center;
     gap: 30px;
