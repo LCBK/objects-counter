@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import MainView from "./components/MainView.vue";
 import ImageView from "./components/ImageView.vue";
+import LoadingView from "./components/LoadingView.vue";
 import { useImageStateStore } from "./stores/imageState";
 
 const imageState = useImageStateStore();
@@ -8,12 +9,13 @@ const imageState = useImageStateStore();
 
 <template>
     <header>
-    
+
     </header>
     <main>
         <Transition name="slide">
-            <MainView v-if="!imageState.isUploaded" />
-            <ImageView v-else />
+            <MainView v-if="!imageState.isUploaded && !imageState.isUploading" />
+            <LoadingView v-else-if="!imageState.isUploaded && imageState.isUploading" />
+            <ImageView v-else-if="imageState.isUploaded" />
         </Transition>
     </main>
 </template>
@@ -30,16 +32,6 @@ main {
     position: fixed;
     top: 0;
     left: 0;
-}
-
-@keyframes page-fade {
-    0% {
-        opacity: 0.0;
-    }
-
-    100% {
-        opacity: 1.0;
-    }
 }
 
 .slide-enter-active::after,
@@ -72,5 +64,15 @@ main {
 
 .slide-leave-to {
     transform: translateX(-100%);
+}
+
+@keyframes page-fade {
+    0% {
+        opacity: 0.0;
+    }
+
+    100% {
+        opacity: 1.0;
+    }
 }
 </style>
