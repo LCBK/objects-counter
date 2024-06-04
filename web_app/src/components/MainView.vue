@@ -2,11 +2,13 @@
 import ImageInput from "./ImageInput.vue";
 </script>
 
+
 <template>
     <div id="main-view" class="view">
         <ImageInput />
     </div>
 </template>
+
 
 <style scoped>
 #main-view {
