@@ -1,29 +1,23 @@
-from flask_restx import Resource
+import typing
 
-from objects_counter.api import api
+from flask_restx import Resource, Namespace
+
+api = Namespace('default', description='Default namespace')
 
 
 @api.route('/is-alive')
-def is_alive():
-    return 'Flask is alive!'
+class IsAlive(Resource):
+    def get(self) -> typing.Any:
+        return 'Flask is alive!'
 
 
 @api.route('/version')
-def version():
-    return '0.1'
+class Version(Resource):
+    def get(self) -> typing.Any:
+        return '0.1'
 
 
 @api.route('/submit')
 class Submit(Resource):
-    @api.response(200, 'Success')
-    @api.expect()
-    def post(self):
-        try:
-            process(iamge)
-            return 'content', 200
-        except ValueError as e:
-            return str(e), 400
-        except Exception as e:
-            return str(e), 500
-
-
+    def post(self) -> typing.Any:
+        return 'Not implemented', 501
