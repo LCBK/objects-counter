@@ -18,12 +18,17 @@ def create_app(test_config=None):
     else:
         app.config.from_mapping(test_config)
 
+    app.config['UPLOAD_FOLDER'] = app.instance_path + UPLOAD_FOLDER
+
     try:
         os.makedirs(app.instance_path)
-    except OSError:
+    except FileExistsError:
         pass
 
-    app.config['UPLOAD_FOLDER'] = app.instance_path + UPLOAD_FOLDER
+    try:
+        os.makedirs(app.config["UPLOAD_FOLDER"])
+    except FileExistsError:
+        pass
 
     api.init_app(app, add_specs=False)
     app.register_blueprint(blueprint)
