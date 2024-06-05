@@ -6,7 +6,8 @@ export const useImageStateStore = defineStore("imageState", {
         return {
             isUploading: false,
             isUploaded: false,
-            url: ""
+            url: "",
+            result: {}
         }
     }
 });

@@ -2,7 +2,7 @@ export async function sendRequest(uri: string, data: FormData, method: string = 
     try {
         const response = await fetch(uri, {
             method: method,
-            body: data,
+            body: data
         });
         const result = await response.json();
         console.log(`Request to ${uri} succeeded. Result: `, result);

@@ -34,16 +34,13 @@ function onImageUpload(event: Event) : void {
         requestData.append("image", imageFile);
 
         imageState.isUploading = true;
-        const response = sendRequest(requestUri, requestData, "POST");
-
-        // console.log(response)    // Promise<any>
-
-        // Test timeout
-        window.setTimeout(() => {
-            // Move code outside the timeout
+        const responsePromise = sendRequest(requestUri, requestData, "POST");
+        responsePromise.then((response) => {
+            // todo: handle response codes
             imageState.isUploading = false;
             imageState.isUploaded = true;
-        }, 3000);
+            imageState.result = response.data;
+        });
     }
 }
 </script>

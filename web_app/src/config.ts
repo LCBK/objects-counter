@@ -3,5 +3,5 @@ export const config = {
 };
 
 export const endpoints = {
-    processImage: "/process"
+    processImage: "/api/process"
 };
