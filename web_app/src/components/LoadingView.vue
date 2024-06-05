@@ -15,8 +15,7 @@ import LoadingSpinner from "./LoadingSpinner.vue";
     width: 64px;
     height: 64px;
     position: absolute;
-    left: 50%;
-    top: 50%;
-    transform: translate(-50%, -50%);
+    left: calc(50% - 32px);
+    top: calc(50% - 32px);
 }
 </style>

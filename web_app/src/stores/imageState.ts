@@ -7,7 +7,12 @@ export const useImageStateStore = defineStore("imageState", {
             isUploading: false,
             isUploaded: false,
             url: "",
-            result: {}
+            result: [{
+                top_left: [0, 0], 
+                bottom_right: [0, 0], 
+                certainty: 0, 
+                class: ""
+            }]
         }
     }
 });
