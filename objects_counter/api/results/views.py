@@ -11,15 +11,17 @@ class GetResults(Resource):
         return 'Not implemented', 501
 
 
-@api.route('/<int:id>')
+@api.route('/<int:result_id>')
 class GetResult(Resource):
     @api.doc(params={'id': 'The result ID'})
-    def get(self, id: int) -> typing.Any:
+    def get(self, result_id: int) -> typing.Any:
         sleep(5)
+        print(result_id)
         return 'Not implemented', 501
 
-@api.route('/<int:id>/rate')
+@api.route('/<int:result_id>/rate')
 class RateResult(Resource):
     @api.doc(params={'id': 'The result ID'})
-    def patch(self, id: int) -> typing.Any:
+    def patch(self, result_id: int) -> typing.Any:
+        print(result_id)
         return 'Not implemented', 501
