@@ -1,4 +1,4 @@
-from objects_counter.db.models import db, Image, User, Result  # noqa
+from objects_counter.db.models import db, Image, User, Result  # pylint: disable=unused-import
 
 
 def config_db(app, db_name):
