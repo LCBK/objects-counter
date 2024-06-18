@@ -1,4 +1,6 @@
 import os
+import random
+import string
 import time
 import typing
 
@@ -6,6 +8,7 @@ import flask
 from flask import request
 from flask_restx import Resource, Namespace
 from werkzeug.datastructures import FileStorage
+from werkzeug.utils import secure_filename
 
 api = Namespace('default', description='Default namespace')
 process_parser = api.parser()
@@ -33,15 +36,20 @@ class Process(Resource):
     @api.response(415, "Unsupported type")
     def post(self) -> typing.Any:
         if 'image' not in request.files:
-            print("XD!")
-            return 'debil', 400
+            print("ERROR: no image provided")
+            return 'No image provided', 400
         image = request.files["image"]
 
         # save the received image to upload directory
         if not os.path.exists(flask.current_app.config["UPLOAD_FOLDER"]):
             print("WARN: upload folder does not exist")
             os.makedirs(flask.current_app.config["UPLOAD_FOLDER"])
-        dst = os.path.join(flask.current_app.config["UPLOAD_FOLDER"], image.filename)
+        filename = secure_filename(image.filename)
+        if not filename:
+            filename = "empty_filename"
+        prefix = str(int(time.time())) + "_".join(random.choice(string.ascii_letters) for _ in range(8))
+        unique_safe_filename = prefix + "_" + filename
+        dst = os.path.join(flask.current_app.config["UPLOAD_FOLDER"], unique_safe_filename)
         image.save(dst)
 
         # TODO: save file location in the db
