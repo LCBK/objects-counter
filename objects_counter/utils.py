@@ -1,4 +1,4 @@
-from objects_counter.db.models import db, Image  # noqa: F401
+from objects_counter.db.models import db, Image, User, Result  # noqa
 
 
 def config_db(app, db_name):

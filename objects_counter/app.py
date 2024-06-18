@@ -1,6 +1,7 @@
 import os
 
 from flask import Flask
+from flask_cors import CORS
 from flask_migrate import Migrate
 
 from objects_counter.api import blueprint, api
@@ -15,6 +16,8 @@ def create_app(test_config=None):
         SECRET_KEY='dev',
         DATABASE=os.path.join(app.instance_path, 'object_counter.sqlite'),
     )
+
+    CORS(app)
 
     if test_config is None:
         app.config.from_pyfile('config.py', silent=True)
