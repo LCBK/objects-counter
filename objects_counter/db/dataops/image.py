@@ -3,11 +3,12 @@ from sqlalchemy.exc import DatabaseError
 from objects_counter.db.models import db, Image
 
 
-def insert_image(filepath: str) -> None:
+def insert_image(filepath: str) -> Image:
     image = Image(filepath=filepath)
     db.session.add(image)
     try:
         db.session.commit()
+        return image
     except DatabaseError as e:
         print('ERROR: failed to insert image', e)
         db.session.rollback()

@@ -6,7 +6,7 @@ from flask_migrate import Migrate
 
 from objects_counter.api import blueprint, api
 from objects_counter.consts import UPLOAD_FOLDER, DB_NAME
-from objects_counter.db.models import db
+from objects_counter.db.models import db, bcrypt
 from objects_counter.utils import config_db
 
 
@@ -36,5 +36,6 @@ api.init_app(app, add_specs=False)
 app.register_blueprint(blueprint)
 
 config_db(app, DB_NAME)
+bcrypt.init_app(app)
 
 migrate = Migrate(app, db)

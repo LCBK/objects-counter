@@ -1,4 +1,3 @@
-# pylint: disable=all
 import logging
 from logging.config import fileConfig
 

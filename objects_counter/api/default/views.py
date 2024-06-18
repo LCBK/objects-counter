@@ -10,6 +10,9 @@ from flask_restx import Resource, Namespace
 from werkzeug.datastructures import FileStorage
 from werkzeug.utils import secure_filename
 
+from objects_counter.db.dataops.image import insert_image
+from objects_counter.db.dataops.result import insert_result
+
 api = Namespace('default', description='Default namespace')
 process_parser = api.parser()
 process_parser.add_argument('image', type=FileStorage, location='files')
@@ -53,14 +56,12 @@ class Process(Resource):
         image.save(dst)
 
         # TODO: save file location in the db
+        image_obj = insert_image(dst)
 
         # TODO: submit the file for processing and wait for result
-
-        # TODO: save the result to the db
-
         time.sleep(3)  # mocking processing time, TODO: remove
 
-        mock_response = {
+        result = {
             "id": 123456,
             "data": [
                 {
@@ -78,4 +79,12 @@ class Process(Resource):
             ]
         }
 
-        return mock_response, 201
+        user_id = 1  # TODO: implement user authentication
+
+        if result:
+            insert_result(user_id, image_obj.id, result)
+        else:
+            print("ERROR: no result received")
+            return 'Error processing image', 500
+
+        return result, 201
