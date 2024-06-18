@@ -7,6 +7,9 @@ export const useImageStateStore = defineStore("imageState", {
             isUploading: false,
             isUploaded: false,
             url: "",
+            width: 0,
+            height: 0,
+            boundingBoxScale: 1,
             result: [{
                 top_left: [0, 0], 
                 bottom_right: [0, 0], 
