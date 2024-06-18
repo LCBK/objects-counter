@@ -2,6 +2,7 @@ from flask_sqlalchemy import SQLAlchemy
 
 db = SQLAlchemy()
 
+# pylint: disable=too-few-public-methods
 
 class Image(db.Model):
     __tablename__ = 'image'

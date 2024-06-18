@@ -10,40 +10,31 @@ from objects_counter.db.models import db
 from objects_counter.utils import config_db
 
 
-def create_app(test_config=None):
-    app = Flask(__name__, instance_relative_config=True)
-    app.config.from_mapping(
-        SECRET_KEY='dev',
-        DATABASE=os.path.join(app.instance_path, 'object_counter.sqlite'),
-    )
+app = Flask(__name__, instance_relative_config=True)
+app.config.from_mapping(
+    SECRET_KEY='dev',
+    DATABASE=os.path.join(app.instance_path, 'object_counter.sqlite'),
+)
 
-    CORS(app)
+CORS(app)
 
-    if test_config is None:
-        app.config.from_pyfile('config.py', silent=True)
-    else:
-        app.config.from_mapping(test_config)
+app.config.from_pyfile('config.py', silent=True)
 
-    app.config['UPLOAD_FOLDER'] = app.instance_path + UPLOAD_FOLDER
+app.config['UPLOAD_FOLDER'] = app.instance_path + UPLOAD_FOLDER
 
-    try:
-        os.makedirs(app.instance_path)
-    except FileExistsError:
-        pass
+try:
+    os.makedirs(app.instance_path)
+except FileExistsError:
+    pass
 
-    try:
-        os.makedirs(app.config["UPLOAD_FOLDER"])
-    except FileExistsError:
-        pass
+try:
+    os.makedirs(app.config["UPLOAD_FOLDER"])
+except FileExistsError:
+    pass
 
-    api.init_app(app, add_specs=False)
-    app.register_blueprint(blueprint)
+api.init_app(app, add_specs=False)
+app.register_blueprint(blueprint)
 
-    config_db(app, DB_NAME)
-
-    return app
-
-
-app = create_app()
+config_db(app, DB_NAME)
 
 migrate = Migrate(app, db)
