@@ -70,7 +70,7 @@ class Process(Resource):
                 {
                     "top_left": [80, 150],
                     "bottom_right": [140, 210],
-                    "certainty": 0.76,
+                    "certainty": 0.82,
                     "class": "ipsum"
                 }
             ]
