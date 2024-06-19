@@ -57,8 +57,8 @@ function scaleOverlay() {
 onBeforeMount(() => {
     // Determine class colors
     let colorIndex = 0;
-    let assignedClasses: Array<string> = [];
-    let assignedColors: Array<string> = [];
+    const assignedClasses: Array<string> = [];
+    const assignedColors: Array<string> = [];
     imageState.results.forEach((box) => {
         if (!assignedClasses.includes(box.class)) {
             let newColor = boundingBoxColors[colorIndex % boundingBoxColors.length]
@@ -85,9 +85,9 @@ onMounted(() => {
     <div class="img-overlay" ref="overlay">
         <div class="inner-overlay" ref="innerOverlay" style="position: absolute">
             <BoundingBox v-for="([, box], index) in Object.entries(results)" :key="index"
-                v-bind:top-left="box.top_left" v-bind:bottom-right="box.bottom_right"
-                v-bind:certainty="box.certainty" v-bind:class="box.class"
-                v-bind:index="index" v-bind:color="box.color" />
+                    v-bind:top-left="box.top_left" v-bind:bottom-right="box.bottom_right"
+                    v-bind:certainty="box.certainty" v-bind:class="box.class"
+                    v-bind:index="index" v-bind:color="box.color" />
         </div>
     </div>
 </template>

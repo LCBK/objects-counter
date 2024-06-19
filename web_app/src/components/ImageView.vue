@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import ImageDisplay from "./ImageDisplay.vue";
 import ImageViewNavBar from "./ImageViewNavBar.vue";
+import ImageViewToolBar from "./ImageViewToolBar.vue";
 </script>
 
 
@@ -8,6 +9,7 @@ import ImageViewNavBar from "./ImageViewNavBar.vue";
     <div id="image-view" class="view">
         <ImageViewNavBar />
         <ImageDisplay />
+        <ImageViewToolBar />
     </div>
 </template>
 

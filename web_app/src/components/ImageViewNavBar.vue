@@ -9,14 +9,14 @@ function onBack() : void {
 
 
 <template>
-    <div class="image-view-bar">
+    <div class="image-view-nav-bar">
         <VButton label="Back" outlined icon="pi pi-chevron-left" @click="onBack()" />
     </div>
 </template>
 
 
 <style scoped>
-.image-view-bar {
+.image-view-nav-bar {
     padding: 8px;
 }
 </style>

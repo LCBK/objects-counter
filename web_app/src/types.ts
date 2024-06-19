@@ -6,3 +6,9 @@ export interface Result {
     class: string,
     color: string
 }
+
+export interface Quantity {
+    index: number,
+    class: string,
+    count: number
+}
