@@ -5,6 +5,10 @@ import { computed, defineProps } from 'vue';
 
 const imageState = useImageStateStore();
 const props = defineProps({
+    index: {
+        type: Number,
+        required: true
+    },
     topLeft: {                          // top-left corner [x, y]
         type: Array<number>,
         required: true
@@ -19,9 +23,12 @@ const props = defineProps({
     class: {
         type: String
     },
+    color: {
+        type: String
+    }
 });
 
-const boxColor = "red";
+const boxColor = computed(() => props.color);
 const scale = computed(() => imageState.boundingBoxScale);
 const top = computed(() => props.topLeft[1] * scale.value + "px");
 const left = computed(() => props.topLeft[0] * scale.value + "px");
@@ -32,11 +39,10 @@ const height = computed(() => props.bottomRight[1] * scale.value + "px");
 
 <template>
     <div class="bounding-box"
-            v-if="props.topLeft !== undefined && props.bottomRight !== undefined"
             v-bind:data-topleft="props.topLeft[0] + ',' + props.topLeft[1]"
-            v-bind:data-bottomright="props.bottomRight[0] + ',' + props.bottomRight[1]">
-        <div class="certainty">{{ props.certainty }}</div>
-        <div class="class">{{ props.class }}</div>
+            v-bind:data-bottomright="props.bottomRight[0] + ',' + props.bottomRight[1]"
+            v-bind:data-certainty="props.certainty" v-bind:data-class="props.class"
+            v-bind:data-index="props.index">
     </div>
 </template>
 
@@ -51,9 +57,5 @@ const height = computed(() => props.bottomRight[1] * scale.value + "px");
     top: v-bind(top);
     width: v-bind(width);
     height: v-bind(height);
-}
-
-.bounding-box > * {
-    display: none;
 }
 </style>

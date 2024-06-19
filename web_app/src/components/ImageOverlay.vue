@@ -1,13 +1,14 @@
 <script setup lang="ts">
 import { useImageStateStore } from "@/stores/imageState";
 import BoundingBox from "./BoundingBox.vue";
-import { ref, onMounted } from "vue";
+import { ref, onMounted, onBeforeMount } from "vue";
+import { boundingBoxColors } from "@/config";
 
 
 const imageState = useImageStateStore();
 const overlay = ref<HTMLDivElement>();
 const innerOverlay = ref<HTMLDivElement>();
-const results = imageState.result;
+const results = imageState.results;
 
 
 function scaleOverlay() {
@@ -53,6 +54,26 @@ function scaleOverlay() {
     }
 }
 
+onBeforeMount(() => {
+    // Determine class colors
+    let colorIndex = 0;
+    let assignedClasses: Array<string> = [];
+    let assignedColors: Array<string> = [];
+    imageState.results.forEach((box) => {
+        if (!assignedClasses.includes(box.class)) {
+            let newColor = boundingBoxColors[colorIndex % boundingBoxColors.length]
+            assignedClasses.push(box.class);
+            assignedColors.push(newColor);
+            colorIndex++;
+            box.color = newColor;
+        }
+        else {
+            let colorIndex = assignedClasses.indexOf(box.class);
+            box.color = assignedColors[colorIndex];
+        }
+    });
+})
+
 onMounted(() => {
     scaleOverlay();
     window.addEventListener("resize", scaleOverlay);
@@ -63,9 +84,10 @@ onMounted(() => {
 <template>
     <div class="img-overlay" ref="overlay">
         <div class="inner-overlay" ref="innerOverlay" style="position: absolute">
-            <BoundingBox v-for="b in results" :key="b.top_left[0]"
-                v-bind:top-left="b.top_left" v-bind:bottom-right="b.bottom_right"
-                v-bind:certainty="b.certainty" v-bind:class="b.class" />
+            <BoundingBox v-for="([, box], index) in Object.entries(results)" :key="index"
+                v-bind:top-left="box.top_left" v-bind:bottom-right="box.bottom_right"
+                v-bind:certainty="box.certainty" v-bind:class="box.class"
+                v-bind:index="index" v-bind:color="box.color" />
         </div>
     </div>
 </template>

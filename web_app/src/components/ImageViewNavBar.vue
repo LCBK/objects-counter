@@ -2,13 +2,8 @@
 import VButton from "primevue/button";
 import { useImageStateStore } from "@/stores/imageState";
 
-
-const imageState = useImageStateStore();
-
 function onBack() : void {
-    imageState.isUploaded = false;
-    imageState.url = "";
-    // clear image data
+    useImageStateStore().reset();
 }
 </script>
 

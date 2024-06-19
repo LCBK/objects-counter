@@ -48,7 +48,7 @@ function onImageUpload(event: Event) : void {
             // todo: handle response codes
             imageState.isUploading = false;
             imageState.isUploaded = true;
-            imageState.result = response.data;
+            imageState.results = response.data;
         });
     }
 }
