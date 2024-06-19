@@ -10,8 +10,10 @@ from flask_restx import Resource, Namespace
 from werkzeug.datastructures import FileStorage
 from werkzeug.utils import secure_filename
 
+from objects_counter.api.utils import authentication_optional
 from objects_counter.db.dataops.image import insert_image
 from objects_counter.db.dataops.result import insert_result
+from objects_counter.db.models import User
 
 api = Namespace('default', description='Default namespace')
 process_parser = api.parser()
@@ -37,7 +39,8 @@ class Process(Resource):
     @api.response(400, "No image provided")
     @api.response(413, "Payload too large")
     @api.response(415, "Unsupported type")
-    def post(self) -> typing.Any:
+    @authentication_optional
+    def post(self, current_user: User) -> typing.Any:
         if 'image' not in request.files:
             print("ERROR: no image provided")
             return 'No image provided', 400
@@ -50,12 +53,12 @@ class Process(Resource):
         filename = secure_filename(image.filename)
         if not filename:
             filename = "empty_filename"
-        prefix = str(int(time.time())) + "_".join(random.choice(string.ascii_letters) for _ in range(8))
+        prefix = (str(int(time.time())) + "_").join(random.choice(string.ascii_letters) for _ in range(8))
         unique_safe_filename = prefix + "_" + filename
         dst = os.path.join(flask.current_app.config["UPLOAD_FOLDER"], unique_safe_filename)
         image.save(dst)
 
-        # TODO: save file location in the db
+        # save file location in the db
         image_obj = insert_image(dst)
 
         # TODO: submit the file for processing and wait for result
@@ -78,13 +81,12 @@ class Process(Resource):
                 }
             ]
         }
-
-        user_id = 1  # TODO: implement user authentication
-
-        if result:
-            insert_result(user_id, image_obj.id, result)
-        else:
+        if not result:
             print("ERROR: no result received")
             return 'Error processing image', 500
 
-        return result, 201
+        if current_user:
+            user_id = current_user.id
+            insert_result(user_id, image_obj.id, result)
+            return result, 201
+        return result, 200

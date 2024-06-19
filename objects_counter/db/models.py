@@ -29,3 +29,12 @@ class Result(db.Model):
     timestamp = db.Column(db.DateTime, nullable=False, default=db.func.now())
     user = db.relationship('User', backref='results')
     image = db.relationship('Image', backref='results')
+
+    def as_dict(self):
+        return {
+            'id': self.id,
+            'user': self.user.username,
+            'image_id': self.image_id,
+            'data': self.data,
+            'timestamp': self.timestamp
+        }
