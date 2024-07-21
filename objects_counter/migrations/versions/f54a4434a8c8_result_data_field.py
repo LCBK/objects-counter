@@ -1,7 +1,7 @@
 """result data field
 
 Revision ID: f54a4434a8c8
-Revises: 
+Revises: 000000000000
 Create Date: 2024-06-18 20:56:58.844367
 
 """
@@ -11,7 +11,7 @@ import sqlalchemy as sa
 
 # revision identifiers, used by Alembic.
 revision = 'f54a4434a8c8'
-down_revision = None
+down_revision = '000000000000'
 branch_labels = None
 depends_on = None
 
