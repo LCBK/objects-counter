@@ -36,8 +36,8 @@ def upgrade():
                     sa.Column('image_id', sa.Integer(), nullable=False),
                     sa.Column('objects_count', sa.INTEGER(), nullable=False),
                     sa.Column('timestamp', sa.DateTime(), nullable=False),
-                    sa.ForeignKeyConstraint(['image_id'], ['image.id'], ),
-                    sa.ForeignKeyConstraint(['user_id'], ['user.id'], ),
+                    sa.ForeignKeyConstraint(['image_id'], ['image.id'], 'fk_result_image_id_image'),
+                    sa.ForeignKeyConstraint(['user_id'], ['user.id'], 'fk_result_user_id_user'),
                     sa.PrimaryKeyConstraint('id')
                     )
     # ### end Alembic commands ###
@@ -45,4 +45,4 @@ def upgrade():
 
 def downgrade():
     # No need to downgrade initial migration
-    pass
+    raise NotImplementedError("Downgrading initial migration is not allowed")
