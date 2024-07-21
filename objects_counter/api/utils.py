@@ -4,6 +4,7 @@ from http import HTTPStatus
 import jwt
 from flask import request, Response, current_app
 
+from objects_counter.consts import MAX_DB_STRING_LENGTH
 from objects_counter.db.dataops.user import get_user_by_id
 
 
@@ -67,6 +68,8 @@ def get_user_from_input(data):
     if not data:
         raise ValueError('No input data provided')
     username = data.get('username')
+    if len(username) > MAX_DB_STRING_LENGTH:
+        raise ValueError('Username too long')
     password = data.get('password')
     if not username.isalnum() or not validate_password(password):
         raise ValueError('Invalid input data')
