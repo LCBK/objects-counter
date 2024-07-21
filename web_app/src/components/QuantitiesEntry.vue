@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import VCheckbox from "primevue/checkbox";
-
 const props = defineProps({
     index: {
         type: Number,
@@ -20,9 +18,8 @@ const props = defineProps({
 
 <template>
     <div class="quantity">
-        <VCheckbox :binary="true" class="quantity-checkbox" />
-        <div class="quantity-class">{{ props.class }}</div>
         <div class="quantity-count">{{ props.count }}</div>
+        <div class="quantity-class">{{ props.class }}</div>
     </div>
 </template>
 
@@ -31,17 +28,19 @@ const props = defineProps({
 .quantity {
     display: flex;
     flex-direction: row;
-}
-
-.quantity-checkbox {
-    margin-right: 10px;
+    margin: 15px 0;
+    align-items: center;
+    border-bottom: 1px solid #282828;
 }
 
 .quantity-class {
-    flex-grow: 2;
+    margin-left: 10px;
+    font-size: 1rem;
 }
 
 .quantity-count {
-    flex-grow: 1;
+    font-size: 1.6rem;
+    text-align: center;
+    width: 30px;
 }
 </style>

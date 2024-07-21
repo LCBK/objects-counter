@@ -54,14 +54,13 @@ function scaleOverlay() {
     }
 }
 
-onBeforeMount(() => {
-    // Determine class colors
+function assignClassColors() {
     let colorIndex = 0;
     const assignedClasses: Array<string> = [];
     const assignedColors: Array<string> = [];
     imageState.results.forEach((box) => {
         if (!assignedClasses.includes(box.class)) {
-            let newColor = boundingBoxColors[colorIndex % boundingBoxColors.length]
+            let newColor = boundingBoxColors[colorIndex % boundingBoxColors.length];
             assignedClasses.push(box.class);
             assignedColors.push(newColor);
             colorIndex++;
@@ -72,6 +71,11 @@ onBeforeMount(() => {
             box.color = assignedColors[colorIndex];
         }
     });
+}
+
+
+onBeforeMount(() => {
+    assignClassColors();
 })
 
 onMounted(() => {

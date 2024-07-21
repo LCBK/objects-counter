@@ -28,7 +28,8 @@ onMounted(() => {
 .image-display {
     overflow: hidden;
     position: relative;
-    height: calc(100% - 108px);
+    height: calc(100% - 144px);
+    top: 54px;
 }
 
 .image-display img {
