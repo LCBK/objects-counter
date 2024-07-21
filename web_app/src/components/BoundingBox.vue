@@ -1,33 +1,50 @@
 <script setup lang="ts">
-import { defineProps } from 'vue';
+import { useImageStateStore } from '@/stores/imageState';
+import { computed, defineProps } from 'vue';
 
+
+const imageState = useImageStateStore();
 const props = defineProps({
-    topLeft: Array<Number>,             // top-left corner [x, y]
-    bottomRight: Array<Number>,         // bottom-right corner [x, y]
-    certainty: Number,
-    class: String
+    index: {
+        type: Number,
+        required: true
+    },
+    topLeft: {                          // top-left corner [x, y]
+        type: Array<number>,
+        required: true
+    },
+    bottomRight: {                          // bottom-right corner [x, y]
+        type: Array<number>,
+        required: true
+    },
+    certainty: {
+        type: Number
+    },
+    class: {
+        type: String
+    },
+    color: {
+        type: String
+    }
 });
 
-const boxColor = "red";
-let top: String = "0px", left: String = "0px";
-let width: String = "0px", height: String = "0px";
-
-if (props.topLeft != undefined) {
-    left = props.topLeft[0] + "px";
-    top = props.topLeft[1] + "px";
-}
-
-if (props.bottomRight != undefined) {
-    width = props.bottomRight[0] + "px";
-    height = props.bottomRight[1] + "px";
-}
+const boxColor = computed(() => props.color);
+const scale = computed(() => imageState.boundingBoxScale);
+const top = computed(() => props.topLeft[1] * scale.value + "px");
+const left = computed(() => props.topLeft[0] * scale.value + "px");
+const width = computed(() => props.bottomRight[0] * scale.value + "px");
+const height = computed(() => props.bottomRight[1] * scale.value + "px");
 </script>
 
 
 <template>
-    <div class="bounding-box">
-        <div class="certainty">{{ props.certainty }}</div>
-        <div class="class">{{ props.class }}</div>
+    <div class="bounding-box"
+            v-bind:data-topleft="props.topLeft[0] + ',' + props.topLeft[1]"
+            v-bind:data-bottomright="props.bottomRight[0] + ',' + props.bottomRight[1]"
+            v-bind:data-certainty="props.certainty" v-bind:data-class="props.class"
+            v-bind:data-index="props.index">
+        <div class="box-certainty">{{ props.certainty }}</div>
+        <div class="box-class">{{ props.class }}</div>
     </div>
 </template>
 
@@ -44,7 +61,27 @@ if (props.bottomRight != undefined) {
     height: v-bind(height);
 }
 
-.bounding-box > * {
-    display: none;
+.bounding-box .box-certainty {
+    background-color: v-bind(boxColor);
+    position: absolute;
+    line-height: 16px;
+    bottom: -16px;
+    right: -2px;
+    font-size: 12px;
+    font-weight: bold;
+    color: white;
+    padding: 0 3px;
+}
+
+.bounding-box .box-class {
+    background-color: v-bind(boxColor);
+    position: absolute;
+    line-height: 16px;
+    bottom: -16px;
+    left: -2px;
+    font-size: 12px;
+    font-weight: bold;
+    color: white;
+    padding: 0 3px;
 }
 </style>
