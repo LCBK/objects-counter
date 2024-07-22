@@ -4,7 +4,7 @@ from flask import Flask
 from flask_cors import CORS
 from flask_migrate import Migrate
 
-from objects_counter.api import blueprint, api
+from objects_counter.api.common import blueprint, api
 from objects_counter.consts import UPLOAD_FOLDER, DB_NAME
 from objects_counter.db.models import db, bcrypt
 from objects_counter.utils import config_db

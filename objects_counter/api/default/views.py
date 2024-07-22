@@ -10,8 +10,9 @@ from flask_restx import Resource, Namespace
 from werkzeug.datastructures import FileStorage
 from werkzeug.utils import secure_filename
 
+from objects_counter.api.default.models import points_model
 from objects_counter.api.utils import authentication_optional
-from objects_counter.db.dataops.image import insert_image
+from objects_counter.db.dataops.image import insert_image, get_image_by_id, update_points
 from objects_counter.db.dataops.result import insert_result
 from objects_counter.db.models import User
 
@@ -32,15 +33,14 @@ class Version(Resource):
         return '0.1'
 
 
-@api.route('/process')
+@api.route('/upload')
 class Process(Resource):
     @api.expect(process_parser)
     @api.response(201, "Image submitted successfully")
     @api.response(400, "No image provided")
     @api.response(413, "Payload too large")
     @api.response(415, "Unsupported type")
-    @authentication_optional
-    def post(self, current_user: User) -> typing.Any:
+    def post(self) -> typing.Any:
         if 'image' not in request.files:
             print("ERROR: no image provided")
             return 'No image provided', 400
@@ -60,7 +60,34 @@ class Process(Resource):
 
         # save file location in the db
         image_obj = insert_image(dst)
+        return image_obj.id, 201
 
+
+@api.route('/images/<int:image_id>/background')
+class BackgroundPoints(Resource):
+    @api.doc(params={'image_id': 'The image ID'})
+    @api.expect(points_model)
+    def put(self, image_id: int) -> typing.Any:
+        image_obj = get_image_by_id(image_id)
+        points = request.json
+        if not points:
+            print("ERROR: no points provided")
+            return 'No points provided', 400
+        if not isinstance(points, dict):
+            print("ERROR: points should be a dictionary")
+            return 'Points should be a dictionary', 400
+
+        # save the points in the db
+        update_points(image_obj.id, points)
+        return 'Points saved', 200
+
+
+@api.route('/images/<int:image_id>/background/accept')
+class AcceptBackgroundPoints(Resource):
+    @api.doc(params={'image_id': 'The image ID'})
+    @authentication_optional
+    def post(self, current_user: User, image_id: int) -> typing.Any:
+        image_obj = get_image_by_id(image_id)
         # TODO: submit the file for processing and wait for result
         time.sleep(3)  # mocking processing time, TODO: remove
 
