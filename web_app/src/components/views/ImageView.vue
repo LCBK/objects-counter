@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import ImageDisplay from "./ImageDisplay.vue";
-import ImageViewNavBar from "./ImageViewNavBar.vue";
-import { useViewStateStore } from "../stores/viewState";
+import ImageDisplay from "../ImageDisplay.vue";
+import ImageViewNavBar from "../ImageViewNavBar.vue";
+import { useViewStateStore } from "../../stores/viewState";
 
 const viewState = useViewStateStore();
 </script>

@@ -8,7 +8,8 @@ const viewState = useViewStateStore();
 
 <template>
     <div class="image-view-tool-bar bar">
-        <VButton text label="Edit selection" class="edit-selection" icon="pi pi-pencil" />
+        <VButton text label="Edit selection" class="edit-selection" icon="pi pi-pencil"
+                @click="viewState.setState('editPoints')" />
         <VButton text label="Confirm selection" class="confirm-selection" icon="pi pi-check"
                 @click="viewState.setState('viewResult')" />
     </div>

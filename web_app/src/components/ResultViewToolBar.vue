@@ -3,11 +3,13 @@ import VButton from "primevue/button";
 import VSidebar from "primevue/sidebar";
 import QuantitiesEntry from "./QuantitiesEntry.vue";
 import { useImageStateStore } from "@/stores/imageState";
+import { useViewStateStore } from "@/stores/viewState";
 import type { Quantity } from '@/types';
 import { computed } from "vue";
 
 const visible = defineModel<boolean>();
 const imageState = useImageStateStore();
+const viewState = useViewStateStore();
 
 const quantities: Array<Quantity> = [];
 const countedClasses: Array<string> = [];
@@ -42,8 +44,10 @@ const elementCount = imageState.results.length;
 
 <template>
     <div class="image-view-tool-bar bar">
-        <VButton text v-bind:label="elementCount + ' elements'" class="quant" icon="pi pi-list" @click="visible = true" />
-        <VButton text label="Edit selection" class="edit-selection" icon="pi pi-pencil" />
+        <VButton text v-bind:label="elementCount + ' elements'" class="quant" icon="pi pi-list"
+                @click="visible = true" />
+        <VButton text label="Edit selection" class="edit-selection" icon="pi pi-pencil"
+                @click="viewState.setState('editPoints')" />
     </div>
     <VSidebar v-model:visible="visible" position="bottom" style="height: auto">
         <QuantitiesEntry v-for="(quantity, index) in orderedQuantities" :key="index"

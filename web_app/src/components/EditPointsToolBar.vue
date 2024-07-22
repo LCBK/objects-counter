@@ -8,8 +8,10 @@ const viewState = useViewStateStore();
 
 <template>
     <div class="image-view-tool-bar bar">
-        <VButton text label="Add point" class="add-point" icon="pi pi-plus" />
-        <VButton text label="Edit points" class="edit-points" icon="pi pi-list" />
+        <VButton text label="Add points" class="add-point" icon="pi pi-plus"
+                @click="viewState.toggleAddPoint" />
+        <VButton text label="Remove points" class="remove-points" icon="pi pi-minus"
+                @click="viewState.toggleRemovePoint" />
         <VButton text label="Confirm points" class="confirm-points" icon="pi pi-check"
                 @click="viewState.setState('confirmBackground')" />
     </div>

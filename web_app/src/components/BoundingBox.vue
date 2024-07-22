@@ -30,6 +30,8 @@ const props = defineProps({
 
 const boxColor = computed(() => props.color);
 const scale = computed(() => imageState.boundingBoxScale);
+
+// CSS properties
 const top = computed(() => props.topLeft[1] * scale.value + "px");
 const left = computed(() => props.topLeft[0] * scale.value + "px");
 const width = computed(() => props.bottomRight[0] * scale.value + "px");

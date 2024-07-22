@@ -1,15 +1,27 @@
 <script setup lang="ts">
 import { useImageStateStore } from "@/stores/imageState";
+import { useViewStateStore } from "@/stores/viewState";
 import BoundingBox from "./BoundingBox.vue";
-import { ref, onMounted, onBeforeMount } from "vue";
+import SelectionPoint from "./SelectionPoint.vue";
+import { ref, onMounted, onBeforeMount, computed } from "vue";
 import { boundingBoxColors } from "@/config";
 
 
 const imageState = useImageStateStore();
+const viewState = useViewStateStore();
+
 const overlay = ref<HTMLDivElement>();
 const innerOverlay = ref<HTMLDivElement>();
-const results = imageState.results;
 
+const results = imageState.results;
+const points = imageState.points;
+
+const scale = computed(() => imageState.boundingBoxScale);
+
+
+function getTransformedCoords() {
+
+}
 
 function scaleOverlay() {
     if (overlay.value === undefined || overlay.value === null ||
@@ -46,6 +58,11 @@ function scaleOverlay() {
     innerOverlay.value.style.top = top_margin + "px";
     innerOverlay.value.style.left = left_margin + "px";
 
+    imageState.scaledImageWidth = innerImageWidth;
+    imageState.scaledImageHeight = innerImageHeight;
+    imageState.overlayOffsetLeft = left_margin;
+    imageState.overlayOffsetTop = top_margin;
+
     if (srcImageRatio > overlayRatio) {
         imageState.boundingBoxScale = innerImageWidth / imageState.width;
     }
@@ -55,9 +72,10 @@ function scaleOverlay() {
 }
 
 function assignClassColors() {
-    let colorIndex = 0;
     const assignedClasses: Array<string> = [];
     const assignedColors: Array<string> = [];
+
+    let colorIndex = 0;
     imageState.results.forEach((box) => {
         if (!assignedClasses.includes(box.class)) {
             let newColor = boundingBoxColors[colorIndex % boundingBoxColors.length];
@@ -71,6 +89,18 @@ function assignClassColors() {
             box.color = assignedColors[colorIndex];
         }
     });
+}
+
+function handleOverlayClick(event: MouseEvent) {
+    const headerHeight = document.querySelector(".image-view-nav-bar")!.clientHeight;
+    const x = (event.clientX - imageState.overlayOffsetLeft) / scale.value;
+    const y = (event.clientY - imageState.overlayOffsetTop - headerHeight) / scale.value;
+    if (viewState.isAddingPoint) {
+        imageState.addPoint(true, x, y);
+    }
+    else if (viewState.isRemovingPoint) {
+        imageState.removePoint(x, y);
+    }
 }
 
 
@@ -87,11 +117,14 @@ onMounted(() => {
 
 <template>
     <div class="img-overlay" ref="overlay">
-        <div class="inner-overlay" ref="innerOverlay" style="position: absolute">
+        <div class="inner-overlay" ref="innerOverlay" style="position: absolute"
+                @click="handleOverlayClick">
             <BoundingBox v-for="([, box], index) in Object.entries(results)" :key="index"
                     v-bind:top-left="box.top_left" v-bind:bottom-right="box.bottom_right"
                     v-bind:certainty="box.certainty" v-bind:class="box.class"
                     v-bind:index="index" v-bind:color="box.color" />
+            <SelectionPoint v-for="([, point], index) in Object.entries(points)" :key="index"
+                    v-bind:is-positive="true" v-bind:position="point.position" />
         </div>
     </div>
 </template>

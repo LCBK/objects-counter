@@ -1,9 +1,8 @@
 import { defineStore } from "pinia";
-import { shallowRef } from "vue";
 
-import MainView from "../components/MainView.vue";
-import LoadingView from "../components/LoadingView.vue";
-import ImageView from "../components/ImageView.vue";
+import MainView from "../components/views/MainView.vue";
+import LoadingView from "../components/views/LoadingView.vue";
+import ImageView from "../components/views/ImageView.vue";
 
 import ConfirmPointsToolBar from "../components/ConfirmPointsToolBar.vue";
 import EditPointsToolBar from "../components/EditPointsToolBar.vue";
@@ -14,6 +13,9 @@ const defaultState = {
     isImageUploading: false,
     isImageUploaded: false,
     hasReceivedResult: false,
+    isAddingPoint: false,
+    isRemovingPoint: false,
+    currentNavBarTitle: "",
     currentView: MainView,
     currentImageViewToolBar: EditPointsToolBar
 }
@@ -30,27 +32,47 @@ export const useViewStateStore = defineStore("viewState", {
             switch (state) {
                 case "beforeUpload":
                     this.reset();
+                    this.currentNavBarTitle = "";
+                    this.isAddingPoint = false;
                     break;
 
                 case "uploading":
                     this.currentView = LoadingView;
+                    this.currentNavBarTitle = "";
+                    this.isAddingPoint = false;
                     break;
                 
                 case "editPoints":
                     this.currentView = ImageView;
                     this.currentImageViewToolBar = EditPointsToolBar;
+                    this.currentNavBarTitle = "Select background";
+                    this.isAddingPoint = false;
                     break;
 
                 case "confirmBackground":
                     this.currentView = ImageView;
                     this.currentImageViewToolBar = ConfirmPointsToolBar;
+                    this.currentNavBarTitle = "Confirm selection";
+                    this.isAddingPoint = false;
                     break;
 
                 case "viewResult":
                     this.currentView = ImageView;
                     this.currentImageViewToolBar = ResultViewToolBar;
+                    this.currentNavBarTitle = "Result";
+                    this.isAddingPoint = false;
                     break;
             }
+        },
+
+        toggleAddPoint() {
+            this.isAddingPoint = !this.isAddingPoint;
+            if (this.isAddingPoint) this.isRemovingPoint = false;
+        },
+
+        toggleRemovePoint() {
+            this.isRemovingPoint = !this.isRemovingPoint;
+            if (this.isRemovingPoint) this.isAddingPoint = false;
         }
     }
 });

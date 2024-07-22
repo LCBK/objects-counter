@@ -11,3 +11,7 @@ export async function sendRequest(uri: string, data: FormData, method: string = 
         return Promise.reject(`Request to ${uri} failed: ${error}`);
     }
 }
+
+export function distance(x1: number, y1: number, x2: number, y2: number) {
+    return Math.sqrt(Math.pow(x1 - x2, 2) + Math.pow(y1 - y2, 2))
+}
