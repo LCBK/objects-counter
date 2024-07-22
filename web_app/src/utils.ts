@@ -1,10 +1,16 @@
-export async function sendRequest(uri: string, data: FormData, method: string = "POST") : Promise<any> {
+export async function sendRequest(
+    uri: string, data: FormData | string, method: string = "POST", type: string = "application/json"
+) : Promise<any> {
     try {
-        const response = await fetch(uri, {
+        const request: RequestInit = {
             method: method,
             body: data
-        });
-        const result = await response.json();
+        } 
+        if (!(data instanceof FormData)) {
+            request.headers = { "Content-Type": type };
+        }
+        const response = await fetch(uri, request);
+        const result = await response.clone().json().catch(() => response.text());
         console.log(`Request to ${uri} succeeded. Result: `, result);
         return result;
     } catch (error) {

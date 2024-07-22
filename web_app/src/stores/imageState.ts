@@ -5,6 +5,7 @@ import { defineStore } from "pinia";
 
 const defaultState = {
     url: "",
+    imageId: 0,
     width: 0,
     height: 0,
     scaledImageWidth: 0,
@@ -21,6 +22,7 @@ export const useImageStateStore = defineStore("imageState", {
     actions: {
         reset() {
             Object.assign(this, defaultState);
+            this.points = []
         },
 
         addPoint(isPositive: boolean, x: number, y: number) {

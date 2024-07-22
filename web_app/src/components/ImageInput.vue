@@ -39,20 +39,19 @@ function onImageUpload(event: Event) : void {
         };
 
         // Upload image to server
-        const requestUri = config.serverUri + endpoints.processImage;
+        const requestUri = config.serverUri + endpoints.uploadImage;
         const requestData = new FormData();
         requestData.append("image", imageFile);
         viewState.isImageUploading = true;
         viewState.setState("uploading");
-        const responsePromise = sendRequest(requestUri, requestData, "POST");
+        const responsePromise = sendRequest(requestUri, requestData, "POST", "multipart/form-data");
 
         // Handle server response
         responsePromise.then((response) => {
-            // todo: handle response codes
             viewState.isImageUploading = false;
             viewState.isImageUploaded = true;
             viewState.setState("editPoints");
-            imageState.results = response.data;
+            imageState.imageId = response;
         });
     }
 }

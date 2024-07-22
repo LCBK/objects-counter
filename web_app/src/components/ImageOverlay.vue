@@ -3,7 +3,7 @@ import { useImageStateStore } from "@/stores/imageState";
 import { useViewStateStore } from "@/stores/viewState";
 import BoundingBox from "./BoundingBox.vue";
 import SelectionPoint from "./SelectionPoint.vue";
-import { ref, onMounted, onBeforeMount, computed } from "vue";
+import { ref, onMounted, onBeforeMount, computed, onBeforeUpdate } from "vue";
 import { boundingBoxColors } from "@/config";
 
 
@@ -13,15 +13,11 @@ const viewState = useViewStateStore();
 const overlay = ref<HTMLDivElement>();
 const innerOverlay = ref<HTMLDivElement>();
 
-const results = imageState.results;
+const results = computed(() => imageState.results);
 const points = imageState.points;
 
 const scale = computed(() => imageState.boundingBoxScale);
 
-
-function getTransformedCoords() {
-
-}
 
 function scaleOverlay() {
     if (overlay.value === undefined || overlay.value === null ||
@@ -104,7 +100,7 @@ function handleOverlayClick(event: MouseEvent) {
 }
 
 
-onBeforeMount(() => {
+onBeforeUpdate(() => {
     assignClassColors();
 })
 

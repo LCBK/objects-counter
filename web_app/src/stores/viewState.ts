@@ -34,12 +34,14 @@ export const useViewStateStore = defineStore("viewState", {
                     this.reset();
                     this.currentNavBarTitle = "";
                     this.isAddingPoint = false;
+                    this.isRemovingPoint = false;
                     break;
 
                 case "uploading":
                     this.currentView = LoadingView;
                     this.currentNavBarTitle = "";
                     this.isAddingPoint = false;
+                    this.isRemovingPoint = false;
                     break;
                 
                 case "editPoints":
@@ -47,6 +49,7 @@ export const useViewStateStore = defineStore("viewState", {
                     this.currentImageViewToolBar = EditPointsToolBar;
                     this.currentNavBarTitle = "Select background";
                     this.isAddingPoint = false;
+                    this.isRemovingPoint = false;
                     break;
 
                 case "confirmBackground":
@@ -54,6 +57,7 @@ export const useViewStateStore = defineStore("viewState", {
                     this.currentImageViewToolBar = ConfirmPointsToolBar;
                     this.currentNavBarTitle = "Confirm selection";
                     this.isAddingPoint = false;
+                    this.isRemovingPoint = false;
                     break;
 
                 case "viewResult":
@@ -61,6 +65,7 @@ export const useViewStateStore = defineStore("viewState", {
                     this.currentImageViewToolBar = ResultViewToolBar;
                     this.currentNavBarTitle = "Result";
                     this.isAddingPoint = false;
+                    this.isRemovingPoint = false;
                     break;
             }
         },
