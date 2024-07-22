@@ -22,10 +22,6 @@
     font-size: 0.9rem;
 }
 
-.image-view-tool-bar .quant .p-button-label {
-    font-size: 1.2rem;
-}
-
 .bar {
     background-color: var(--surface-section);
     z-index: 10;

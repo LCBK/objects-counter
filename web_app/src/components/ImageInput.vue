@@ -2,11 +2,13 @@
 import { ref } from "vue";
 import VButton from "primevue/button";
 import { useImageStateStore } from "@/stores/imageState";
+import { useViewStateStore } from "@/stores/viewState";
 import { sendRequest } from "@/utils";
 import { config, endpoints } from "@/config";
 
 
 const imageState = useImageStateStore();
+const viewState = useViewStateStore();
 const captureInput = ref<HTMLInputElement>();
 const uploadInput = ref<HTMLInputElement>();
 
@@ -40,14 +42,16 @@ function onImageUpload(event: Event) : void {
         const requestUri = config.serverUri + endpoints.processImage;
         const requestData = new FormData();
         requestData.append("image", imageFile);
-        imageState.isUploading = true;
+        viewState.isImageUploading = true;
+        viewState.setState("uploading");
         const responsePromise = sendRequest(requestUri, requestData, "POST");
 
         // Handle server response
         responsePromise.then((response) => {
             // todo: handle response codes
-            imageState.isUploading = false;
-            imageState.isUploaded = true;
+            viewState.isImageUploading = false;
+            viewState.isImageUploaded = true;
+            viewState.setState("editPoints");
             imageState.results = response.data;
         });
     }

@@ -1,7 +1,9 @@
 <script setup lang="ts">
 import ImageDisplay from "./ImageDisplay.vue";
 import ImageViewNavBar from "./ImageViewNavBar.vue";
-import ImageViewToolBar from "./ImageViewToolBar.vue";
+import { useViewStateStore } from "../stores/viewState";
+
+const viewState = useViewStateStore();
 </script>
 
 
@@ -9,7 +11,7 @@ import ImageViewToolBar from "./ImageViewToolBar.vue";
     <div id="image-view" class="view">
         <ImageViewNavBar />
         <ImageDisplay />
-        <ImageViewToolBar />
+        <component :is="viewState.currentImageViewToolBar"></component>
     </div>
 </template>
 

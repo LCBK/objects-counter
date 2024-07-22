@@ -43,6 +43,7 @@ const elementCount = imageState.results.length;
 <template>
     <div class="image-view-tool-bar bar">
         <VButton text v-bind:label="elementCount + ' elements'" class="quant" icon="pi pi-list" @click="visible = true" />
+        <VButton text label="Edit selection" class="edit-selection" icon="pi pi-pencil" />
     </div>
     <VSidebar v-model:visible="visible" position="bottom" style="height: auto">
         <QuantitiesEntry v-for="(quantity, index) in orderedQuantities" :key="index"
@@ -66,9 +67,5 @@ const elementCount = imageState.results.length;
     padding: 12px 1rem;
     justify-content: space-between;
     flex: 1 1 0px;
-}
-
-.image-view-tool-bar .quant .p-button-label {
-    font-size: 1.2rem;
 }
 </style>

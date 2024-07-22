@@ -3,8 +3,6 @@ import { defineStore } from "pinia";
 
 
 const defaultState = {
-    isUploading: false,
-    isUploaded: false,
     url: "",
     width: 0,
     height: 0,

@@ -1,9 +1,11 @@
 <script setup lang="ts">
 import VButton from "primevue/button";
 import { useImageStateStore } from "@/stores/imageState";
+import { useViewStateStore } from "@/stores/viewState";
 
 function onBack() : void {
     useImageStateStore().reset();
+    useViewStateStore().reset();
 }
 </script>
 
