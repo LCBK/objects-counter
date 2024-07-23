@@ -7,45 +7,19 @@ from rembg import remove
 
 
 def remove_background(input_path, output_path):
-    input_image = Image.open(input_path)
-    output = remove(input_image)
-    output_np = np.array(output)
+    img = cv2.imread(input_path)
 
-    if output_np.shape[2] == 4:
-        output_np = cv2.cvtColor(output_np, cv2.COLOR_RGBA2BGRA)
+    lower = np.array([100, 100, 100])
+    upper = np.array([255, 255, 255])
 
-    transparent_to_white(output_np, output_path)
+    # Create mask to only select black
+    thresh = cv2.inRange(img, lower, upper)
+
+    result = cv2.bitwise_and(img, img, mask=thresh)
+
+    cv2.imwrite(output_path, result)
 
 
-def transparent_to_white(image, output_path):
-    if image is None:
-        raise ValueError("Image not found")
-
-    # Check if the image has an alpha channel
-    if image.shape[2] == 4:
-        # Split the image into its color channels and alpha channel
-        b, g, r, alpha = cv2.split(image)
-
-        # Normalize the alpha channel to range [0, 1]
-        alpha_normalized = alpha / 255.0
-
-        # Create a white background
-        white_background = np.ones_like(b, dtype=np.uint8) * 255
-
-        # Blend the original image with the white background using the alpha channel
-        b = b * alpha_normalized + white_background * (1 - alpha_normalized)
-        g = g * alpha_normalized + white_background * (1 - alpha_normalized)
-        r = r * alpha_normalized + white_background * (1 - alpha_normalized)
-
-        # Merge the channels back without the alpha channel
-        image = cv2.merge((b.astype(np.uint8), g.astype(np.uint8), r.astype(np.uint8)))
-    else:
-        raise ValueError("The image does not have an alpha channel.")
-
-    # Save the result
-    cv2.imwrite("helpers\\images\\" + output_path, image)
-
-    print(f"Processed image saved as {output_path}")
 
 
 if __name__ == "__main__":
