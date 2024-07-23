@@ -52,10 +52,7 @@ class SegmentAnythingObjectCounter:
             return None, None
         result_mask = self.get_image_mask(index=index)
         result_mask = np.array(result_mask) * 255
-        # Find contours of the objects
-
-        cv2.imwrite("result.png", result_mask)
-        image = cv2.imread("result.png", cv2.IMREAD_GRAYSCALE)
+        image = np.ascontiguousarray(result_mask, dtype=np.uint8)
         for x in range(0, image.shape[0]):
             if image[x][0] == 0:
                 cv2.floodFill(image, None, (0, x), 255)
@@ -66,7 +63,6 @@ class SegmentAnythingObjectCounter:
                 cv2.floodFill(image, None, (y, 0), 255)
             if image[image.shape[0] - 1][y] == 0:
                 cv2.floodFill(image, None, (y, image.shape[0] - 1), 255)
-        cv2.imwrite("result2.png", image)
         _, binary_image = cv2.threshold(image, 127, 255, cv2.THRESH_BINARY_INV)
         contours, _ = cv2.findContours(binary_image, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
         objects_bounding_boxes = []
