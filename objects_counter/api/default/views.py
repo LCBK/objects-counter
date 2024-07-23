@@ -95,15 +95,21 @@ class AcceptBackgroundPoints(Resource):
             "id": 123456,
             "data": [
                 {
-                    "top_left": [21, 5],
-                    "bottom_right": [84, 67],
+                    "top_left": [50, 15],
+                    "bottom_right": [130, 70],
                     "certainty": 0.98,
                     "class": "lorem"
                 },
                 {
-                    "top_left": [124, 5],
-                    "bottom_right": [153, 80],
+                    "top_left": [100, 170],
+                    "bottom_right": [160, 230],
                     "certainty": 0.76,
+                    "class": "ipsum"
+                },
+                {
+                    "top_left": [80, 150],
+                    "bottom_right": [140, 210],
+                    "certainty": 0.82,
                     "class": "ipsum"
                 }
             ]

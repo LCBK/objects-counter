@@ -28,18 +28,27 @@ function onImageUpload(event: Event) : void {
         const url = window.URL.createObjectURL(imageFile);
         imageState.url = url;
 
+        // Get image dimensions
+        const img = new Image;
+        img.src = url;
+        img.onload = () => {
+            imageState.width = img.width;
+            imageState.height = img.height;
+        };
+
         // Upload image to server
         const requestUri = config.serverUri + endpoints.processImage;
         const requestData = new FormData();
         requestData.append("image", imageFile);
-
         imageState.isUploading = true;
         const responsePromise = sendRequest(requestUri, requestData, "POST");
+
+        // Handle server response
         responsePromise.then((response) => {
             // todo: handle response codes
             imageState.isUploading = false;
             imageState.isUploaded = true;
-            imageState.result = response.data;
+            imageState.results = response.data;
         });
     }
 }
