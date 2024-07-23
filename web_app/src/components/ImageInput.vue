@@ -2,35 +2,58 @@
 import { ref } from "vue";
 import VButton from "primevue/button";
 import { useImageStateStore } from "@/stores/imageState";
+import { sendRequest } from "@/utils";
+import { config, endpoints } from "@/config";
+
 
 const imageState = useImageStateStore();
 const captureInput = ref<HTMLInputElement>();
 const uploadInput = ref<HTMLInputElement>();
 
-function onCaptureClick() {
+
+function onCaptureClick() : void {
     if (!captureInput.value) return;
     captureInput.value.click();
 }
 
-function onUploadClick() {
+function onUploadClick() : void {
     if (!uploadInput.value) return;
     uploadInput.value.click();
 }
 
-function onImageUpload(event: Event) {
-    const image = (event.target as HTMLInputElement)!.files?.[0];
-    if (image !== undefined) {
-        const url = window.URL.createObjectURL(image);
+function onImageUpload(event: Event) : void {
+    const imageFile = (event.target as HTMLInputElement)!.files?.[0];
+    if (imageFile !== undefined) {
+        // Set image URL to display it later on
+        const url = window.URL.createObjectURL(imageFile);
         imageState.url = url;
-        imageState.isUploading = true;
-        
-        // upload/process image here
 
-        imageState.isUploading = false;
-        imageState.isUploaded = true;
+        // Get image dimensions
+        const img = new Image;
+        img.src = url;
+        img.onload = () => {
+            imageState.width = img.width;
+            imageState.height = img.height;
+        };
+
+        // Upload image to server
+        const requestUri = config.serverUri + endpoints.processImage;
+        const requestData = new FormData();
+        requestData.append("image", imageFile);
+        imageState.isUploading = true;
+        const responsePromise = sendRequest(requestUri, requestData, "POST");
+
+        // Handle server response
+        responsePromise.then((response) => {
+            // todo: handle response codes
+            imageState.isUploading = false;
+            imageState.isUploaded = true;
+            imageState.results = response.data;
+        });
     }
 }
 </script>
+
 
 <template>
     <div class="image-select">
@@ -45,6 +68,7 @@ function onImageUpload(event: Event) {
     </div>
 </template>
 
+
 <style scoped>
 .image-select {
     display: flex;
@@ -57,7 +81,7 @@ function onImageUpload(event: Event) {
 .image-select button {
     width: 90%;
     max-width: 240px;
-    height: 50px; 
+    height: 50px;
 }
 
 .image-select-inputs input {
