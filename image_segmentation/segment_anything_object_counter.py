@@ -1,3 +1,5 @@
+from dataclasses import dataclass
+
 import cv2
 import numpy as np
 import torch
@@ -5,6 +7,7 @@ import torchvision
 from segment_anything import sam_model_registry, SamPredictor
 
 
+@dataclass
 class Image:
     def __init__(self, data):
         self.data = data
@@ -17,8 +20,7 @@ class SegmentAnythingObjectCounter:
         print("PyTorch version:", torch.__version__)
         print("Torchvision version:", torchvision.__version__)
         print("CUDA is available:", torch.cuda.is_available())
-        if not torch.cuda.is_available():
-            raise Exception("Cuda is not available")
+        assert torch.cuda.is_available(), "CUDA is not available"
         self.sam = sam_model_registry[model_type](checkpoint=sam_checkpoint_path)
         self.sam.to(device="cuda")
         self.predictor = SamPredictor(self.sam)

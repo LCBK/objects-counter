@@ -1,3 +1,5 @@
+# pylint: disable-all
+# TODO: convert to documentation readme.md with below code as example
 import cv2
 from segment_anything_object_counter import SegmentAnythingObjectCounter
 import numpy as np
