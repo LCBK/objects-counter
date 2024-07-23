@@ -1,6 +1,5 @@
-import numpy as np
-import matplotlib.pyplot as plt
 import cv2
+import numpy as np
 import torch
 import torchvision
 from segment_anything import sam_model_registry, SamPredictor
@@ -10,6 +9,7 @@ class Image:
     def __init__(self, data, type):
         self.data = data  # to do
         self.result = None
+
 
 class SegmentAnythingObjectCounter:
     def __init__(self, sam_checkpoint_path, model_type="vit_h"):
@@ -76,5 +76,3 @@ class SegmentAnythingObjectCounter:
         print(f"Number of objects found: {object_count}")
 
         return object_count, objects_bounding_boxes
-
-
