@@ -33,7 +33,7 @@ class SegmentAnythingObjectCounter:
             print("Given image index is out of bounds. index: " + index + " images array size:" + len(self.images))
             return False
         self.predictor.set_image(self.images[index].data)
-        masks, scores, logits = self.predictor.predict(
+        masks, _, _ = self.predictor.predict(
             point_coords=np.array(points),
             point_labels=np.array([1] * len(points)),
             multimask_output=True)
