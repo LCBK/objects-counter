@@ -69,12 +69,16 @@ class SegmentAnythingObjectCounter:
         cv2.imwrite("result2.png", image)
         _, binary_image = cv2.threshold(image, 127, 255, cv2.THRESH_BINARY_INV)
         contours, _ = cv2.findContours(binary_image, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-
+        objects_bounding_boxes = []
+        for i in range(len(contours)):
+            min_x = min([contours[i][t][0][0] for t in range(contours[i].shape[0])])
+            max_y = max([contours[i][t][0][1] for t in range(contours[i].shape[0])])
+            objects_bounding_boxes.append([min_x, max_y])
         # Count the number of contours found
-        object_count = len(contours)
+        object_count = len(objects_bounding_boxes)
 
         print(f"Number of objects found: {object_count}")
 
-        return object_count
+        return object_count, objects_bounding_boxes
 
 
