@@ -12,6 +12,7 @@ sam.calculate_image_mask(index=index, points=points)
 result_mask = sam.get_image_mask(index=index)
 result_mask = np.array(result_mask) * 255
 cv2.imwrite("result.jpg", result_mask)
+print(sam.get_object_count(index=index))
 
 
 
