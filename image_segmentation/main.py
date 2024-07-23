@@ -6,7 +6,7 @@ import numpy as np
 image = cv2.imread("IMG_20240619_194828.jpg")
 sam_checkpoint = "/home/shairys/objects/objects-counter/sam_vit_h_4b8939.pth"
 sam = SegmentAnythingObjectCounter(sam_checkpoint)
-index = sam.add_image(image, "ndarray")
+index = sam.add_image(image)
 points = [[1883.3709677419356, 1080.145161290323], [562.0806451612904, 873.693548387097],
           [2915.6290322580644, 1462.0806451612905]]
 sam.calculate_image_mask(index=index, points=points)

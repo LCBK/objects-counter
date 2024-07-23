@@ -6,8 +6,8 @@ from segment_anything import sam_model_registry, SamPredictor
 
 
 class Image:
-    def __init__(self, data, type):
-        self.data = data  # to do
+    def __init__(self, data):
+        self.data = data
         self.result = None
 
 
@@ -24,8 +24,8 @@ class SegmentAnythingObjectCounter:
         self.predictor = SamPredictor(self.sam)
         self.images = []
 
-    def add_image(self, data, type):
-        self.images.append(Image(data, type))
+    def add_image(self, data):
+        self.images.append(Image(data))
         return len(self.images) - 1
 
     def calculate_image_mask(self, index, points):
@@ -67,8 +67,8 @@ class SegmentAnythingObjectCounter:
         contours, _ = cv2.findContours(binary_image, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
         objects_bounding_boxes = []
         for i in range(len(contours)):
-            min_x = min([contours[i][t][0][0] for t in range(contours[i].shape[0])])
-            max_y = max([contours[i][t][0][1] for t in range(contours[i].shape[0])])
+            min_x = min(contours[i][t][0][0] for t in range(contours[i].shape[0]))
+            max_y = max(contours[i][t][0][1] for t in range(contours[i].shape[0]))
             objects_bounding_boxes.append([min_x, max_y])
         # Count the number of contours found
         object_count = len(objects_bounding_boxes)
