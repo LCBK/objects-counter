@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from typing import Any
 
 import cv2
 import numpy as np
@@ -9,9 +10,8 @@ from segment_anything import sam_model_registry, SamPredictor
 
 @dataclass
 class Image:
-    def __init__(self, data):
-        self.data = data
-        self.result = None
+    data: Any
+    result: Any = None
 
 
 class SegmentAnythingObjectCounter:
@@ -70,8 +70,10 @@ class SegmentAnythingObjectCounter:
         objects_bounding_boxes = []
         for i in range(len(contours)):
             min_x = min(contours[i][t][0][0] for t in range(contours[i].shape[0]))
+            max_x = max(contours[i][t][0][0] for t in range(contours[i].shape[0]))
+            min_y = min(contours[i][t][0][1] for t in range(contours[i].shape[0]))
             max_y = max(contours[i][t][0][1] for t in range(contours[i].shape[0]))
-            objects_bounding_boxes.append([min_x, max_y])
+            objects_bounding_boxes.append([[min_x, min_y], [max_x, max_y]])
         # Count the number of contours found
         object_count = len(objects_bounding_boxes)
 
