@@ -1,4 +1,4 @@
-"""empty message
+"""add background points
 
 Revision ID: b8460c7ba591
 Revises: f54a4434a8c8

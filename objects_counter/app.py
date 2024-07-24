@@ -5,12 +5,12 @@ from flask_cors import CORS
 from flask_migrate import Migrate
 
 from objects_counter.api.common import blueprint, api
-from objects_counter.consts import UPLOAD_FOLDER, DB_NAME, INSTANCE_PATH
+from objects_counter.consts import UPLOAD_FOLDER, DB_NAME
 from objects_counter.db.models import db, bcrypt
 from objects_counter.utils import config_db
 
 
-app = Flask(__name__, instance_relative_config=True, instance_path=INSTANCE_PATH)
+app = Flask(__name__, instance_relative_config=True)
 app.config.from_mapping(
     SECRET_KEY='dev',
     DATABASE=os.path.join(app.instance_path, 'object_counter.sqlite'),
