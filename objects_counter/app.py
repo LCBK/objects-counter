@@ -20,7 +20,7 @@ CORS(app)
 
 app.config.from_pyfile('config.py', silent=True)
 
-app.config['UPLOAD_FOLDER'] = app.instance_path + UPLOAD_FOLDER
+app.config['UPLOAD_FOLDER'] = os.path.join(app.instance_path, UPLOAD_FOLDER)
 
 try:
     os.makedirs(app.instance_path)
