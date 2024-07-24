@@ -83,7 +83,7 @@ class BackgroundPoints(Resource):
             return 'Points should be a dictionary', 400
 
         # save the points in the db
-        sam.calculate_image_mask(image_id, points)
+        sam.calculate_image_mask(image_id, points["data"])
         mask = sam.get_image_mask(image_id).tolist()
         result = {
             "mask": mask
