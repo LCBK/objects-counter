@@ -23,6 +23,18 @@ def get_image_by_id(image_id: int) -> Image:
     return Image.query.get(image_id)
 
 
+def update_points(image_id: int, points: dict) -> Image:
+    image = Image.query.get(image_id)
+    image.background_points = points
+    try:
+        db.session.commit()
+        return image
+    except DatabaseError as e:
+        print('ERROR: failed to update image', e)
+        db.session.rollback()
+        raise
+
+
 def delete_image_by_id(image_id: int) -> None:
     image = Image.query.get(image_id)
     db.session.delete(image)
