@@ -20,9 +20,13 @@ class SegmentAnythingObjectCounter:
         print("PyTorch version:", torch.__version__)
         print("Torchvision version:", torchvision.__version__)
         print("CUDA is available:", torch.cuda.is_available())
-        assert torch.cuda.is_available(), "CUDA is not available"
         self.sam = sam_model_registry[model_type](checkpoint=sam_checkpoint_path)
-        self.sam.to(device="cuda")
+
+        if torch.cuda.is_available():
+            self.sam.to(device="cuda")
+        else:
+            self.sam.to(device="cpu")
+
         self.predictor = SamPredictor(self.sam)
         self.images = []
 
