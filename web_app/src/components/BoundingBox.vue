@@ -1,9 +1,11 @@
 <script setup lang="ts">
 import { useImageStateStore } from '@/stores/imageState';
+import { useViewStateStore } from '@/stores/viewState';
 import { computed, defineProps } from 'vue';
 
 
 const imageState = useImageStateStore();
+const viewState = useViewStateStore();
 const props = defineProps({
     index: {
         type: Number,
@@ -34,8 +36,8 @@ const scale = computed(() => imageState.boundingBoxScale);
 // CSS properties
 const top = computed(() => props.topLeft[1] * scale.value + "px");
 const left = computed(() => props.topLeft[0] * scale.value + "px");
-const width = computed(() => props.bottomRight[0] * scale.value + "px");
-const height = computed(() => props.bottomRight[1] * scale.value + "px");
+const width = computed(() => (props.bottomRight[0] - props.topLeft[0]) * scale.value + "px");
+const height = computed(() => (props.bottomRight[1] - props.topLeft[1]) * scale.value + "px");
 </script>
 
 
@@ -45,8 +47,10 @@ const height = computed(() => props.bottomRight[1] * scale.value + "px");
             v-bind:data-bottomright="props.bottomRight[0] + ',' + props.bottomRight[1]"
             v-bind:data-certainty="props.certainty" v-bind:data-class="props.class"
             v-bind:data-index="props.index">
-        <div class="box-certainty">{{ props.certainty }}</div>
-        <div class="box-class">{{ props.class }}</div>
+        <div v-if="viewState.showBoundingBoxInfo">
+            <div class="box-certainty">{{ props.certainty }}</div>
+            <div class="box-class">{{ props.class }}</div>
+        </div>
     </div>
 </template>
 

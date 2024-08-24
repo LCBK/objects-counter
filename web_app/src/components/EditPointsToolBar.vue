@@ -3,10 +3,13 @@ import VButton from "primevue/button";
 import { useViewStateStore } from "@/stores/viewState";
 import { config, endpoints } from "@/config";
 import { useImageStateStore } from "@/stores/imageState";
-import { sendRequest } from "@/utils";
+import { createMaskImage, sendRequest } from "@/utils";
+import { ref } from "vue";
 
 const viewState = useViewStateStore();
 const imageState = useImageStateStore();
+
+const background = ref<HTMLImageElement>();
 
 function handleConfirmPoints() {
     const pointPositions = imageState.points.map((point) => point.position);
@@ -16,7 +19,18 @@ function handleConfirmPoints() {
     
     responsePromise.then((response) => {
         viewState.setState("confirmBackground");
-        // todo: Store response
+        const maskImageData = createMaskImage(JSON.parse(response).mask);
+        const canvas = document.createElement("canvas");
+        const ctx = canvas.getContext("2d");
+        if (ctx == undefined) return;
+        ctx.canvas.width = imageState.width;
+        ctx.canvas.height = imageState.height;
+        ctx.putImageData(maskImageData, 0, 0);
+        const maskImage = new Image();
+        maskImage.onload = () => {
+            ctx.drawImage(maskImage, 0, 0);
+        };
+        document.querySelector<HTMLImageElement>("#mask-image")!.src = canvas.toDataURL();        
     });
 }
 </script>

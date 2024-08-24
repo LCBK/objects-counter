@@ -5,7 +5,7 @@ import QuantitiesEntry from "./QuantitiesEntry.vue";
 import { useImageStateStore } from "@/stores/imageState";
 import { useViewStateStore } from "@/stores/viewState";
 import type { Quantity } from '@/types';
-import { computed } from "vue";
+import { computed, onMounted } from "vue";
 
 const visible = defineModel<boolean>();
 const imageState = useImageStateStore();
@@ -38,16 +38,19 @@ const orderedQuantities = computed(() => {
     return arr;
 });
 
-const elementCount = imageState.results.length;
+onMounted(() => {
+    const elementCount = imageState.results.length;
+    document.querySelector<HTMLHeadingElement>("#image-view-title")!.innerText = `${elementCount} elements`;
+});
 </script>
 
 
 <template>
     <div class="image-view-tool-bar bar">
-        <VButton text v-bind:label="elementCount + ' elements'" class="quant" icon="pi pi-list"
+        <VButton text label="Show elements" class="quant" icon="pi pi-list"
                 @click="visible = true" />
         <VButton text label="Edit selection" class="edit-selection" icon="pi pi-pencil"
-                @click="viewState.setState('editPoints')" />
+                @click="viewState.setState('editPoints'); imageState.clearResult();" />
     </div>
     <VSidebar v-model:visible="visible" position="bottom" style="height: auto">
         <QuantitiesEntry v-for="(quantity, index) in orderedQuantities" :key="index"

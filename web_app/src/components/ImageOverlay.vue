@@ -17,6 +17,7 @@ const results = computed(() => imageState.results);
 const points = imageState.points;
 
 const scale = computed(() => imageState.boundingBoxScale);
+const maskVisibility = computed(() => viewState.showBackground ? "block" : "none");
 
 
 function scaleOverlay() {
@@ -115,12 +116,17 @@ onMounted(() => {
     <div class="img-overlay" ref="overlay">
         <div class="inner-overlay" ref="innerOverlay" style="position: absolute"
                 @click="handleOverlayClick">
-            <BoundingBox v-for="([, box], index) in Object.entries(results)" :key="index"
-                    v-bind:top-left="box.top_left" v-bind:bottom-right="box.bottom_right"
-                    v-bind:certainty="box.certainty" v-bind:class="box.class"
-                    v-bind:index="index" v-bind:color="box.color" />
-            <SelectionPoint v-for="([, point], index) in Object.entries(points)" :key="index"
-                    v-bind:is-positive="true" v-bind:position="point.position" />
+            <img id="mask-image" :src="imageState.backgroundMaskDataURL">
+            <div class="bounding-boxes">
+                <BoundingBox v-for="([, box], index) in Object.entries(results)" :key="index"
+                        v-bind:top-left="box.top_left" v-bind:bottom-right="box.bottom_right"
+                        v-bind:certainty="box.certainty" v-bind:class="box.class"
+                        v-bind:index="index" v-bind:color="box.color" />
+            </div>
+            <div class="selection-points" v-if="viewState.showPoints">
+                <SelectionPoint v-for="([, point], index) in Object.entries(points)" :key="index"
+                        v-bind:is-positive="true" v-bind:position="point.position" />
+            </div>
         </div>
     </div>
 </template>
@@ -133,5 +139,14 @@ onMounted(() => {
     height: 100%;
     top: 0;
     left: 0;
+}
+
+#mask-image {
+    object-fit: contain;
+    width: 100%;
+    height: 100%;
+    filter: brightness(0) saturate(100%) invert(98%) sepia(97%) saturate(7095%) hue-rotate(312deg) brightness(102%) contrast(96%);
+    opacity: 0.5;
+    display: v-bind(maskVisibility);
 }
 </style>

@@ -15,7 +15,7 @@ function handleConfirmBackground() {
     
     responsePromise.then((response) => {
         viewState.setState('viewResult');
-        imageState.results = response.data;
+        imageState.results = JSON.parse(response).data;
     });
 }
 </script>

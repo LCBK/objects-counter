@@ -13,6 +13,7 @@ const defaultState = {
     overlayOffsetLeft: 0,
     overlayOffsetTop: 0,
     boundingBoxScale: 1,
+    backgroundMaskDataURL: "",
     results: [] as Array<Result>,
     points: [] as Array<Point>
 }
@@ -39,6 +40,10 @@ export const useImageStateStore = defineStore("imageState", {
                 const pointIndex = this.points.findIndex((p) => p == closestPoint);
                 this.points.splice(pointIndex, 1);
             }
+        },
+
+        clearResult() {
+            this.results = [];
         }
     }
 });

@@ -15,6 +15,9 @@ const defaultState = {
     hasReceivedResult: false,
     isAddingPoint: false,
     isRemovingPoint: false,
+    showPoints: true,
+    showBackground: false,
+    showBoundingBoxInfo: false,
     currentNavBarTitle: "",
     currentView: MainView,
     currentImageViewToolBar: EditPointsToolBar
@@ -50,6 +53,8 @@ export const useViewStateStore = defineStore("viewState", {
                     this.currentNavBarTitle = "Select background";
                     this.isAddingPoint = false;
                     this.isRemovingPoint = false;
+                    this.showPoints = true;
+                    this.showBackground = false;
                     break;
 
                 case "confirmBackground":
@@ -58,6 +63,8 @@ export const useViewStateStore = defineStore("viewState", {
                     this.currentNavBarTitle = "Confirm selection";
                     this.isAddingPoint = false;
                     this.isRemovingPoint = false;
+                    this.showPoints = true;
+                    this.showBackground = true;
                     break;
 
                 case "viewResult":
@@ -66,6 +73,8 @@ export const useViewStateStore = defineStore("viewState", {
                     this.currentNavBarTitle = "Result";
                     this.isAddingPoint = false;
                     this.isRemovingPoint = false;
+                    this.showPoints = false;
+                    this.showBackground = false;
                     break;
             }
         },
