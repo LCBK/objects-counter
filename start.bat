@@ -10,5 +10,5 @@ IF "%SAM_CHECKPOINT%"=="" (
 cd objects_counter
 flask db init
 flask db upgrade
-flask run
+flask run --host=0.0.0.0
 cd ..

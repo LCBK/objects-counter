@@ -1,5 +1,5 @@
 export const config = {
-    serverUri: "http://localhost:5000"
+    serverUri: "http://" + import.meta.env.VITE_BACKEND_ADDRESS
 };
 
 export const endpoints = {
