@@ -9,3 +9,8 @@ flask-bcrypt==1.0.1
 SQLAlchemy==2.0.29
 PyJWT==2.8.0
 alembic==1.13.1
+opencv-python==4.10.0.84
+numpy==1.26.1
+torch==2.3.1
+torchvision==0.18.1
+segment_anything==1.0
