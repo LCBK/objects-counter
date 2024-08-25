@@ -12,3 +12,8 @@ export interface Quantity {
     class: string,
     count: number
 }
+
+export interface Point {
+    isPositive: boolean,                  // true - positive, false - negative
+    position: [number, number]
+}

@@ -1,14 +1,23 @@
 <script setup lang="ts">
 import { useImageStateStore } from "@/stores/imageState";
+import { useViewStateStore } from "@/stores/viewState";
 import BoundingBox from "./BoundingBox.vue";
-import { ref, onMounted, onBeforeMount } from "vue";
+import SelectionPoint from "./SelectionPoint.vue";
+import { ref, onMounted, onBeforeMount, computed, onBeforeUpdate } from "vue";
 import { boundingBoxColors } from "@/config";
 
 
 const imageState = useImageStateStore();
+const viewState = useViewStateStore();
+
 const overlay = ref<HTMLDivElement>();
 const innerOverlay = ref<HTMLDivElement>();
-const results = imageState.results;
+
+const results = computed(() => imageState.results);
+const points = imageState.points;
+
+const scale = computed(() => imageState.boundingBoxScale);
+const maskVisibility = computed(() => viewState.showBackground ? "block" : "none");
 
 
 function scaleOverlay() {
@@ -46,6 +55,11 @@ function scaleOverlay() {
     innerOverlay.value.style.top = top_margin + "px";
     innerOverlay.value.style.left = left_margin + "px";
 
+    imageState.scaledImageWidth = innerImageWidth;
+    imageState.scaledImageHeight = innerImageHeight;
+    imageState.overlayOffsetLeft = left_margin;
+    imageState.overlayOffsetTop = top_margin;
+
     if (srcImageRatio > overlayRatio) {
         imageState.boundingBoxScale = innerImageWidth / imageState.width;
     }
@@ -55,9 +69,10 @@ function scaleOverlay() {
 }
 
 function assignClassColors() {
-    let colorIndex = 0;
     const assignedClasses: Array<string> = [];
     const assignedColors: Array<string> = [];
+
+    let colorIndex = 0;
     imageState.results.forEach((box) => {
         if (!assignedClasses.includes(box.class)) {
             let newColor = boundingBoxColors[colorIndex % boundingBoxColors.length];
@@ -73,8 +88,20 @@ function assignClassColors() {
     });
 }
 
+function handleOverlayClick(event: MouseEvent) {
+    const headerHeight = document.querySelector(".image-view-nav-bar")!.clientHeight;
+    const x = (event.clientX - imageState.overlayOffsetLeft) / scale.value;
+    const y = (event.clientY - imageState.overlayOffsetTop - headerHeight) / scale.value;
+    if (viewState.isAddingPoint) {
+        imageState.addPoint(true, x, y);
+    }
+    else if (viewState.isRemovingPoint) {
+        imageState.removePoint(x, y);
+    }
+}
 
-onBeforeMount(() => {
+
+onBeforeUpdate(() => {
     assignClassColors();
 })
 
@@ -87,11 +114,19 @@ onMounted(() => {
 
 <template>
     <div class="img-overlay" ref="overlay">
-        <div class="inner-overlay" ref="innerOverlay" style="position: absolute">
-            <BoundingBox v-for="([, box], index) in Object.entries(results)" :key="index"
-                    v-bind:top-left="box.top_left" v-bind:bottom-right="box.bottom_right"
-                    v-bind:certainty="box.certainty" v-bind:class="box.class"
-                    v-bind:index="index" v-bind:color="box.color" />
+        <div class="inner-overlay" ref="innerOverlay" style="position: absolute"
+                @click="handleOverlayClick">
+            <img id="mask-image" :src="imageState.backgroundMaskDataURL">
+            <div class="bounding-boxes">
+                <BoundingBox v-for="([, box], index) in Object.entries(results)" :key="index"
+                        v-bind:top-left="box.top_left" v-bind:bottom-right="box.bottom_right"
+                        v-bind:certainty="box.certainty" v-bind:class="box.class"
+                        v-bind:index="index" v-bind:color="box.color" />
+            </div>
+            <div class="selection-points" v-if="viewState.showPoints">
+                <SelectionPoint v-for="([, point], index) in Object.entries(points)" :key="index"
+                        v-bind:is-positive="true" v-bind:position="point.position" />
+            </div>
         </div>
     </div>
 </template>
@@ -104,5 +139,14 @@ onMounted(() => {
     height: 100%;
     top: 0;
     left: 0;
+}
+
+#mask-image {
+    object-fit: contain;
+    width: 100%;
+    height: 100%;
+    filter: brightness(0) saturate(100%) invert(98%) sepia(97%) saturate(7095%) hue-rotate(312deg) brightness(102%) contrast(96%);
+    opacity: 0.5;
+    display: v-bind(maskVisibility);
 }
 </style>
