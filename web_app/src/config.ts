@@ -3,7 +3,9 @@ export const config = {
 };
 
 export const endpoints = {
-    processImage: "/api/process"
+    uploadImage: "/api/upload",
+    sendSelection: "/api/images/{image_id}/background",
+    acceptBackground: "/api/images/{image_id}/background/accept"
 };
 
 export const boundingBoxColors = [

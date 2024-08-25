@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import ImageInput from "./ImageInput.vue";
+import ImageInput from "../ImageInput.vue";
 </script>
 
 
