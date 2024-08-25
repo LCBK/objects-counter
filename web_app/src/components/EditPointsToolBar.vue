@@ -18,18 +18,22 @@ function handleConfirmPoints() {
     const responsePromise = sendRequest(requestUri, requestData, "PUT");
     
     responsePromise.then((response) => {
-        viewState.setState("confirmBackground");
         const maskImageData = createMaskImage(JSON.parse(response).mask);
         const canvas = document.createElement("canvas");
         const ctx = canvas.getContext("2d");
         if (ctx == undefined) return;
+
+        viewState.setState("confirmBackground");
+
         ctx.canvas.width = imageState.width;
         ctx.canvas.height = imageState.height;
         ctx.putImageData(maskImageData, 0, 0);
+
         const maskImage = new Image();
         maskImage.onload = () => {
             ctx.drawImage(maskImage, 0, 0);
         };
+        
         document.querySelector<HTMLImageElement>("#mask-image")!.src = canvas.toDataURL();        
     });
 }

@@ -38,13 +38,12 @@ const left = computed(() => (props.position[0]) * scale.value - 12 + "px");
     top: v-bind(top);
     width: 24px;
     height: 24px;
-    line-height: 18px;
-    padding-right: 1px;
+    line-height: 20px;
     border-radius: 50%;
     background-color: #60a5fa;
     color: #121212;
     text-align: center;
-    font-size: 1.5rem;
+    font-size: 24px;
     user-select: none;
 }
 </style>
