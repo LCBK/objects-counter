@@ -97,7 +97,7 @@ class ObjectClassifier:
                     added_to_category = False
 
                     # Check if image[j] is already in a category
-                    for cat_id, category_images in self.categories.items():
+                    for _, category_images in self.categories.items():
                         index = 0
                         for img_index, _, prev_similarity in category_images:
                             if index_j == img_index:
