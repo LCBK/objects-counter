@@ -1,8 +1,6 @@
+from collections import defaultdict
+
 import cv2
-
-from segment_anything_object_counter import SegmentAnythingObjectCounter
-
-import numpy as np
 import torch
 import torchvision
 from PIL import Image
@@ -12,138 +10,109 @@ from torchvision.models import vit_h_14
 
 
 class CosineSimilarity:
-    """Class tasked with comparing similarity between two images """
-
-    def __init__(self, image_path_1, image_path_2, device=None):
+    def __init__(self):
         self.device = 'cuda' if torch.cuda.is_available() else 'cpu'
-        self.image_path_1 = image_path_1
-        self.image_path_2 = image_path_2
+        self.model = self.load_model()
 
-    def model(self):
-        wt = torchvision.models.ViT_H_14_Weights.DEFAULT
-        model = vit_h_14(weights=wt)
+    def load_model(self):
+        weights = torchvision.models.ViT_H_14_Weights.DEFAULT
+        model = vit_h_14(weights=weights)
         model.heads = nn.Sequential(*list(model.heads.children())[:-1])
         model = model.to(self.device)
-
         return model
 
-    def process_test_image(self, image_path):
-        """Processing images
-        Parameters
-        ----------
-        image_path :str
-
-        Returns
-        -------
-        Processed image : str
-        """
+    def preprocess_image(self, image_path):
         img = Image.open(image_path)
-        transformations = tr.Compose([tr.ToTensor(),
-                                      tr.Normalize((0.485, 0.456, 0.406), (0.229, 0.224, 0.225)),
-                                      tr.Resize((518, 518))])
+        transformations = tr.Compose(
+            [tr.ToTensor(), tr.Normalize((0.485, 0.456, 0.406), (0.229, 0.224, 0.225)), tr.Resize((518, 518))])
         img = transformations(img).float()
-        img = img.unsqueeze_(0)
-
-        img = img.to(self.device)
-
+        img = img.unsqueeze_(0).to(self.device)
         return img
 
-    def get_embeddings(self):
-        """Computer embessings given images
 
-        Parameters
-        image_paths : str
-        Returns
-        -------
-        embeddings: np.ndarray
-        """
-        img1 = self.process_test_image(self.image_path_1)
-        img2 = self.process_test_image(self.image_path_2)
-        model = self.model()
+class ObjectClassifier:
+    def __init__(self, segmenter, similarity_model):
+        self.segmenter = segmenter
+        self.similarity_model = similarity_model
+        self.categories = defaultdict(list)
 
-        emb_one = model(img1).detach().cpu()
-        emb_two = model(img2).detach().cpu()
+    def crop_objects_from_images(self):
+        cropped_objects = []
+        for _, image_data in enumerate(self.segmenter.images):
+            index = 0
+            if image_data.objects_coords:
+                for bbox in image_data.objects_coords:
+                    cropped_image = self.crop_image(image_data.data, bbox)
+                    cropped_objects.append((index, cropped_image))
+                    index = index + 1
+        return cropped_objects
 
-        return emb_one, emb_two
+    def crop_image(self, image, bbox):
+        pil_image = Image.fromarray(cv2.cvtColor(image, cv2.COLOR_BGR2RGB))
 
-    def compute_scores(self):
-        """Computes cosine similarity between two vectors."""
-        emb_one, emb_two = self.get_embeddings()
-        scores = torch.nn.functional.cosine_similarity(emb_one, emb_two)
+        (x_min, y_min), (x_max, y_max) = bbox
+        cropped_image = pil_image.crop((x_min, y_min, x_max, y_max))
+        return cropped_image
 
-        return scores.numpy().tolist()
+    def compute_embeddings_for_cropped_objects(self, cropped_objects):
+        embeddings = []
+        for index, obj_image in cropped_objects:
+            temp_path = f"images/temp/temp_cropped_object_{index}.jpg"
+            obj_image.save(temp_path)
 
+            image_tensor = self.similarity_model.preprocess_image(temp_path)
+            with torch.no_grad():
+                embedding = self.similarity_model.model(image_tensor).cpu()
+            embeddings.append((index, embedding))
 
-class ClassifyObjects:
-    sam = None
-    index = None
+        return embeddings
 
-    def __init__(self):
-        image = cv2.imread("images/test2.jpg")
-        sam_checkpoint = "/home/shairys/objects/objects-counter/sam_vit_h_4b8939.pth"
-        self.sam = SegmentAnythingObjectCounter(sam_checkpoint)
-        self.index = self.sam.add_image(image)
+    def group_objects_by_similarity(self, threshold=0.8):
+        cropped_objects = self.crop_objects_from_images()
+        embeddings = self.compute_embeddings_for_cropped_objects(cropped_objects)
+        self.assign_categories_based_on_similarity(embeddings, cropped_objects, threshold)
+        return self.categories
 
-    def get_object_from_image(self):
-        points = [[1883.3709677419356, 1080.145161290323], [562.0806451612904, 873.693548387097],
-                  [2915.6290322580644, 1462.0806451612905]]
-        self.sam.calculate_image_mask(index=self.index, points=points)
+    def assign_categories_based_on_similarity(self, embeddings, images, threshold=0.6):
+        num_objects = len(embeddings)
+        visited = set()
+        category_id = 0
 
-        if self.index < 0 or self.index >= len(self.sam.images):
-            print("Given image index is out of bounds. index: " + self.index + " images array size:" + len(self.images))
-            return None, None
-        result_mask = self.sam.get_image_mask(index=self.index)
-        result_mask = np.array(result_mask) * 255
-        image = np.ascontiguousarray(result_mask, dtype=np.uint8)
-        for x in range(0, image.shape[0]):
-            if image[x][0] == 0:
-                cv2.floodFill(image, None, (0, x), 255)
-            if image[x][image.shape[1] - 1] == 0:
-                cv2.floodFill(image, None, (image.shape[1] - 1, x), 255)
-        for y in range(0, image.shape[1]):
-            if image[0][y] == 0:
-                cv2.floodFill(image, None, (y, 0), 255)
-            if image[image.shape[0] - 1][y] == 0:
-                cv2.floodFill(image, None, (y, image.shape[0] - 1), 255)
-        _, binary_image = cv2.threshold(image, 127, 255, cv2.THRESH_BINARY_INV)
-        contours, _ = cv2.findContours(binary_image, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-        objects_bounding_boxes = []
-        for i in range(len(contours)):
-            min_x = int(min(contours[i][t][0][0] for t in range(contours[i].shape[0])))
-            max_x = int(max(contours[i][t][0][0] for t in range(contours[i].shape[0])))
-            min_y = int(min(contours[i][t][0][1] for t in range(contours[i].shape[0])))
-            max_y = int(max(contours[i][t][0][1] for t in range(contours[i].shape[0])))
-            objects_bounding_boxes.append([[min_x, min_y], [max_x, max_y]])
+        for i in range(num_objects):
+            index_i, embedding_i = embeddings[i]
 
-        # Save images based on coords
-        objects_images_path = "images/objects/"
-        whole_image = Image.open("images/test2.jpg")
-        width, height = whole_image.size
+            if index_i in visited:
+                continue
 
-        for i in range(0, len(objects_bounding_boxes)):
-            bounding_box = objects_bounding_boxes[i]
-            left = bounding_box[0][0]
-            top = bounding_box[1][1]
-            right = bounding_box[1][0]
-            bottom = bounding_box[0][1]
+            # Create a new category for the first uncategorized image
+            self.categories[category_id].append((index_i, images[index_i], 1))
+            visited.add(index_i)
 
-            object_image = whole_image.crop((left, bottom, right, top))
-            object_image.save(objects_images_path + str(i) + ".jpg")
+            # Compare with other images
+            for j in range(i + 1, num_objects):
+                index_j, embedding_j = embeddings[j]
+                similarity = torch.nn.functional.cosine_similarity(embedding_i, embedding_j).item()
 
-    def find_similar(self):
-        winner = 0
-        winning_image = 0
-        for i in range(2, 8):
-            similarity = CosineSimilarity("images/objects/1.jpg", "images/objects/" + str(i) + ".jpg")
-            temp = similarity.compute_scores()
-            if temp[0] > winner:
-                winner = temp[0]
-                winning_image = i
-        print("Winning image is: " + str(winning_image) + ".jpg")
+                if similarity >= threshold:
+                    added_to_category = False
 
-classify = ClassifyObjects()
-# points = [[1883.3709677419356, 1080.145161290323], [562.0806451612904, 873.693548387097],
-#           [2915.6290322580644, 1462.0806451612905]]
-#
-# classify.get_object_from_image()
-classify.find_similar()
+                    # Check if image[j] is already in a category
+                    for cat_id, category_images in self.categories.items():
+                        index = 0
+                        for img_index, _, prev_similarity in category_images:
+                            if index_j == img_index:
+                                # If new similarity is better delete from the existing category
+                                if prev_similarity < similarity:
+                                    category_images.pop(index)
+                                else:
+                                    added_to_category = True
+                                break
+                            index = index + 1
+
+                    if not added_to_category:
+                        # Image[j] is not categorized, add it to the current category
+                        self.categories[category_id].append((index_j, images[index_j], similarity))
+                        visited.add(index_j)
+
+            # Move to the next category after processing
+            category_id += 1
