@@ -14,6 +14,8 @@ const defaultState = {
     overlayOffsetTop: 0,
     boundingBoxScale: 1,
     backgroundMaskDataURL: "",
+    isPanning: false,
+    userZoom: 1,
     results: [] as Array<Result>,
     points: [] as Array<Point>
 }
@@ -30,13 +32,14 @@ export const useImageStateStore = defineStore("imageState", {
             this.points.push({ isPositive: isPositive, position: [x, y] } as Point);
         },
 
-        removePoint(x: number, y: number) {
+        removeNearbyPoint(x: number, y: number, tolerance: number = 60) {
+            if (this.points.length === 0) return;
+
             const closestPoint = this.points.reduce((a, b) => 
                 distance(a.position[0], a.position[1], x, y) < distance(b.position[0], b.position[1], x, y) ? a : b
             );
 
-            const distanceTolerance = 40;
-            if (distance(closestPoint.position[0], closestPoint.position[1], x, y) < distanceTolerance) {
+            if (distance(closestPoint.position[0], closestPoint.position[1], x, y) < tolerance) {
                 const pointIndex = this.points.findIndex((p) => p == closestPoint);
                 this.points.splice(pointIndex, 1);
             }

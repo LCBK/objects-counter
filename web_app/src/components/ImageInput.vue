@@ -65,9 +65,9 @@ function onImageUpload(event: Event) : void {
     </div>
     <div class="image-select-inputs">
         <input type="file" name="image-capture" ref="captureInput"
-            accept="image/*" capture="environment" @change.prevent="onImageUpload($event)" />
+            accept="image/*" capture="environment" @change.stop.prevent="onImageUpload($event)" />
         <input type="file" name="image-upload" ref="uploadInput"
-            accept="image/*" @change.prevent="onImageUpload($event)" />
+            accept="image/*" @change.stop.prevent="onImageUpload($event)" />
     </div>
 </template>
 

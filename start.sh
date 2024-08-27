@@ -19,5 +19,5 @@ fi
 cd objects_counter || exit
 flask db init
 flask db upgrade
-flask run
+flask run --host=0.0.0.0
 cd ..

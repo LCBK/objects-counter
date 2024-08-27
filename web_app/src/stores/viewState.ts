@@ -30,7 +30,6 @@ export const useViewStateStore = defineStore("viewState", {
             Object.assign(this, defaultState);
         },
         
-        // Available states: beforeUpload, uploading, editPoints, confirmBackground, viewResult
         setState(state: string) {
             switch (state) {
                 case "beforeUpload":

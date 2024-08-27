@@ -3,7 +3,7 @@ import { useImageStateStore } from "@/stores/imageState";
 import { useViewStateStore } from "@/stores/viewState";
 import BoundingBox from "./BoundingBox.vue";
 import SelectionPoint from "./SelectionPoint.vue";
-import { ref, onMounted, onBeforeMount, computed, onBeforeUpdate } from "vue";
+import { ref, onMounted, computed, onBeforeUpdate } from "vue";
 import { boundingBoxColors } from "@/config";
 
 
@@ -22,7 +22,7 @@ const maskVisibility = computed(() => viewState.showBackground ? "block" : "none
 
 function scaleOverlay() {
     if (overlay.value === undefined || overlay.value === null ||
-        innerOverlay.value === undefined || innerOverlay.value === null)
+            innerOverlay.value === undefined || innerOverlay.value === null)
         return;
 
     const imageElement = document.querySelector("#displayed-image") as HTMLImageElement;
@@ -89,14 +89,23 @@ function assignClassColors() {
 }
 
 function handleOverlayClick(event: MouseEvent) {
-    const headerHeight = document.querySelector(".image-view-nav-bar")!.clientHeight;
-    const x = (event.clientX - imageState.overlayOffsetLeft) / scale.value;
-    const y = (event.clientY - imageState.overlayOffsetTop - headerHeight) / scale.value;
+    if (imageState.isPanning) return;
+
+    const bbox = (event.target! as HTMLElement).getBoundingClientRect();
+    const x = (event.clientX - bbox.left) / scale.value / imageState.userZoom;
+    const y = (event.clientY - bbox.top) / scale.value / imageState.userZoom;
+
     if (viewState.isAddingPoint) {
+        if ((event.target! as HTMLElement).classList.contains("selection-point")) return;
         imageState.addPoint(true, x, y);
     }
     else if (viewState.isRemovingPoint) {
-        imageState.removePoint(x, y);
+        if ((event.target! as HTMLElement).classList.contains("selection-point")) {
+            const pointX = Number((event.target! as HTMLElement).getAttribute("data-x"));
+            const pointY = Number((event.target! as HTMLElement).getAttribute("data-y"));
+            imageState.removeNearbyPoint(pointX, pointY);
+        }
+        else imageState.removeNearbyPoint(x, y);
     }
 }
 
