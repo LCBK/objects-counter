@@ -1,3 +1,4 @@
+import logging
 from dataclasses import dataclass
 from typing import Any
 
@@ -7,6 +8,7 @@ import torch
 import torchvision
 from segment_anything import sam_model_registry, SamPredictor
 
+log = logging.getLogger(__name__)
 
 @dataclass
 class Image:
@@ -16,10 +18,10 @@ class Image:
 
 class SegmentAnythingObjectCounter:
     def __init__(self, sam_checkpoint_path, model_type="vit_h"):
-        print("Creating new Segment Anything Object Counter")
-        print("PyTorch version:", torch.__version__)
-        print("Torchvision version:", torchvision.__version__)
-        print("CUDA is available:", torch.cuda.is_available())
+        log.info("Creating new Segment Anything Object Counter")
+        log.info("PyTorch version: %s", torch.__version__)
+        log.info("Torchvision version: %s", torchvision.__version__)
+        log.info("CUDA is available: %s", torch.cuda.is_available())
         assert torch.cuda.is_available(), "CUDA is not available"
         self.sam = sam_model_registry[model_type](checkpoint=sam_checkpoint_path)
         self.sam.to(device="cuda")
@@ -32,7 +34,7 @@ class SegmentAnythingObjectCounter:
 
     def calculate_image_mask(self, index, points):
         if index < 0 or index >= len(self.images):
-            print("Given image index is out of bounds. index: " + index + " images array size:" + len(self.images))
+            log.error("Given image index is out of bounds. index: %s images array size: %s", index, len(self.images))
             return False
         self.predictor.set_image(self.images[index].data)
         masks, _, _ = self.predictor.predict(
@@ -44,13 +46,13 @@ class SegmentAnythingObjectCounter:
 
     def get_image_mask(self, index):
         if index < 0 or index >= len(self.images):
-            print("Given image index is out of bounds. index: " + index + " images array size:" + len(self.images))
+            log.error("Given image index is out of bounds. index: %s images array size: %s", index, len(self.images))
             return None
         return self.images[index].result
 
     def get_object_count(self, index):
         if index < 0 or index >= len(self.images):
-            print("Given image index is out of bounds. index: " + index + " images array size:" + len(self.images))
+            log.error("Given image index is out of bounds. index: %s images array size: %s", index, len(self.images))
             return None, None
         result_mask = self.get_image_mask(index=index)
         result_mask = np.array(result_mask) * 255
@@ -77,6 +79,6 @@ class SegmentAnythingObjectCounter:
         # Count the number of contours found
         object_count = len(objects_bounding_boxes)
 
-        print(f"Number of objects found: {object_count}")
+        log.info("Number of objects found: %s", object_count)
 
         return object_count, objects_bounding_boxes
