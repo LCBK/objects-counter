@@ -1,3 +1,4 @@
+import logging
 from functools import wraps
 from http import HTTPStatus
 
@@ -6,6 +7,8 @@ from flask import request, Response, current_app
 
 from objects_counter.consts import MAX_DB_STRING_LENGTH
 from objects_counter.db.dataops.user import get_user_by_id
+
+log = logging.getLogger(__name__)
 
 
 def authentication_required(f):
@@ -20,13 +23,15 @@ def authentication_required(f):
             data = jwt.decode(token, current_app.config['SECRET_KEY'], algorithms=['HS256'])
             current_user = get_user_by_id(data['user_id'])
             if current_user is None:
+                log.error('Invalid token')
                 return Response('Invalid token', HTTPStatus.UNAUTHORIZED)
         except jwt.ExpiredSignatureError:
+            log.error('Token expired')
             return Response('Token expired', HTTPStatus.UNAUTHORIZED)
         except Exception as e:  # pylint: disable=broad-except
+            log.exception('Issue while processing authentication: %s', e)
             return Response({
-                'message': 'Issue while processing authentication',
-                'error': str(e)
+                'message': 'Issue while processing authentication'
             }, HTTPStatus.INTERNAL_SERVER_ERROR)
 
         return f(self, current_user, *args, **kwargs)
@@ -45,11 +50,12 @@ def authentication_optional(f):
                 data = jwt.decode(token, current_app.config['SECRET_KEY'], algorithms=['HS256'])
                 current_user = get_user_by_id(data['user_id'])
                 if current_user is None:
+                    log.error('Invalid token')
                     return Response('Invalid token', HTTPStatus.UNAUTHORIZED)
             except Exception as e:  # pylint: disable=broad-except
+                log.exception('Issue while processing authentication: %s', e)
                 return Response({
-                    'message': 'Issue while processing authentication',
-                    'error': str(e)
+                    'message': 'Issue while processing authentication'
                 }, HTTPStatus.INTERNAL_SERVER_ERROR)
         else:
             current_user = None

@@ -1,4 +1,5 @@
 import json
+import logging
 import os
 import random
 import string
@@ -23,6 +24,7 @@ api = Namespace('default', description='Default namespace')
 process_parser = api.parser()
 process_parser.add_argument('image', type=FileStorage, location='files')
 sam = SegmentAnythingObjectCounter(SAM_CHECKPOINT)
+log = logging.getLogger(__name__)
 
 @api.route('/is-alive')
 class IsAlive(Resource):
@@ -45,13 +47,13 @@ class Process(Resource):
     @api.response(415, "Unsupported type")
     def post(self) -> typing.Any:
         if 'image' not in request.files:
-            print("ERROR: no image provided")
+            log.error("No image provided")
             return 'No image provided', 400
         image = request.files["image"]
 
         # save the received image to upload directory
         if not os.path.exists(flask.current_app.config["UPLOAD_FOLDER"]):
-            print("WARN: upload folder does not exist")
+            log.warning("Upload folder does not exist")
             os.makedirs(flask.current_app.config["UPLOAD_FOLDER"])
         filename = secure_filename(image.filename)
         if not filename:
@@ -76,10 +78,10 @@ class BackgroundPoints(Resource):
     def put(self, image_id: int) -> typing.Any:
         points = request.json
         if not points:
-            print("ERROR: no points provided")
+            log.error("No points provided")
             return 'No points provided', 400
         if not isinstance(points, dict):
-            print("ERROR: points should be a dictionary")
+            log.error("Points should be a dictionary")
             return 'Points should be a dictionary', 400
 
         # save the points in the db
@@ -99,7 +101,7 @@ class AcceptBackgroundPoints(Resource):
         result = sam.get_object_count(image_id)
         response = {}
         if not result:
-            print("ERROR: no result received")
+            log.error("No result received")
             return 'Error processing image', 500
         response["id"] = image_id
         response["data"] = []
