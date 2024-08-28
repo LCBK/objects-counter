@@ -75,7 +75,6 @@ function onImageUpload(event: Event) : void {
 <style scoped>
 .image-select {
     display: flex;
-    margin: auto 0;
     flex-direction: column;
     align-items: center;
     gap: 30px;

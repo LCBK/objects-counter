@@ -157,5 +157,21 @@ onMounted(() => {
     filter: brightness(0) saturate(100%) invert(98%) sepia(97%) saturate(7095%) hue-rotate(312deg) brightness(102%) contrast(96%);
     opacity: 0.5;
     display: v-bind(maskVisibility);
+    animation: blink-animation 3s infinite ease-in-out;
+}
+
+@keyframes blink-animation {
+    0% {
+        opacity: 0;
+    }
+    30% {
+        opacity: 0.5;
+    }
+    70% {
+        opacity: 0.5;
+    }
+    100% {
+        opacity: 0;
+    }
 }
 </style>

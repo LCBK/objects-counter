@@ -12,7 +12,8 @@
     margin-right: 6px;
 }
 
-.bar .pi {
+.bar .pi,
+#instructions-button .pi {
     margin-right: 0 !important;
     font-size: 1.5rem;
 }
@@ -38,4 +39,42 @@
     -webkit-box-shadow: 0px 0px 6px 0px rgba(9, 9, 11, 1);
     -moz-box-shadow: 0px 0px 6px 0px rgba(9, 9, 11, 1);
     box-shadow: 0px 0px 6px 0px rgba(9, 9, 11, 1);
+}
+
+.p-dialog-header-icons button {
+    width: 40px;
+    height: 40px;
+}
+
+.p-dialog-header-icons svg,
+.p-sidebar-close svg {
+    width: 20px;
+    height: 20px;
+}
+
+.p-dialog-header-icons svg path,
+.p-sidebar-close svg path {
+    fill: #60a5fa;
+}
+
+#instructions-popup {
+    width: 90vw;
+}
+
+#instructions-popup .p-dialog-header {
+    padding-bottom: 10px;
+}
+
+#instructions-popup .instructions-text p {
+    margin: 12px 0;
+    font-size: 0.9rem;
+}
+
+#instructions-popup .instructions-text li {
+    margin: 4px 0;
+    font-size: 0.9rem;
+}
+
+.p-dialog .p-dialog-header .p-dialog-header-icon:focus-visible {
+    outline: none;
 }
