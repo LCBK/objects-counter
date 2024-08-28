@@ -68,7 +68,7 @@ onMounted(() => animateButton());
         <div v-else-if="currentViewState == 'viewResult'" class="instructions-text">
             <p>That's it!</p>
             <p>You can see the element count on the bottom.</p>
-            <p>To see how much elements of specific types were counted, use the "Details" button.</p>
+            <p>To see how many elements of specific types were counted, use the "Details" button.</p>
             <p>
                 If your result doesn't satisfy you, go back to the previous steps. <br>
                 If there's no improvement, consider retaking the picture.

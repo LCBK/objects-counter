@@ -97,7 +97,7 @@ function handleOverlayClick(event: MouseEvent) {
 
     if (viewState.isAddingPoint) {
         if ((event.target! as HTMLElement).classList.contains("selection-point")) return;
-        imageState.addPoint(true, x, y);
+        imageState.addPoint(viewState.isPointTypePositive, x, y);
     }
     else if (viewState.isRemovingPoint) {
         if ((event.target! as HTMLElement).classList.contains("selection-point")) {
@@ -134,7 +134,8 @@ onMounted(() => {
             </div>
             <div class="selection-points" v-if="viewState.showPoints">
                 <SelectionPoint v-for="([, point], index) in Object.entries(points)" :key="index"
-                        v-bind:is-positive="true" v-bind:position="point.position" />
+                        v-bind:is-positive="point.isPositive" v-bind:position="point.position"
+                        v-bind:class="[point.isPositive ? 'positive' : 'negative']" />
             </div>
         </div>
     </div>
