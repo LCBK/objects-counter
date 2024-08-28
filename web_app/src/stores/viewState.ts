@@ -19,6 +19,7 @@ const defaultState = {
     showBackground: false,
     showBoundingBoxInfo: false,
     currentNavBarTitle: "",
+    currentStateName: "beforeUpload",
     currentView: MainView,
     currentImageViewToolBar: EditPointsToolBar
 }
@@ -31,6 +32,7 @@ export const useViewStateStore = defineStore("viewState", {
         },
         
         setState(state: string) {
+            this.currentStateName = state;
             switch (state) {
                 case "beforeUpload":
                     this.reset();
