@@ -82,7 +82,7 @@ const orderedQuantities = computed(() => {
     text-align: center;
     justify-content: space-between;
     margin-top: -20px;
-    background-color: var(--surface-section);
+    background-color: #1c1c20;
     border-top-left-radius: 30px;
     border-top-right-radius: 30px;
     padding: 10px 25px;
