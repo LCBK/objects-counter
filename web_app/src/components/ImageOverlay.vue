@@ -97,7 +97,6 @@ function handleOverlayClick(event: MouseEvent) {
 
     if (viewState.isAddingPoint) {
         if ((event.target! as HTMLElement).classList.contains("selection-point")) return;
-        console.log(viewState.isPointTypePositive);
         imageState.addPoint(viewState.isPointTypePositive, x, y);
     }
     else if (viewState.isRemovingPoint) {
