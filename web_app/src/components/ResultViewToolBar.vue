@@ -37,19 +37,18 @@ const orderedQuantities = computed(() => {
     });
     return arr;
 });
-
-onMounted(() => {
-    const elementCount = imageState.results.length;
-    document.querySelector<HTMLHeadingElement>("#image-view-title")!.innerText = `${elementCount} elements`;
-});
 </script>
 
 
 <template>
     <div class="image-view-tool-bar bar">
-        <VButton text label="Show elements" class="quant" icon="pi pi-list"
+        <VButton text label="Details" class="quant" icon="pi pi-list"
                 @click="visible = true" />
-        <VButton text label="Edit selection" class="edit-selection" icon="pi pi-pencil"
+        <div class="element-count">
+            <span class="element-count-value">{{ imageState.results.length }}</span>
+            <span class="element-count-label">elements</span>
+        </div>
+        <VButton text label="Adjust" class="edit-selection" icon="pi pi-pencil"
                 @click="viewState.setState('editPoints'); imageState.clearResult();" />
     </div>
     <VSidebar v-model:visible="visible" position="bottom" style="height: auto">
@@ -74,5 +73,31 @@ onMounted(() => {
     padding: 12px 1rem;
     justify-content: space-between;
     flex: 1 1 0px;
+}
+
+.element-count {
+    display: flex;
+    flex-direction: column;
+    color: #60a5fa;
+    text-align: center;
+    justify-content: space-between;
+    margin-top: -20px;
+    background-color: var(--surface-section);
+    border-top-left-radius: 30px;
+    border-top-right-radius: 30px;
+    padding: 10px 25px;
+    -webkit-box-shadow: 0px 0px 6px 0px rgba(9, 9, 11, 0.5);
+    -moz-box-shadow: 0px 0px 6px 0px rgba(9, 9, 11, 0.5);
+    box-shadow: 0px 0px 6px 0px rgba(9, 9, 11, 0.5);
+}
+
+.element-count-value {
+    display: block;
+    font-weight: bold;
+    font-size: 2.25rem;
+}
+
+.element-count-label {
+    display: block;
 }
 </style>
