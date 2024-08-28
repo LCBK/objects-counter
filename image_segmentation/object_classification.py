@@ -79,9 +79,7 @@ class ObjectClassifier:
 
     def compute_embeddings_for_cropped_objects(self, ):
 
-        for index in range(len(self.images_of_objects)):
-            object_image = self.images_of_objects[index]
-
+        for index, object_image in enumerate(self.images_of_objects):
             temp_path = f"images/temp/object_{index}.jpg"
             object_image.save(temp_path)
 
