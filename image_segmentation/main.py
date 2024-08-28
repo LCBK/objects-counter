@@ -9,13 +9,13 @@ from image_segmentation.segment_anything_object_counter import SegmentAnythingOb
 
 
 def main():
-    image = cv2.imread("images/img_1.png")
+    image = cv2.imread("images/trains.png")
 
     sam_checkpoint = "C:/Users/Alicja/Desktop/Studia/Projekt inżynierski/sam_vit_h_4b8939.pth"
     segmenter = SegmentAnythingObjectCounter(sam_checkpoint)
 
     image_index = segmenter.add_image(image)
-    points = [[462, 59], [538, 364], [237, 503], [588, 740]]
+    points = [[300, 60], [600, 60], [400, 350], [400, 580], [350, 750]]
     segmenter.calculate_image_mask(index=image_index, points=points)
 
     result_mask = segmenter.get_image_mask(index=image_index)

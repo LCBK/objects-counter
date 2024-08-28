@@ -90,7 +90,6 @@ class SegmentAnythingObjectCounter:
         binary_image = self.process_mask(result_mask)
         contours, _ = cv2.findContours(binary_image, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
         object_count = len(contours)
-        print(f"Number of objects found: {object_count}")
 
         objects_coords = self.get_bounding_boxes(index)
         self.set_image_objects_coords(index, objects_coords)
