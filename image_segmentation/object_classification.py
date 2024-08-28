@@ -122,6 +122,7 @@ class ObjectClassifier:
         embedding_i = self.embeddings[index_i]
         embedding_j = self.embeddings[index_j]
 
+        # pylint: disable=not-callable
         feature_similarity = torch.nn.functional.cosine_similarity(embedding_i, embedding_j).item()
         color_similarity = self.compute_color_similarity(hist_i, hist_j)
 
