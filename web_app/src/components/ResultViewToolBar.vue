@@ -5,7 +5,7 @@ import QuantitiesEntry from "./QuantitiesEntry.vue";
 import { useImageStateStore } from "@/stores/imageState";
 import { useViewStateStore } from "@/stores/viewState";
 import type { Quantity } from '@/types';
-import { computed, onMounted } from "vue";
+import { computed } from "vue";
 
 const visible = defineModel<boolean>();
 const imageState = useImageStateStore();

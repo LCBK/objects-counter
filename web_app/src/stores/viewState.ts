@@ -15,6 +15,7 @@ const defaultState = {
     hasReceivedResult: false,
     isAddingPoint: false,
     isRemovingPoint: false,
+    isPointTypePositive: true,
     showPoints: true,
     showBackground: false,
     showBoundingBoxInfo: false,

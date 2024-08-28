@@ -46,4 +46,8 @@ const left = computed(() => (props.position[0]) * scale.value - 12 + "px");
     font-size: 24px;
     user-select: none;
 }
+
+.selection-point.negative {
+    background-color: #ff6259;
+}
 </style>
