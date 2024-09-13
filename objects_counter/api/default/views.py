@@ -1,5 +1,6 @@
 import json
 import logging
+
 import os
 import random
 import string
@@ -24,6 +25,7 @@ api = Namespace('default', description='Default namespace')
 process_parser = api.parser()
 process_parser.add_argument('image', type=FileStorage, location='files')
 sam = SegmentAnythingObjectCounter(SAM_CHECKPOINT)
+
 log = logging.getLogger(__name__)
 
 @api.route('/is-alive')

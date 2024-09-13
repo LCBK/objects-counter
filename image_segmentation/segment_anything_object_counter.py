@@ -14,7 +14,7 @@ log = logging.getLogger(__name__)
 class Image:
     data: Any
     result: Any = None
-
+    objects_coords: Any = None
 
 class SegmentAnythingObjectCounter:
     def __init__(self, sam_checkpoint_path, model_type="vit_h"):
@@ -22,9 +22,14 @@ class SegmentAnythingObjectCounter:
         log.info("PyTorch version: %s", torch.__version__)
         log.info("Torchvision version: %s", torchvision.__version__)
         log.info("CUDA is available: %s", torch.cuda.is_available())
-        assert torch.cuda.is_available(), "CUDA is not available"
+
         self.sam = sam_model_registry[model_type](checkpoint=sam_checkpoint_path)
-        self.sam.to(device="cuda")
+
+        if torch.cuda.is_available():
+            self.sam.to(device="cuda")
+        else:
+            self.sam.to(device="cpu")
+
         self.predictor = SamPredictor(self.sam)
         self.images = []
 
@@ -32,15 +37,17 @@ class SegmentAnythingObjectCounter:
         self.images.append(Image(data))
         return len(self.images) - 1
 
+    def set_image_objects_coords(self, index, coords):
+        self.images[index].objects_coords = coords
+
     def calculate_image_mask(self, index, points):
         if index < 0 or index >= len(self.images):
             log.error("Given image index is out of bounds. index: %s images array size: %s", index, len(self.images))
             return False
         self.predictor.set_image(self.images[index].data)
-        masks, _, _ = self.predictor.predict(
-            point_coords=np.array(points),
-            point_labels=np.array([1] * len(points)),
-            multimask_output=True)
+        masks, _, _ = self.predictor.predict(point_coords=np.array(points),
+                                             point_labels=np.array([1] * len(points)),
+                                             multimask_output=True)
         self.images[index].result = masks[2]
         return True
 
@@ -50,13 +57,10 @@ class SegmentAnythingObjectCounter:
             return None
         return self.images[index].result
 
-    def get_object_count(self, index):
-        if index < 0 or index >= len(self.images):
-            log.error("Given image index is out of bounds. index: %s images array size: %s", index, len(self.images))
-            return None, None
-        result_mask = self.get_image_mask(index=index)
-        result_mask = np.array(result_mask) * 255
+    def process_mask(self, mask):
+        result_mask = np.array(mask) * 255
         image = np.ascontiguousarray(result_mask, dtype=np.uint8)
+
         for x in range(0, image.shape[0]):
             if image[x][0] == 0:
                 cv2.floodFill(image, None, (0, x), 255)
@@ -68,17 +72,43 @@ class SegmentAnythingObjectCounter:
             if image[image.shape[0] - 1][y] == 0:
                 cv2.floodFill(image, None, (y, image.shape[0] - 1), 255)
         _, binary_image = cv2.threshold(image, 127, 255, cv2.THRESH_BINARY_INV)
-        contours, _ = cv2.findContours(binary_image, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+        return binary_image
+
+    def extract_bounding_boxes(self, contours):
         objects_bounding_boxes = []
-        for i in range(len(contours)):
-            min_x = int(min(contours[i][t][0][0] for t in range(contours[i].shape[0])))
-            max_x = int(max(contours[i][t][0][0] for t in range(contours[i].shape[0])))
-            min_y = int(min(contours[i][t][0][1] for t in range(contours[i].shape[0])))
-            max_y = int(max(contours[i][t][0][1] for t in range(contours[i].shape[0])))
-            objects_bounding_boxes.append([[min_x, min_y], [max_x, max_y]])
-        # Count the number of contours found
-        object_count = len(objects_bounding_boxes)
+        for contour in contours:
+            x, y, w, h = cv2.boundingRect(contour)
+            objects_bounding_boxes.append(((x, y), (x + w, y + h)))
+        return objects_bounding_boxes
+
+    def get_object_count(self, index):
+        if index < 0 or index >= len(self.images):
+            print("Given image index is out of bounds. index: " + str(index) + " images array size:" + str(
+                len(self.images)))
+            return None, None
+        result_mask = self.get_image_mask(index=index)
+        if result_mask is None:
+            return None, None
+        binary_image = self.process_mask(result_mask)
+        contours, _ = cv2.findContours(binary_image, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+        object_count = len(contours)
 
         log.info("Number of objects found: %s", object_count)
 
-        return object_count, objects_bounding_boxes
+        objects_coords = self.get_bounding_boxes(index)
+        self.set_image_objects_coords(index, objects_coords)
+        return object_count
+
+    def get_bounding_boxes(self, index):
+        if index < 0 or index >= len(self.images):
+            print("Given image index is out of bounds. index: " + str(index) + " images array size:" + str(
+                len(self.images)))
+            return []
+
+        result_mask = self.get_image_mask(index=index)
+        if result_mask is None:
+            return []
+        binary_image = self.process_mask(result_mask)
+        contours, _ = cv2.findContours(binary_image, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+        bounding_boxes = self.extract_bounding_boxes(contours)
+        return bounding_boxes

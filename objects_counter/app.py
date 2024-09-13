@@ -4,6 +4,7 @@ from flask import Flask
 from flask_cors import CORS
 from flask_migrate import Migrate
 
+
 from objects_counter.utils import config_logging, config_db
 
 config_logging()  # pylint: disable=wrong-import-position # noqa: E402
