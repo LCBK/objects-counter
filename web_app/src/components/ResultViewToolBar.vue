@@ -3,11 +3,13 @@ import VButton from "primevue/button";
 import VSidebar from "primevue/sidebar";
 import QuantitiesEntry from "./QuantitiesEntry.vue";
 import { useImageStateStore } from "@/stores/imageState";
+import { useViewStateStore } from "@/stores/viewState";
 import type { Quantity } from '@/types';
 import { computed } from "vue";
 
 const visible = defineModel<boolean>();
 const imageState = useImageStateStore();
+const viewState = useViewStateStore();
 
 const quantities: Array<Quantity> = [];
 const countedClasses: Array<string> = [];
@@ -35,14 +37,19 @@ const orderedQuantities = computed(() => {
     });
     return arr;
 });
-
-const elementCount = imageState.results.length;
 </script>
 
 
 <template>
     <div class="image-view-tool-bar bar">
-        <VButton text v-bind:label="elementCount + ' elements'" class="quant" icon="pi pi-list" @click="visible = true" />
+        <VButton text label="Details" class="quant" icon="pi pi-list"
+                @click="visible = true" />
+        <div class="element-count">
+            <span class="element-count-value">{{ imageState.results.length }}</span>
+            <span class="element-count-label">elements</span>
+        </div>
+        <VButton text label="Adjust" class="edit-selection" icon="pi pi-pencil"
+                @click="viewState.setState('editPoints'); imageState.clearResult();" />
     </div>
     <VSidebar v-model:visible="visible" position="bottom" style="height: auto">
         <QuantitiesEntry v-for="(quantity, index) in orderedQuantities" :key="index"
@@ -68,7 +75,29 @@ const elementCount = imageState.results.length;
     flex: 1 1 0px;
 }
 
-.image-view-tool-bar .quant .p-button-label {
-    font-size: 1.2rem;
+.element-count {
+    display: flex;
+    flex-direction: column;
+    color: #60a5fa;
+    text-align: center;
+    justify-content: space-between;
+    margin-top: -20px;
+    background-color: #1c1c20;
+    border-top-left-radius: 30px;
+    border-top-right-radius: 30px;
+    padding: 10px 25px;
+    -webkit-box-shadow: 0px 0px 6px 0px rgba(9, 9, 11, 0.5);
+    -moz-box-shadow: 0px 0px 6px 0px rgba(9, 9, 11, 0.5);
+    box-shadow: 0px 0px 6px 0px rgba(9, 9, 11, 0.5);
+}
+
+.element-count-value {
+    display: block;
+    font-weight: bold;
+    font-size: 2.25rem;
+}
+
+.element-count-label {
+    display: block;
 }
 </style>

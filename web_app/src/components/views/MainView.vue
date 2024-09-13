@@ -1,11 +1,13 @@
 <script setup lang="ts">
-import ImageInput from "./ImageInput.vue";
+import ImageInput from "../ImageInput.vue";
+import InstructionsWidget from "../InstructionsWidget.vue";
 </script>
 
 
 <template>
     <div id="main-view" class="view">
         <ImageInput />
+        <InstructionsWidget labeled />
     </div>
 </template>
 
@@ -18,5 +20,7 @@ import ImageInput from "./ImageInput.vue";
     display: flex;
     flex-direction: column;
     flex-wrap: nowrap;
+    justify-content: center;
+    margin: auto 0;
 }
 </style>

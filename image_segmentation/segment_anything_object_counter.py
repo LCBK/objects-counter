@@ -1,3 +1,4 @@
+import logging
 from dataclasses import dataclass
 from typing import Any
 
@@ -7,6 +8,7 @@ import torch
 import torchvision
 from segment_anything import sam_model_registry, SamPredictor
 
+log = logging.getLogger(__name__)
 
 @dataclass
 class Image:
@@ -14,13 +16,13 @@ class Image:
     result: Any = None
     objects_coords: Any = None
 
-
 class SegmentAnythingObjectCounter:
     def __init__(self, sam_checkpoint_path, model_type="vit_h"):
-        print("Creating new Segment Anything Object Counter")
-        print("PyTorch version:", torch.__version__)
-        print("Torchvision version:", torchvision.__version__)
-        print("CUDA is available:", torch.cuda.is_available())
+        log.info("Creating new Segment Anything Object Counter")
+        log.info("PyTorch version: %s", torch.__version__)
+        log.info("Torchvision version: %s", torchvision.__version__)
+        log.info("CUDA is available: %s", torch.cuda.is_available())
+
         self.sam = sam_model_registry[model_type](checkpoint=sam_checkpoint_path)
 
         if torch.cuda.is_available():
@@ -40,7 +42,7 @@ class SegmentAnythingObjectCounter:
 
     def calculate_image_mask(self, index, points):
         if index < 0 or index >= len(self.images):
-            print("Given image index is out of bounds. index: " + index + " images array size:" + len(self.images))
+            log.error("Given image index is out of bounds. index: %s images array size: %s", index, len(self.images))
             return False
         self.predictor.set_image(self.images[index].data)
         masks, _, _ = self.predictor.predict(point_coords=np.array(points),
@@ -51,7 +53,7 @@ class SegmentAnythingObjectCounter:
 
     def get_image_mask(self, index):
         if index < 0 or index >= len(self.images):
-            print("Given image index is out of bounds. index: " + index + " images array size:" + len(self.images))
+            log.error("Given image index is out of bounds. index: %s images array size: %s", index, len(self.images))
             return None
         return self.images[index].result
 
@@ -90,6 +92,8 @@ class SegmentAnythingObjectCounter:
         binary_image = self.process_mask(result_mask)
         contours, _ = cv2.findContours(binary_image, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
         object_count = len(contours)
+
+        log.info("Number of objects found: %s", object_count)
 
         objects_coords = self.get_bounding_boxes(index)
         self.set_image_objects_coords(index, objects_coords)
