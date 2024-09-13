@@ -1,6 +1,10 @@
+import logging
+
 from sqlalchemy.exc import DatabaseError
 
 from objects_counter.db.models import Result, db, User
+
+log = logging.getLogger(__name__)
 
 
 def insert_result(user_id, image_id, response):
@@ -9,7 +13,7 @@ def insert_result(user_id, image_id, response):
     try:
         db.session.commit()
     except DatabaseError as e:
-        print('ERROR: failed to insert result', e)
+        log.exception('Failed to insert result: %s', e)
         db.session.rollback()
         raise
 
@@ -40,6 +44,6 @@ def delete_result_by_id(result_id: int) -> None:
     try:
         db.session.commit()
     except DatabaseError as e:
-        print('ERROR: failed to delete result', e)
+        log.exception('Failed to delete result: %s', e)
         db.session.rollback()
         raise

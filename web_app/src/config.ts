@@ -1,9 +1,11 @@
 export const config = {
-    serverUri: "http://localhost:5000"
+    serverUri: "http://" + import.meta.env.VITE_BACKEND_ADDRESS
 };
 
 export const endpoints = {
-    processImage: "/api/process"
+    uploadImage: "/api/upload",
+    sendSelection: "/api/images/{image_id}/background",
+    acceptBackground: "/api/images/{image_id}/background/accept"
 };
 
 export const boundingBoxColors = [

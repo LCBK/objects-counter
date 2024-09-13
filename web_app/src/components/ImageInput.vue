@@ -2,11 +2,13 @@
 import { ref } from "vue";
 import VButton from "primevue/button";
 import { useImageStateStore } from "@/stores/imageState";
+import { useViewStateStore } from "@/stores/viewState";
 import { sendRequest } from "@/utils";
 import { config, endpoints } from "@/config";
 
 
 const imageState = useImageStateStore();
+const viewState = useViewStateStore();
 const captureInput = ref<HTMLInputElement>();
 const uploadInput = ref<HTMLInputElement>();
 
@@ -37,18 +39,19 @@ function onImageUpload(event: Event) : void {
         };
 
         // Upload image to server
-        const requestUri = config.serverUri + endpoints.processImage;
+        const requestUri = config.serverUri + endpoints.uploadImage;
         const requestData = new FormData();
         requestData.append("image", imageFile);
-        imageState.isUploading = true;
-        const responsePromise = sendRequest(requestUri, requestData, "POST");
+        viewState.isImageUploading = true;
+        viewState.setState("uploading");
+        const responsePromise = sendRequest(requestUri, requestData, "POST", "multipart/form-data");
 
         // Handle server response
         responsePromise.then((response) => {
-            // todo: handle response codes
-            imageState.isUploading = false;
-            imageState.isUploaded = true;
-            imageState.results = response.data;
+            viewState.isImageUploading = false;
+            viewState.isImageUploaded = true;
+            viewState.setState("editPoints");
+            imageState.imageId = response;
         });
     }
 }
@@ -62,9 +65,9 @@ function onImageUpload(event: Event) : void {
     </div>
     <div class="image-select-inputs">
         <input type="file" name="image-capture" ref="captureInput"
-            accept="image/*" capture="environment" @change.prevent="onImageUpload($event)" />
+            accept="image/*" capture="environment" @change.stop.prevent="onImageUpload($event)" />
         <input type="file" name="image-upload" ref="uploadInput"
-            accept="image/*" @change.prevent="onImageUpload($event)" />
+            accept="image/*" @change.stop.prevent="onImageUpload($event)" />
     </div>
 </template>
 
@@ -72,7 +75,6 @@ function onImageUpload(event: Event) : void {
 <style scoped>
 .image-select {
     display: flex;
-    margin: auto 0;
     flex-direction: column;
     align-items: center;
     gap: 30px;

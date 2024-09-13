@@ -4,10 +4,14 @@ from flask import Flask
 from flask_cors import CORS
 from flask_migrate import Migrate
 
-from objects_counter.api import blueprint, api
+
+from objects_counter.utils import config_logging, config_db
+
+config_logging()  # pylint: disable=wrong-import-position # noqa: E402
+
+from objects_counter.api.common import blueprint, api
 from objects_counter.consts import UPLOAD_FOLDER, DB_NAME
 from objects_counter.db.models import db, bcrypt
-from objects_counter.utils import config_db
 
 
 app = Flask(__name__, instance_relative_config=True)
@@ -20,7 +24,7 @@ CORS(app)
 
 app.config.from_pyfile('config.py', silent=True)
 
-app.config['UPLOAD_FOLDER'] = app.instance_path + UPLOAD_FOLDER
+app.config['UPLOAD_FOLDER'] = os.path.join(app.instance_path, UPLOAD_FOLDER)
 
 try:
     os.makedirs(app.instance_path)
