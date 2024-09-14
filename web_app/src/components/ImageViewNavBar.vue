@@ -33,5 +33,7 @@ function onBack() : void {
     color: var(--primary-color);
     font-size: 1.3rem;
     line-height: 38px;
+    letter-spacing: 0.4px;
+    font-weight: 600;
 }
 </style>
