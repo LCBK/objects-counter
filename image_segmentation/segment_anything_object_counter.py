@@ -13,27 +13,34 @@ log = logging.getLogger(__name__)
 
 
 class Object:
+    index: int
     top_left_coord: Tuple[float, float]
     bottom_right_coord: Tuple[float, float]
     probability: float
 
-    def __init__(self, top_left: Tuple[float, float], bottom_right: Tuple[float, float], probability: float):
+    def __init__(self, index: int, top_left: Tuple[float, float], bottom_right: Tuple[float, float],
+                 probability: float):
+        self.index = index
         self.top_left_coord = top_left
         self.bottom_right_coord = bottom_right
         self.probability = probability
 
 
-Category = namedtuple('Category', ['objects'])
-
-
 @dataclass
 class Image:
     data: np.ndarray
-    mask: Any = None
-    categories: List[Category] = None
+    mask: Any
+    categories: List[List[Object]]
+
+    def __init__(self, data: np.ndarray):
+        self.data = data
+        self.mask = None
+        self.categories = []
 
 
 class SegmentAnythingObjectCounter:
+    images: List[Image]
+
     def __init__(self, sam_checkpoint_path: str, model_type: str = "vit_h") -> None:
         log.info("Creating new Segment Anything Object Counter")
         log.info("PyTorch version: %s", torch.__version__)
@@ -44,7 +51,8 @@ class SegmentAnythingObjectCounter:
         device = "cuda" if torch.cuda.is_available() else "cpu"
         self.sam.to(device=device)
         self.predictor = SamPredictor(self.sam)
-        self.images: List[Image] = []
+
+        self.images = []
 
     def add_image(self, image: np.ndarray) -> int:
         """Adds a new image to the counter."""
@@ -54,13 +62,13 @@ class SegmentAnythingObjectCounter:
     def add_objects_from_bounding_boxes(self, image_index, bounding_boxes) -> None:
         """Creates new objects from bounding boxes and adds them to the specified image."""
         new_objects = []
+        index = 0
         for top_left, bottom_right in bounding_boxes:
-            new_object = Object(top_left=top_left, bottom_right=bottom_right, probability=0.0)
+            new_object = Object(index=index, top_left=top_left, bottom_right=bottom_right, probability=0.0)
             new_objects.append(new_object)
+            index += 1
 
-        new_category = Category(objects=new_objects)
-
-        self.images[image_index].categories = [new_category]
+        self.images[image_index].categories.append(new_objects)
 
     def calculate_image_mask(self, image_index: int, points: List[Tuple[float, float]]):
         """Calculates and sets the mask for the specified image based on provided points."""
@@ -69,10 +77,8 @@ class SegmentAnythingObjectCounter:
                       len(self.images))
             return False
         self.predictor.set_image(self.images[image_index].data)
-        masks, _, _ = self.predictor.predict(
-            point_coords=np.array(points),
-            point_labels=np.array([1] * len(points)),
-            multimask_output=True)
+        masks, _, _ = self.predictor.predict(point_coords=np.array(points), point_labels=np.array([1] * len(points)),
+                                             multimask_output=True)
         self.images[image_index].mask = masks[2]
         return True
 
