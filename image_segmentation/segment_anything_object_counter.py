@@ -1,6 +1,7 @@
 import logging
+from collections import namedtuple
 from dataclasses import dataclass
-from typing import Any
+from typing import Any, List, Tuple
 
 import cv2
 import numpy as np
@@ -10,54 +11,81 @@ from segment_anything import sam_model_registry, SamPredictor
 
 log = logging.getLogger(__name__)
 
+
+class Object:
+    top_left_coord: Tuple[float, float]
+    bottom_right_coord: Tuple[float, float]
+    probability: float
+
+    def __init__(self, top_left: Tuple[float, float], bottom_right: Tuple[float, float], probability: float):
+        self.top_left_coord = top_left
+        self.bottom_right_coord = bottom_right
+        self.probability = probability
+
+
+Category = namedtuple('Category', ['objects'])
+
+
 @dataclass
 class Image:
-    data: Any
-    result: Any = None
-    objects_coords: Any = None
+    data: np.ndarray
+    mask: Any = None
+    categories: List[Category] = None
+
 
 class SegmentAnythingObjectCounter:
-    def __init__(self, sam_checkpoint_path, model_type="vit_h"):
+    def __init__(self, sam_checkpoint_path: str, model_type: str = "vit_h") -> None:
         log.info("Creating new Segment Anything Object Counter")
         log.info("PyTorch version: %s", torch.__version__)
         log.info("Torchvision version: %s", torchvision.__version__)
         log.info("CUDA is available: %s", torch.cuda.is_available())
 
         self.sam = sam_model_registry[model_type](checkpoint=sam_checkpoint_path)
-
-        if torch.cuda.is_available():
-            self.sam.to(device="cuda")
-        else:
-            self.sam.to(device="cpu")
-
+        device = "cuda" if torch.cuda.is_available() else "cpu"
+        self.sam.to(device=device)
         self.predictor = SamPredictor(self.sam)
-        self.images = []
+        self.images: List[Image] = []
 
-    def add_image(self, data):
-        self.images.append(Image(data))
+    def add_image(self, image: np.ndarray) -> int:
+        """Adds a new image to the counter."""
+        self.images.append(Image(data=image))
         return len(self.images) - 1
 
-    def set_image_objects_coords(self, index, coords):
-        self.images[index].objects_coords = coords
+    def add_objects_from_bounding_boxes(self, image_index, bounding_boxes) -> None:
+        """Creates new objects from bounding boxes and adds them to the specified image."""
+        new_objects = []
+        for top_left, bottom_right in bounding_boxes:
+            new_object = Object(top_left=top_left, bottom_right=bottom_right, probability=0.0)
+            new_objects.append(new_object)
 
-    def calculate_image_mask(self, index, points):
-        if index < 0 or index >= len(self.images):
-            log.error("Given image index is out of bounds. index: %s images array size: %s", index, len(self.images))
+        new_category = Category(objects=new_objects)
+
+        self.images[image_index].categories = [new_category]
+
+    def calculate_image_mask(self, image_index: int, points: List[Tuple[float, float]]):
+        """Calculates and sets the mask for the specified image based on provided points."""
+        if image_index < 0 or image_index >= len(self.images):
+            log.error("Given image index is out of bounds. index: %s images array size: %s", image_index,
+                      len(self.images))
             return False
-        self.predictor.set_image(self.images[index].data)
-        masks, _, _ = self.predictor.predict(point_coords=np.array(points),
-                                             point_labels=np.array([1] * len(points)),
-                                             multimask_output=True)
-        self.images[index].result = masks[2]
+        self.predictor.set_image(self.images[image_index].data)
+        masks, _, _ = self.predictor.predict(
+            point_coords=np.array(points),
+            point_labels=np.array([1] * len(points)),
+            multimask_output=True)
+        self.images[image_index].mask = masks[2]
         return True
 
-    def get_image_mask(self, index):
-        if index < 0 or index >= len(self.images):
-            log.error("Given image index is out of bounds. index: %s images array size: %s", index, len(self.images))
+    def get_image_mask(self, image_index: int):
+        """Returns the mask for the specified image."""
+        if image_index < 0 or image_index >= len(self.images):
+            log.error("Given image index is out of bounds. index: %s images array size: %s", image_index,
+                      len(self.images))
             return None
-        return self.images[index].result
+        return self.images[image_index].mask
 
     def process_mask(self, mask):
+        """Processes the mask to a binary image."""
         result_mask = np.array(mask) * 255
         image = np.ascontiguousarray(result_mask, dtype=np.uint8)
 
@@ -74,41 +102,54 @@ class SegmentAnythingObjectCounter:
         _, binary_image = cv2.threshold(image, 127, 255, cv2.THRESH_BINARY_INV)
         return binary_image
 
-    def extract_bounding_boxes(self, contours):
-        objects_bounding_boxes = []
-        for contour in contours:
-            x, y, w, h = cv2.boundingRect(contour)
-            objects_bounding_boxes.append(((x, y), (x + w, y + h)))
-        return objects_bounding_boxes
-
-    def get_object_count(self, index):
-        if index < 0 or index >= len(self.images):
-            print("Given image index is out of bounds. index: " + str(index) + " images array size:" + str(
+    def get_object_count(self, image_index: int) -> int:
+        """Counts the number of objects in the specified image and updates the objects list."""
+        if image_index < 0 or image_index >= len(self.images):
+            print("Given image index is out of bounds. index: " + str(image_index) + " images array size:" + str(
                 len(self.images)))
-            return None, None
-        result_mask = self.get_image_mask(index=index)
-        if result_mask is None:
-            return None, None
-        binary_image = self.process_mask(result_mask)
-        contours, _ = cv2.findContours(binary_image, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+            return None
+
+        mask = self.get_image_mask(image_index)
+        if mask is None:
+            return None
+
+        binary_mask = self.process_mask(mask)
+        contours, _ = cv2.findContours(binary_mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
         object_count = len(contours)
 
-        log.info("Number of objects found: %s", object_count)
+        log.info(f"Number of objects found: {object_count}")
 
-        objects_coords = self.get_bounding_boxes(index)
-        self.set_image_objects_coords(index, objects_coords)
+        bounding_boxes = self.get_image_bounding_boxes(image_index)
+        self.add_objects_from_bounding_boxes(image_index, bounding_boxes)
+
         return object_count
 
-    def get_bounding_boxes(self, index):
-        if index < 0 or index >= len(self.images):
-            print("Given image index is out of bounds. index: " + str(index) + " images array size:" + str(
-                len(self.images)))
+    def get_image_bounding_boxes(self, image_index: int) -> List[Tuple[int, int, int, int]]:
+        """Extracts bounding boxes for objects in the specified image."""
+        if image_index < 0 or image_index >= len(self.images):
+            log.error(f"Image index {image_index} is out of bounds. Total images: {len(self.images)}.")
             return []
 
-        result_mask = self.get_image_mask(index=index)
-        if result_mask is None:
+        mask = self.get_image_mask(image_index)
+
+        if mask is None:
             return []
-        binary_image = self.process_mask(result_mask)
-        contours, _ = cv2.findContours(binary_image, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+
+        binary_mask = self.process_mask(mask)
+
+        contours, _ = cv2.findContours(binary_mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+
         bounding_boxes = self.extract_bounding_boxes(contours)
+        return bounding_boxes
+
+    def extract_bounding_boxes(self, contours: List[np.ndarray]) -> List[Tuple[Tuple[int, int], Tuple[int, int]]]:
+        """Extracts bounding boxes from contours."""
+        bounding_boxes = []
+
+        for contour in contours:
+            x, y, width, height = cv2.boundingRect(contour)
+            top_left = (x, y)
+            bottom_right = (x + width, y + height)
+            bounding_boxes.append((top_left, bottom_right))
+
         return bounding_boxes
