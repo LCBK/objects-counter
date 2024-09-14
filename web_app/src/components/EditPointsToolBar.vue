@@ -4,7 +4,7 @@ import { useViewStateStore } from "@/stores/viewState";
 import { config, endpoints } from "@/config";
 import { useImageStateStore } from "@/stores/imageState";
 import { createMaskImage, sendRequest } from "@/utils";
-import { onMounted, ref } from "vue";
+import { computed, onMounted, ref } from "vue";
 
 const viewState = useViewStateStore();
 const imageState = useImageStateStore();
@@ -13,6 +13,9 @@ const pointTypePanel = ref<HTMLElement>();
 const positivePointButton = ref<HTMLElement>();
 const negativePointButton = ref<HTMLElement>();
 const displayPointTypes = ref<Boolean>();
+
+const allButtonsDisabled = computed(() => viewState.isWaitingForResponse);
+const confirmButtonDisabled = computed(() => imageState.points.length === 0);
 
 function setPositivePointType() {
     viewState.isPointTypePositive = true;
@@ -37,12 +40,19 @@ function handleRemoveClick() {
 }
 
 function handleConfirmPoints() {
+    if (imageState.points.length === 0) return;
+
     const pointPositions = imageState.points.map((point) => point.position);
     const requestUri = config.serverUri + endpoints.sendSelection.replace("{image_id}", imageState.imageId.toString());
     const requestData = JSON.stringify({ "data": pointPositions });
     const responsePromise = sendRequest(requestUri, requestData, "PUT");
+
+    viewState.isWaitingForResponse = true;
+    displayPointTypes.value = false;
     
     responsePromise.then((response) => {
+        viewState.isWaitingForResponse = false;
+        
         const maskImageData = createMaskImage(JSON.parse(response).mask);
         const canvas = document.createElement("canvas");
         const ctx = canvas.getContext("2d");
@@ -72,13 +82,13 @@ onMounted(() => {
 <template>
     <div class="image-view-tool-bar bar">
         <VButton text label="Add points" icon="pi pi-plus"
-                @click="handleAddClick"
+                :disabled="allButtonsDisabled" @click="handleAddClick"
                 :class="viewState.isAddingPoint ? 'active ' : '' + 'add-points'" />
         <VButton text label="Remove points" icon="pi pi-minus"
-                @click="handleRemoveClick"
+                :disabled="allButtonsDisabled" @click="handleRemoveClick"
                 :class="viewState.isRemovingPoint ? 'active ' : '' + 'remove-points'" />
         <VButton text label="Confirm points" class="confirm-points" icon="pi pi-check"
-                @click="handleConfirmPoints" />
+                :disabled="confirmButtonDisabled || allButtonsDisabled" @click="handleConfirmPoints" />
     </div>
     <div id="point-types" ref="pointTypePanel" v-show="displayPointTypes">
         <div id="positive-point" ref="positivePointButton" @click="setPositivePointType">+</div>
@@ -107,7 +117,7 @@ onMounted(() => {
     z-index: 200;
     position: absolute;
     bottom: 100px;
-    left: 14px;
+    left: calc(16.67vw - 45px);     /* Half of a toolbar button's length minus half of type selector width */
     display: flex;
     justify-content: space-around;
     color: white;

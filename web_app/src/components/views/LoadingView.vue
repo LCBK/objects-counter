@@ -6,16 +6,29 @@ import LoadingSpinner from "../LoadingSpinner.vue";
 <template>
     <div id="loading-view" class="view">
         <LoadingSpinner />
+        <p class="uploading-text">Uploading...</p>
     </div>
 </template>
 
 
 <style scoped>
+#loading-view {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
 #loading-view .loader {
     width: 64px;
     height: 64px;
-    position: absolute;
-    left: calc(50% - 32px);
-    top: calc(50% - 32px);
+    margin-bottom: 20px;
+}
+
+#loading-view .uploading-text {
+    color: #60a5fa;
+    font-weight: bold;
+    letter-spacing: 0.5px;
+    font-size: 1.1rem;
 }
 </style>
