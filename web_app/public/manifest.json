@@ -1,0 +1,32 @@
+{
+  "name": "LCBK Object Counter",
+  "description": "User-friendly application for counting and grouping objects.",
+  "icons": [
+    {
+      "src": "icons/512.png",
+      "type": "image/png",
+      "sizes": "512x512"
+    },
+    {
+      "src": "icons/192.png",
+      "type": "image/png",
+      "sizes": "192x192"
+    },
+    {
+      "src": "icons/128.png",
+      "type": "image/png",
+      "sizes": "128x128"
+    },
+    {
+      "src": "icons/32.png",
+      "type": "image/png",
+      "sizes": "32x32"
+    }
+  ],
+  "start_url": ".",
+  "display": "standalone",
+  "theme_color": "#60a5fa",
+  "background_color": "#121212",
+  "orientation": "portrait-primary"
+}
+  
