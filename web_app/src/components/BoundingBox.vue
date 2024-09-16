@@ -11,7 +11,7 @@ const props = defineProps({
         type: Array<number>,
         required: true
     },
-    bottomRight: {                          // bottom-right corner [x, y]
+    bottomRight: {                      // bottom-right corner [x, y]
         type: Array<number>,
         required: true
     },

@@ -12,7 +12,7 @@ const currentViewState = computed(() => viewState.currentStateName);
 const isButtonAnimated = ref<Boolean>();
 
 const props = defineProps({
-    labeled: Boolean
+    labeled: Boolean                // labeled with "Instruction" string and styled as a wider button
 });
 
 

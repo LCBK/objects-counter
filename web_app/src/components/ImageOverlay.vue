@@ -29,38 +29,42 @@ function scaleOverlay() {
     const imageElement = document.querySelector("#displayed-image") as HTMLImageElement;
     if (!imageElement) return;
 
-    const overlayWidth = overlay.value.clientWidth;
-    const overlayHeight = overlay.value.clientHeight;
-    const overlayRatio = overlayWidth / overlayHeight;
-    const srcImageRatio = imageState.width / imageState.height;
-    let innerImageWidth = 0, innerImageHeight = 0;
-    let destinationHeightFraction = 0, destinationWidthFraction = 0;
+    const overlayWidth = overlay.value.clientWidth;                     // Overlay element width
+    const overlayHeight = overlay.value.clientHeight;                   // Overlay element height
+    const overlayRatio = overlayWidth / overlayHeight;                  // Overlay ratio of width/height
+    const srcImageRatio = imageState.width / imageState.height;         // Image ratio of width/height
+    let innerImageWidth = 0, innerImageHeight = 0;                      // Dimensions of <img> element (differ from original)
+    let destinationHeightFraction = 1, destinationWidthFraction = 1;    // Fractions used for scaling the <img> element dimensions
 
+    // Calculate which <img> element dimension to scale
     if (srcImageRatio > overlayRatio) {
-        destinationWidthFraction = 1;
+        // Original image wider than <img> element
         destinationHeightFraction = (imageState.height / overlayHeight) / (imageState.width / overlayWidth);
     }
     else {
+        // <img> element wider than original image
         destinationWidthFraction = (imageState.width / overlayWidth) / (imageState.height / overlayHeight);
-        destinationHeightFraction = 1;
     }
 
+    // Scale <img> element to fit overlay
     innerImageWidth = overlayWidth * destinationWidthFraction;
     innerImageHeight = overlayHeight * destinationHeightFraction;
 
-    const top_margin = Math.max((overlayHeight - innerImageHeight) / 2, 0);
-    const left_margin = Math.max((overlayWidth - innerImageWidth) / 2, 0);
+    // Calculate overlay offsets
+    const topMargin = Math.max((overlayHeight - innerImageHeight) / 2, 0);
+    const leftMargin = Math.max((overlayWidth - innerImageWidth) / 2, 0);
 
+    // Calculate CSS properties
     innerOverlay.value.style.width = innerImageWidth + "px";
     innerOverlay.value.style.height = innerImageHeight + "px";
-    innerOverlay.value.style.top = top_margin + "px";
-    innerOverlay.value.style.left = left_margin + "px";
+    innerOverlay.value.style.top = topMargin + "px";
+    innerOverlay.value.style.left = leftMargin + "px";
 
+    // Store current scale/offset info
     imageState.scaledImageWidth = innerImageWidth;
     imageState.scaledImageHeight = innerImageHeight;
-    imageState.overlayOffsetLeft = left_margin;
-    imageState.overlayOffsetTop = top_margin;
-
+    imageState.overlayOffsetLeft = leftMargin;
+    imageState.overlayOffsetTop = topMargin;
     if (srcImageRatio > overlayRatio) {
         imageState.boundingBoxScale = innerImageWidth / imageState.width;
     }
@@ -69,6 +73,7 @@ function scaleOverlay() {
     }
 }
 
+// Assigns different colors (boundingBoxColors constant) for each unique classification
 function assignClassColors() {
     const assignedClasses: Array<string> = [];
     const assignedColors: Array<string> = [];
@@ -101,6 +106,8 @@ function handleOverlayClick(event: MouseEvent) {
         imageState.addPoint(viewState.isPointTypePositive, x, y);
     }
     else if (viewState.isRemovingPoint) {
+        // When clicking a point and not the overlay, mouse coords returned by the event differ
+        // If clicked a point, get its coords from data attributes instead of event
         if ((event.target! as HTMLElement).classList.contains("selection-point")) {
             const pointX = Number((event.target! as HTMLElement).getAttribute("data-x"));
             const pointY = Number((event.target! as HTMLElement).getAttribute("data-y"));

@@ -25,8 +25,8 @@ function setPositivePointType() {
 
 function setNegativePointType() {
     viewState.isPointTypePositive = false;
-    negativePointButton.value!.classList.add("checked");
     positivePointButton.value!.classList.remove("checked");
+    negativePointButton.value!.classList.add("checked");
 }
 
 function handleAddClick() {
@@ -50,6 +50,7 @@ function handleConfirmPoints() {
     viewState.isWaitingForResponse = true;
     displayPointTypes.value = false;
     
+    // Backend returns a background mask
     responsePromise.then((response) => {
         viewState.isWaitingForResponse = false;
         

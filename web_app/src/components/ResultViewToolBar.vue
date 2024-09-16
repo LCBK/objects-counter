@@ -15,6 +15,7 @@ const quantities: Array<ObjectClassification> = [];
 const countedClassifications: Array<string> = [];
 const classificationQuantities: Array<number> = [];
 
+// Count unique classifications
 imageState.imageElements.forEach((result) => {
     if (!countedClassifications.includes(result.classification)) {
         countedClassifications.push(result.classification);
@@ -26,11 +27,13 @@ imageState.imageElements.forEach((result) => {
     }
 });
 
+// Create classification quantities for QuantitiesEntry elements
 let quantitiesIndex = 0;
 countedClassifications.forEach((c) => {
     quantities.push({ classification: c, count: classificationQuantities[quantitiesIndex++], isNameAssigned: false });
 });
 
+// Quantities ordered by count
 const orderedQuantities = computed(() => {
     const arr = Array.from(quantities).sort((a, b) => {
         return a.count < b.count ? 1 : 0;

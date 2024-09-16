@@ -18,6 +18,7 @@ function handleConfirmBackground() {
 
     viewState.isWaitingForResponse = true;
     
+    // Backend returns counted and classified image elements
     responsePromise.then((response) => {
         viewState.isWaitingForResponse = false;
 
