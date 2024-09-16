@@ -20,7 +20,13 @@ function handleConfirmBackground() {
     
     responsePromise.then((response) => {
         viewState.isWaitingForResponse = false;
-        imageState.imageElements = JSON.parse(response).objects;
+
+        // Change snake_case to camelCase for keys
+        const parsedResponse = JSON.parse(response
+                .replaceAll("top_left", "topLeft")
+                .replaceAll("bottom_right", "bottomRight"));
+        imageState.imageElements = parsedResponse.objects;
+
         viewState.setState('viewResult');
     });
 }

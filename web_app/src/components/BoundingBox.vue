@@ -18,7 +18,7 @@ const props = defineProps({
     certainty: {
         type: Number
     },
-    class: {
+    classification: {
         type: String
     },
     color: {
@@ -41,10 +41,10 @@ const height = computed(() => (props.bottomRight[1] - props.topLeft[1]) * scale.
     <div class="bounding-box"
             v-bind:data-topleft="props.topLeft[0] + ',' + props.topLeft[1]"
             v-bind:data-bottomright="props.bottomRight[0] + ',' + props.bottomRight[1]"
-            v-bind:data-certainty="props.certainty" v-bind:data-class="props.class">
+            v-bind:data-certainty="props.certainty" v-bind:data-classification="props.classification">
         <div v-if="viewState.showBoundingBoxInfo">
             <div class="box-certainty">{{ props.certainty }}</div>
-            <div class="box-class">{{ props.class }}</div>
+            <div class="box-classification">{{ props.classification }}</div>
         </div>
     </div>
 </template>
@@ -74,7 +74,7 @@ const height = computed(() => (props.bottomRight[1] - props.topLeft[1]) * scale.
     padding: 0 3px;
 }
 
-.bounding-box .box-class {
+.bounding-box .box-classification {
     background-color: v-bind(boxColor);
     position: absolute;
     line-height: 16px;

@@ -4,31 +4,31 @@ import VSidebar from "primevue/sidebar";
 import QuantitiesEntry from "./QuantitiesEntry.vue";
 import { useImageStateStore } from "@/stores/imageState";
 import { useViewStateStore } from "@/stores/viewState";
-import type { ObjectQuantity } from '@/types';
+import type { ObjectClassification } from '@/types';
 import { computed } from "vue";
 
 const visible = defineModel<boolean>();
 const imageState = useImageStateStore();
 const viewState = useViewStateStore();
 
-const quantities: Array<ObjectQuantity> = [];
-const countedClasses: Array<string> = [];
-const classQuantities: Array<number> = [];
+const quantities: Array<ObjectClassification> = [];
+const countedClassifications: Array<string> = [];
+const classificationQuantities: Array<number> = [];
 
 imageState.imageElements.forEach((result) => {
-    if (!countedClasses.includes(result.classification)) {
-        countedClasses.push(result.classification);
-        classQuantities.push(1);
+    if (!countedClassifications.includes(result.classification)) {
+        countedClassifications.push(result.classification);
+        classificationQuantities.push(1);
     }
     else {
-        const classIndex = countedClasses.indexOf(result.classification);
-        classQuantities[classIndex]++;
+        const classIndex = countedClassifications.indexOf(result.classification);
+        classificationQuantities[classIndex]++;
     }
 });
 
 let quantitiesIndex = 0;
-countedClasses.forEach((c) => {
-    quantities.push({ classification: c, count: classQuantities[quantitiesIndex++] });
+countedClassifications.forEach((c) => {
+    quantities.push({ classification: c, count: classificationQuantities[quantitiesIndex++], isNameAssigned: false });
 });
 
 const orderedQuantities = computed(() => {
@@ -42,19 +42,16 @@ const orderedQuantities = computed(() => {
 
 <template>
     <div class="image-view-tool-bar bar">
-        <VButton text label="Details" class="quant" icon="pi pi-list"
-                @click="visible = true" />
+        <VButton text label="Details" class="quant" icon="pi pi-list" @click="visible = true" />
         <div class="element-count">
             <span class="element-count-value">{{ imageState.imageElements.length }}</span>
-            <span class="element-count-label">elements</span>
+            <span class="element-count-label">Elements</span>
         </div>
         <VButton text label="Adjust" class="edit-selection" icon="pi pi-pencil"
                 @click="viewState.setState('editPoints'); imageState.clearResult();" />
     </div>
     <VSidebar v-model:visible="visible" position="bottom" style="height: auto">
-        <QuantitiesEntry v-for="(quantity, index) in orderedQuantities" :key="index"
-                v-bind:index="index" v-bind:class="quantity.classification"
-                v-bind:count="quantity.count" />
+        <QuantitiesEntry v-for="(quantity, index) in orderedQuantities" :key="index" v-bind="quantity" />
     </VSidebar>
 </template>
 

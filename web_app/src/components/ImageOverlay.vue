@@ -14,7 +14,7 @@ const viewState = useViewStateStore();
 const overlay = ref<HTMLDivElement>();
 const innerOverlay = ref<HTMLDivElement>();
 
-const results = computed(() => imageState.imageElements);
+const elements = computed(() => imageState.imageElements);
 const points = imageState.points;
 
 const scale = computed(() => imageState.boundingBoxScale);
@@ -128,15 +128,11 @@ onMounted(() => {
                 @click="handleOverlayClick">
             <img id="mask-image" :src="imageState.backgroundMaskDataURL">
             <div class="bounding-boxes">
-                <BoundingBox v-for="([, box], index) in Object.entries(results)" :key="index"
-                        v-bind:top-left="box.top_left" v-bind:bottom-right="box.bottom_right"
-                        v-bind:certainty="box.certainty" v-bind:class="box.classification"
-                        v-bind:index="index" v-bind:color="box.color" />
+                <BoundingBox v-for="([, box], index) in Object.entries(elements)" :key="index" v-bind="box" />
             </div>
             <div class="selection-points" v-if="viewState.showPoints">
                 <SelectionPoint v-for="([, point], index) in Object.entries(points)" :key="index"
-                        v-bind:is-positive="point.isPositive" v-bind:position="point.position"
-                        v-bind:class="[point.isPositive ? 'positive' : 'negative']" />
+                        v-bind="point" v-bind:class="[point.isPositive ? 'positive' : 'negative']" />
             </div>
         </div>
         <Transition name="waiting-overlay">
