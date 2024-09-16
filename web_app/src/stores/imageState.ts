@@ -1,4 +1,4 @@
-import type { Point, Result } from "@/types";
+import type { BackgroundPoint, ImageElement } from "@/types";
 import { distance } from "@/utils";
 import { defineStore } from "pinia";
 
@@ -18,8 +18,8 @@ const defaultState = {
     backgroundMaskDataURL: "",
     isPanning: false,
     userZoom: 1,
-    results: [] as Array<Result>,
-    points: [] as Array<Point>
+    imageElements: [] as Array<ImageElement>,
+    points: [] as Array<BackgroundPoint>
 }
 
 export const useImageStateStore = defineStore("imageState", {
@@ -31,7 +31,7 @@ export const useImageStateStore = defineStore("imageState", {
         },
 
         addPoint(isPositive: boolean, x: number, y: number) {
-            this.points.push({ isPositive: isPositive, position: [x, y] } as Point);
+            this.points.push({ isPositive: isPositive, position: [x, y] } as BackgroundPoint);
         },
 
         removeNearbyPoint(x: number, y: number, tolerance: number = 60) {
@@ -48,7 +48,7 @@ export const useImageStateStore = defineStore("imageState", {
         },
 
         clearResult() {
-            this.results = [];
+            this.imageElements = [];
         }
     }
 });

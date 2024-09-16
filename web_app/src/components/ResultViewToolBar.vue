@@ -4,31 +4,31 @@ import VSidebar from "primevue/sidebar";
 import QuantitiesEntry from "./QuantitiesEntry.vue";
 import { useImageStateStore } from "@/stores/imageState";
 import { useViewStateStore } from "@/stores/viewState";
-import type { Quantity } from '@/types';
+import type { ObjectQuantity } from '@/types';
 import { computed } from "vue";
 
 const visible = defineModel<boolean>();
 const imageState = useImageStateStore();
 const viewState = useViewStateStore();
 
-const quantities: Array<Quantity> = [];
+const quantities: Array<ObjectQuantity> = [];
 const countedClasses: Array<string> = [];
 const classQuantities: Array<number> = [];
 
-imageState.results.forEach((result) => {
-    if (!countedClasses.includes(result.class)) {
-        countedClasses.push(result.class);
+imageState.imageElements.forEach((result) => {
+    if (!countedClasses.includes(result.classification)) {
+        countedClasses.push(result.classification);
         classQuantities.push(1);
     }
     else {
-        const classIndex = countedClasses.indexOf(result.class);
+        const classIndex = countedClasses.indexOf(result.classification);
         classQuantities[classIndex]++;
     }
 });
 
 let quantitiesIndex = 0;
 countedClasses.forEach((c) => {
-    quantities.push({ index: quantitiesIndex, class: c, count: classQuantities[quantitiesIndex++] });
+    quantities.push({ index: quantitiesIndex, classification: c, count: classQuantities[quantitiesIndex++] });
 });
 
 const orderedQuantities = computed(() => {
@@ -45,7 +45,7 @@ const orderedQuantities = computed(() => {
         <VButton text label="Details" class="quant" icon="pi pi-list"
                 @click="visible = true" />
         <div class="element-count">
-            <span class="element-count-value">{{ imageState.results.length }}</span>
+            <span class="element-count-value">{{ imageState.imageElements.length }}</span>
             <span class="element-count-label">elements</span>
         </div>
         <VButton text label="Adjust" class="edit-selection" icon="pi pi-pencil"
@@ -53,7 +53,7 @@ const orderedQuantities = computed(() => {
     </div>
     <VSidebar v-model:visible="visible" position="bottom" style="height: auto">
         <QuantitiesEntry v-for="(quantity, index) in orderedQuantities" :key="index"
-                v-bind:index="index" v-bind:class="quantity.class"
+                v-bind:index="index" v-bind:class="quantity.classification"
                 v-bind:count="quantity.count" />
     </VSidebar>
 </template>

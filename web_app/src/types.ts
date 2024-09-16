@@ -1,19 +1,19 @@
-export interface Result {
+export interface ImageElement {
     index: number,
     top_left: [number, number],
     bottom_right: [number, number],
+    classification: string,
     certainty: number,
-    class: string,
     color: string
 }
 
-export interface Quantity {
+export interface ObjectQuantity {
     index: number,
-    class: string,
+    classification: string,
     count: number
 }
 
-export interface Point {
+export interface BackgroundPoint {
     isPositive: boolean,                  // true - positive, false - negative
     position: [number, number]
 }

@@ -20,7 +20,7 @@ function handleConfirmBackground() {
     
     responsePromise.then((response) => {
         viewState.isWaitingForResponse = false;
-        imageState.results = JSON.parse(response).data;
+        imageState.imageElements = JSON.parse(response).objects;
         viewState.setState('viewResult');
     });
 }

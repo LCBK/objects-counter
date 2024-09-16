@@ -14,7 +14,7 @@ const viewState = useViewStateStore();
 const overlay = ref<HTMLDivElement>();
 const innerOverlay = ref<HTMLDivElement>();
 
-const results = computed(() => imageState.results);
+const results = computed(() => imageState.imageElements);
 const points = imageState.points;
 
 const scale = computed(() => imageState.boundingBoxScale);
@@ -74,16 +74,16 @@ function assignClassColors() {
     const assignedColors: Array<string> = [];
 
     let colorIndex = 0;
-    imageState.results.forEach((box) => {
-        if (!assignedClasses.includes(box.class)) {
+    imageState.imageElements.forEach((box) => {
+        if (!assignedClasses.includes(box.classification)) {
             let newColor = boundingBoxColors[colorIndex % boundingBoxColors.length];
-            assignedClasses.push(box.class);
+            assignedClasses.push(box.classification);
             assignedColors.push(newColor);
             colorIndex++;
             box.color = newColor;
         }
         else {
-            let colorIndex = assignedClasses.indexOf(box.class);
+            let colorIndex = assignedClasses.indexOf(box.classification);
             box.color = assignedColors[colorIndex];
         }
     });
@@ -130,7 +130,7 @@ onMounted(() => {
             <div class="bounding-boxes">
                 <BoundingBox v-for="([, box], index) in Object.entries(results)" :key="index"
                         v-bind:top-left="box.top_left" v-bind:bottom-right="box.bottom_right"
-                        v-bind:certainty="box.certainty" v-bind:class="box.class"
+                        v-bind:certainty="box.certainty" v-bind:class="box.classification"
                         v-bind:index="index" v-bind:color="box.color" />
             </div>
             <div class="selection-points" v-if="viewState.showPoints">
