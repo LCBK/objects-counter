@@ -1,9 +1,5 @@
 <script setup lang="ts">
 const props = defineProps({
-    index: {
-        type: Number,
-        required: true
-    },
     class: {
         type: String,
         required: true

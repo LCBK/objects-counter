@@ -1,5 +1,4 @@
 export interface ImageElement {
-    index: number,
     top_left: [number, number],
     bottom_right: [number, number],
     classification: string,
@@ -8,7 +7,6 @@ export interface ImageElement {
 }
 
 export interface ObjectQuantity {
-    index: number,
     classification: string,
     count: number
 }

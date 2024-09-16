@@ -28,7 +28,7 @@ imageState.imageElements.forEach((result) => {
 
 let quantitiesIndex = 0;
 countedClasses.forEach((c) => {
-    quantities.push({ index: quantitiesIndex, classification: c, count: classQuantities[quantitiesIndex++] });
+    quantities.push({ classification: c, count: classQuantities[quantitiesIndex++] });
 });
 
 const orderedQuantities = computed(() => {

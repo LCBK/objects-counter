@@ -7,10 +7,6 @@ import { computed, defineProps } from 'vue';
 const imageState = useImageStateStore();
 const viewState = useViewStateStore();
 const props = defineProps({
-    index: {
-        type: Number,
-        required: true
-    },
     topLeft: {                          // top-left corner [x, y]
         type: Array<number>,
         required: true
@@ -45,8 +41,7 @@ const height = computed(() => (props.bottomRight[1] - props.topLeft[1]) * scale.
     <div class="bounding-box"
             v-bind:data-topleft="props.topLeft[0] + ',' + props.topLeft[1]"
             v-bind:data-bottomright="props.bottomRight[0] + ',' + props.bottomRight[1]"
-            v-bind:data-certainty="props.certainty" v-bind:data-class="props.class"
-            v-bind:data-index="props.index">
+            v-bind:data-certainty="props.certainty" v-bind:data-class="props.class">
         <div v-if="viewState.showBoundingBoxInfo">
             <div class="box-certainty">{{ props.certainty }}</div>
             <div class="box-class">{{ props.class }}</div>
