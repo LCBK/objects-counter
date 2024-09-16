@@ -30,7 +30,12 @@ imageState.imageElements.forEach((result) => {
 // Create classification quantities for QuantitiesEntry elements
 let quantitiesIndex = 0;
 countedClassifications.forEach((c) => {
-    quantities.push({ classification: c, count: classificationQuantities[quantitiesIndex++], isNameAssigned: false });
+    quantities.push({ 
+        classification: c, 
+        count: classificationQuantities[quantitiesIndex++], 
+        isNameAssigned: false,
+        showBoxes: true
+    });
 });
 
 // Quantities ordered by count
@@ -53,13 +58,42 @@ const orderedQuantities = computed(() => {
         <VButton text label="Adjust" class="edit-selection" icon="pi pi-pencil"
                 @click="viewState.setState('editPoints'); imageState.clearResult();" />
     </div>
-    <VSidebar v-model:visible="visible" position="bottom" style="height: auto">
+    <VSidebar v-model:visible="visible" position="bottom" style="height: auto" class="quantities" header="Counted elements">
+        <div class="quantities-header">
+            <div class="quantities-col">Count</div>
+            <div class="quantities-col">Type</div>
+            <div class="quantities-col">Show boxes</div>
+        </div>
         <QuantitiesEntry v-for="(quantity, index) in orderedQuantities" :key="index" v-bind="quantity" />
     </VSidebar>
 </template>
 
 
 <style scoped>
+.quantities-header {
+    display: flex;
+    font-size: 0.75rem;
+    font-weight: 300;
+    letter-spacing: 0.3px;
+    margin: 12px 0 6px 0;
+    color: #60a5fa;
+}
+
+.quantities-col:nth-child(1) {
+    flex-basis: 15%;
+    text-align: center;
+}
+
+.quantities-col:nth-child(2) {
+    flex-basis: 60%;
+    text-indent: 10px;
+}
+
+.quantities-col:nth-child(3) {
+    flex-basis: 25%;
+    text-align: center;
+}
+
 .image-view-tool-bar {
     padding: 0;
     position: fixed;

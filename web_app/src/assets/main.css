@@ -104,3 +104,9 @@
 .p-dialog .p-dialog-header .p-dialog-header-icon:focus-visible {
     outline: none;
 }
+
+.quantities .p-sidebar-header-content {
+    color: #60a5fa;
+    font-weight: 400;
+    letter-spacing: 0.3px;
+}

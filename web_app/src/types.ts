@@ -9,7 +9,8 @@ export interface ImageElement {
 export interface ObjectClassification {
     classification: string,
     count: number,
-    isNameAssigned: boolean                 // Determines whether the user named the classification or not
+    isNameAssigned: boolean,                // Determines whether the user named the classification or not
+    showBoxes: boolean
 }
 
 export interface BackgroundPoint {
