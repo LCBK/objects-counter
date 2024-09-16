@@ -50,7 +50,8 @@ def delete_image_by_id(image_id: int) -> None:
         raise
 
 
-def bulk_insert_elements(image: Image, elements: list[tuple[tuple[int, int], tuple[int, int]]]) -> None:
+def bulk_set_elements(image: Image, elements: list[tuple[tuple[int, int], tuple[int, int]]]) -> None:
+    image.elements = []
     for element in elements:
         insert_element(image, element[0], element[1], do_commit=False)
     try:

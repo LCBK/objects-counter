@@ -6,7 +6,7 @@ import torch
 import torchvision
 from segment_anything import sam_model_registry, SamPredictor
 
-from objects_counter.db.dataops.image import bulk_insert_elements, get_background_points
+from objects_counter.db.dataops.image import bulk_set_elements, get_background_points
 from objects_counter.db.models import Image
 
 log = logging.getLogger(__name__)
@@ -73,7 +73,7 @@ class SegmentAnythingObjectCounter:
         log.info("Number of objects found: %s", object_count)
 
         bounding_boxes = self.get_bounding_boxes(contours)
-        bulk_insert_elements(image, bounding_boxes)
+        bulk_set_elements(image, bounding_boxes)
         return object_count
 
     def get_bounding_boxes(self, contours):
