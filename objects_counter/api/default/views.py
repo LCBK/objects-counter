@@ -102,7 +102,7 @@ class BackgroundPoints(Resource):
 
 @api.route('/images/<int:image_id>/background/accept')
 class AcceptBackgroundPoints(Resource):
-    @api.doc(params={'image_id': 'The image ID', 'threshold': 'Classification threshold'})
+    @api.doc(params={'image_id': 'The image ID'})
     @api.response(200, "Objects counted")
     @api.response(201, "Objects counted and results saved")
     @api.response(404, "Image not found")
