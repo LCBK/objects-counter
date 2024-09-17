@@ -8,7 +8,7 @@ log = logging.getLogger(__name__)
 
 
 def insert_result(user_id, image_id, response):
-    result = Result(user_id=user_id, image_id=image_id, data=response['data'])
+    result = Result(user_id=user_id, image_id=image_id, data=response)
     db.session.add(result)
     try:
         db.session.commit()

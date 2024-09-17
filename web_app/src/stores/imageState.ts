@@ -3,6 +3,8 @@ import { distance } from "@/utils";
 import { defineStore } from "pinia";
 
 
+// Stores data related to user's image, e.g.: dimensions, canvas scale/offset, selection points, bounding boxes
+
 const defaultState = {
     url: "",
     imageId: 0,

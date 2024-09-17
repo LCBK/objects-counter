@@ -5,6 +5,7 @@ import BoundingBox from "./BoundingBox.vue";
 import SelectionPoint from "./SelectionPoint.vue";
 import { ref, onMounted, computed, onBeforeUpdate } from "vue";
 import { boundingBoxColors } from "@/config";
+import LoadingSpinner from "./LoadingSpinner.vue";
 
 
 const imageState = useImageStateStore();
@@ -138,6 +139,11 @@ onMounted(() => {
                         v-bind:class="[point.isPositive ? 'positive' : 'negative']" />
             </div>
         </div>
+        <Transition name="waiting-overlay">
+            <div v-if="viewState.isWaitingForResponse" class="waiting-overlay">
+                <LoadingSpinner />
+            </div>
+        </Transition>
     </div>
 </template>
 
@@ -149,6 +155,34 @@ onMounted(() => {
     height: 100%;
     top: 0;
     left: 0;
+}
+
+.waiting-overlay {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    background: rgba(18, 18, 18, 0.65);
+}
+
+.waiting-overlay .loader {
+    width: 64px;
+    height: 64px;
+}
+
+.waiting-overlay-enter-active,
+.waiting-overlay-leave-active {
+    transition: opacity 0.3s ease;
+}
+
+.waiting-overlay-enter-from,
+.waiting-overlay-leave-to {
+    opacity: 0;
 }
 
 #mask-image {

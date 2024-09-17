@@ -4,18 +4,24 @@ import { useViewStateStore } from "@/stores/viewState";
 import { useImageStateStore } from "@/stores/imageState";
 import { config, endpoints } from "@/config";
 import { sendRequest } from "@/utils";
+import { computed } from "vue";
 
 const viewState = useViewStateStore();
 const imageState = useImageStateStore();
+
+const allButtonsDisabled = computed(() => viewState.isWaitingForResponse);
 
 function handleConfirmBackground() {
     const requestUri = config.serverUri + endpoints.acceptBackground.replace("{image_id}", imageState.imageId.toString());
     const requestData = JSON.stringify({});
     const responsePromise = sendRequest(requestUri, requestData, "POST");
+
+    viewState.isWaitingForResponse = true;
     
     responsePromise.then((response) => {
-        viewState.setState('viewResult');
+        viewState.isWaitingForResponse = false;
         imageState.results = JSON.parse(response).data;
+        viewState.setState('viewResult');
     });
 }
 </script>
@@ -24,9 +30,9 @@ function handleConfirmBackground() {
 <template>
     <div class="image-view-tool-bar bar">
         <VButton text label="Edit selection" class="edit-selection" icon="pi pi-pencil"
-                @click="viewState.setState('editPoints')" />
+                :disabled="allButtonsDisabled" @click="viewState.setState('editPoints')" />
         <VButton text label="Confirm selection" class="confirm-selection" icon="pi pi-check"
-                @click="handleConfirmBackground" />
+                :disabled="allButtonsDisabled" @click="handleConfirmBackground" />
     </div>
 </template>
 
