@@ -75,8 +75,18 @@ def insert_element(image: Image, top_left: tuple[int, int], bottom_right: tuple[
             raise
 
 
-def get_background_points(image: Image) -> list[list[int]]:
-    return image.background_points["data"]
+def get_background_points(image: Image) -> tuple[list[list[int]], list[bool]]:
+    """
+    :param image: Image object
+    :return: Two lists, one with the positions of the points and one determining if the point on a given index
+     is positive or negative
+    """
+    points = image.background_points["data"]
+    response = ([], [])
+    for point in points:
+        response[0].append(point["position"])
+        response[1].append(point["positive"])
+    return response
 
 
 def update_background_points(image_id: int, points: dict) -> None:
