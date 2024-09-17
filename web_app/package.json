@@ -14,8 +14,8 @@
   "dependencies": {
     "@panzoom/panzoom": "^4.5.1",
     "pinia": "^2.1.7",
-    "primeicons": "^7.0.0",
-    "primevue": "^4.0.7",
+    "primeicons": "^6.0.1",
+    "primevue": "^3.50.0",
     "vue": "^3.4.21"
   },
   "devDependencies": {
