@@ -2,7 +2,7 @@
 import VButton from "primevue/button";
 import { useViewStateStore } from "@/stores/viewState";
 import { useImageStateStore } from "@/stores/imageState";
-import { config, endpoints } from "@/config";
+import { boundingBoxColors, config, endpoints } from "@/config";
 import { sendRequest } from "@/utils";
 import { computed } from "vue";
 
@@ -10,6 +10,50 @@ const viewState = useViewStateStore();
 const imageState = useImageStateStore();
 
 const allButtonsDisabled = computed(() => viewState.isWaitingForResponse);
+
+// Iterates over image elements and assignes appropriate classifications to imageState.objectClassifications
+function assignObjectClassifications() {
+    const countedClassifications: Array<string> = [];
+    const classificationQuantities: Array<number> = [];
+
+    // Count occurences of classifications
+    imageState.imageElements.forEach(element => {
+        if (!countedClassifications.includes(element.classification)) {
+            countedClassifications.push(element.classification);
+            classificationQuantities.push(1);
+        }
+        else {
+            const index = countedClassifications.indexOf(element.classification);
+            classificationQuantities[index]++;
+        }
+    });
+
+    // Sort classifications by element count
+    const sortedClassifications: Array<[string, number]> = [];
+    countedClassifications.forEach((element, index) => {
+        sortedClassifications.push([element, classificationQuantities[index]]);
+    });
+    sortedClassifications.sort((a, b) => a[0] > b[0] ? 1 : -1);
+
+    // Assign classifications and their indices to elements
+    imageState.objectClassifications = [];
+    sortedClassifications.forEach((classification, index) => {
+        imageState.objectClassifications.push({ 
+            index: index,
+            classificationName: classification[0],
+            count: classification[1],
+            isNameAssigned: false,
+            showBoxes: true,
+            boxColor: boundingBoxColors[index % boundingBoxColors.length]
+        });
+        imageState.imageElements.forEach(element => {
+            if (element.classification == classification[0]) {
+                element.classificationIndex = index;
+            }
+        });
+        index++;
+    });
+}
 
 function handleConfirmBackground() {
     const requestUri = config.serverUri + endpoints.acceptBackground.replace("{image_id}", imageState.imageId.toString());
@@ -27,6 +71,8 @@ function handleConfirmBackground() {
                 .replaceAll("top_left", "topLeft")
                 .replaceAll("bottom_right", "bottomRight"));
         imageState.imageElements = parsedResponse.objects;
+
+        assignObjectClassifications();
 
         viewState.setState('viewResult');
     });

@@ -110,3 +110,16 @@
     font-weight: 400;
     letter-spacing: 0.3px;
 }
+
+.quantity-switch .p-inputswitch-slider {
+    left: 20px;
+    right: 20px;
+}
+
+.p-inputswitch-slider::before {
+    margin-top: -0.5rem;
+}
+
+.p-highlight .p-inputswitch-slider::before {
+    background: #18181b;
+}

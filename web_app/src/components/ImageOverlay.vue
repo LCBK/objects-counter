@@ -73,27 +73,6 @@ function scaleOverlay() {
     }
 }
 
-// Assigns different colors (boundingBoxColors constant) for each unique classification
-function assignClassColors() {
-    const assignedClasses: Array<string> = [];
-    const assignedColors: Array<string> = [];
-
-    let colorIndex = 0;
-    imageState.imageElements.forEach((box) => {
-        if (!assignedClasses.includes(box.classification)) {
-            let newColor = boundingBoxColors[colorIndex % boundingBoxColors.length];
-            assignedClasses.push(box.classification);
-            assignedColors.push(newColor);
-            colorIndex++;
-            box.color = newColor;
-        }
-        else {
-            let colorIndex = assignedClasses.indexOf(box.classification);
-            box.color = assignedColors[colorIndex];
-        }
-    });
-}
-
 function handleOverlayClick(event: MouseEvent) {
     if (imageState.isPanning) return;
 
@@ -117,10 +96,6 @@ function handleOverlayClick(event: MouseEvent) {
     }
 }
 
-
-onBeforeUpdate(() => {
-    assignClassColors();
-})
 
 onMounted(() => {
     scaleOverlay();

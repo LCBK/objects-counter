@@ -1,33 +1,44 @@
 <script setup lang="ts">
+import { useImageStateStore } from "@/stores/imageState";
+import VInputSwitch from "primevue/inputswitch";
+import { computed } from "vue";
+
+// This component will change imageState, it will update its parents.
+// That's why we have only an index prop, which we use to access and update object classification properties.
+
 const props = defineProps({
-    classification: {
-        type: String,
-        required: true
-    },
-    count: {
+    index: {
         type: Number,
-        required: true
-    },
-    isNameAssigned: {
-        type: Boolean,
-        required: true
-    },
-    showBoxes: {
-        type: Boolean,
         required: true
     }
 });
 
+const imageState = useImageStateStore();
+
+// These are not props, because they control parents' states by updating imageState.
+const count = computed(() => imageState.objectClassifications[props.index].count);
+const classificationName = computed(() => imageState.objectClassifications[props.index].classificationName);
+const isNameAssigned = computed(() => imageState.objectClassifications[props.index].isNameAssigned);
+const showBoxes = computed({
+    get() {
+        return imageState.objectClassifications[props.index].showBoxes;
+    },
+    set(value) {
+        imageState.objectClassifications[props.index].showBoxes = value;
+    }
+});
+
 // todo: enable user to name classifications
-// todo: implement changing showBoxes
 </script>
 
 
 <template>
     <div class="quantity">
-        <div class="quantity-count">{{ props.count }}</div>
-        <div class="quantity-classification">{{ isNameAssigned ? props.classification : "Type " + props.classification }}</div>
-        <input type="checkbox" class="quantity-checkbox" :checked="props.showBoxes">
+        <div class="quantity-count">{{ count }}</div>
+        <div class="quantity-classification">
+            {{ isNameAssigned ? classificationName : "Type " + classificationName }}
+        </div>
+        <VInputSwitch class="quantity-switch" v-model="showBoxes" />
     </div>
 </template>
 
@@ -60,7 +71,7 @@ const props = defineProps({
     text-indent: 10px;
 }
 
-.quantity-checkbox {
+.quantity-switch {
     flex-basis: 25%;
 }
 </style>

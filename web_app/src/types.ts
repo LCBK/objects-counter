@@ -1,16 +1,18 @@
 export interface ImageElement {
     topLeft: [number, number],
     bottomRight: [number, number],
-    classification: string,
     certainty: number,
-    color: string
+    classification: string,
+    classificationIndex: number
 }
 
 export interface ObjectClassification {
-    classification: string,
+    index: number,
+    classificationName: string,
     count: number,
     isNameAssigned: boolean,                // Determines whether the user named the classification or not
-    showBoxes: boolean
+    showBoxes: boolean,
+    boxColor: string
 }
 
 export interface BackgroundPoint {

@@ -4,47 +4,13 @@ import VSidebar from "primevue/sidebar";
 import QuantitiesEntry from "./QuantitiesEntry.vue";
 import { useImageStateStore } from "@/stores/imageState";
 import { useViewStateStore } from "@/stores/viewState";
-import type { ObjectClassification } from '@/types';
 import { computed } from "vue";
 
-const visible = defineModel<boolean>();
 const imageState = useImageStateStore();
 const viewState = useViewStateStore();
 
-const quantities: Array<ObjectClassification> = [];
-const countedClassifications: Array<string> = [];
-const classificationQuantities: Array<number> = [];
-
-// Count unique classifications
-imageState.imageElements.forEach((result) => {
-    if (!countedClassifications.includes(result.classification)) {
-        countedClassifications.push(result.classification);
-        classificationQuantities.push(1);
-    }
-    else {
-        const classIndex = countedClassifications.indexOf(result.classification);
-        classificationQuantities[classIndex]++;
-    }
-});
-
-// Create classification quantities for QuantitiesEntry elements
-let quantitiesIndex = 0;
-countedClassifications.forEach((c) => {
-    quantities.push({ 
-        classification: c, 
-        count: classificationQuantities[quantitiesIndex++], 
-        isNameAssigned: false,
-        showBoxes: true
-    });
-});
-
-// Quantities ordered by count
-const orderedQuantities = computed(() => {
-    const arr = Array.from(quantities).sort((a, b) => {
-        return a.count < b.count ? 1 : 0;
-    });
-    return arr;
-});
+const visible = defineModel<boolean>();
+const classifications = computed(() => imageState.objectClassifications);
 </script>
 
 
@@ -64,7 +30,7 @@ const orderedQuantities = computed(() => {
             <div class="quantities-col">Type</div>
             <div class="quantities-col">Show boxes</div>
         </div>
-        <QuantitiesEntry v-for="(quantity, index) in orderedQuantities" :key="index" v-bind="quantity" />
+        <QuantitiesEntry v-for="(quantity, index) in classifications" :key="index" :index="quantity.index" />
     </VSidebar>
 </template>
 

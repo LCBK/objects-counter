@@ -1,4 +1,4 @@
-import type { BackgroundPoint, ImageElement } from "@/types";
+import type { BackgroundPoint, ImageElement, ObjectClassification } from "@/types";
 import { distance } from "@/utils";
 import { defineStore } from "pinia";
 
@@ -19,7 +19,8 @@ const defaultState = {
     isPanning: false,
     userZoom: 1,
     imageElements: [] as Array<ImageElement>,
-    points: [] as Array<BackgroundPoint>
+    points: [] as Array<BackgroundPoint>,
+    objectClassifications: [] as Array<ObjectClassification>
 }
 
 export const useImageStateStore = defineStore("imageState", {
