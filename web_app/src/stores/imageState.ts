@@ -32,7 +32,7 @@ export const useImageStateStore = defineStore("imageState", {
         },
 
         addPoint(isPositive: boolean, x: number, y: number) {
-            this.points.push({ isPositive: isPositive, position: [x, y] } as BackgroundPoint);
+            this.points.push({ positive: isPositive, position: [x, y] } as BackgroundPoint);
         },
 
         removeNearbyPoint(x: number, y: number, tolerance: number = 60) {

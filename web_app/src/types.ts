@@ -16,6 +16,6 @@ export interface ObjectClassification {
 }
 
 export interface BackgroundPoint {
-    isPositive: boolean,                    // true - positive, false - negative
     position: [number, number]
+    positive: boolean,                    // true - positive, false - negative
 }

@@ -42,9 +42,8 @@ function handleRemoveClick() {
 function handleConfirmPoints() {
     if (imageState.points.length === 0) return;
 
-    const pointPositions = imageState.points.map((point) => point.position);
     const requestUri = config.serverUri + endpoints.sendSelection.replace("{image_id}", imageState.imageId.toString());
-    const requestData = JSON.stringify({ "data": pointPositions });
+    const requestData = JSON.stringify({"data": imageState.points});
     const responsePromise = sendRequest(requestUri, requestData, "PUT");
 
     viewState.isWaitingForResponse = true;

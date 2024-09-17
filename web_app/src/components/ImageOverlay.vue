@@ -113,7 +113,7 @@ onMounted(() => {
             </div>
             <div class="selection-points" v-if="viewState.showPoints">
                 <SelectionPoint v-for="([, point], index) in Object.entries(points)" :key="index"
-                        v-bind="point" v-bind:class="[point.isPositive ? 'positive' : 'negative']" />
+                        v-bind="point" v-bind:class="[point.positive ? 'positive' : 'negative']" />
             </div>
         </div>
         <Transition name="waiting-overlay">
