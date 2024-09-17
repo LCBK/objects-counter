@@ -19,6 +19,7 @@ class SegmentAnythingObjectCounter:
         log.info("Torchvision version: %s", torchvision.__version__)
         log.info("CUDA is available: %s", torch.cuda.is_available())
 
+        assert(sam_checkpoint_path is not None)
         self.sam = sam_model_registry[model_type](checkpoint=sam_checkpoint_path)
 
         if torch.cuda.is_available():
@@ -28,7 +29,7 @@ class SegmentAnythingObjectCounter:
 
         self.predictor = SamPredictor(self.sam)
 
-    def calculate_image_mask(self, image: Image):
+    def calculate_image_mask(self, image: Image) -> object:
         image_data = cv2.imread(image.filepath)
         self.predictor.set_image(image_data)
         points = get_background_points(image)
@@ -54,6 +55,18 @@ class SegmentAnythingObjectCounter:
         _, binary_image = cv2.threshold(image, 127, 255, cv2.THRESH_BINARY_INV)
         return binary_image
 
+    def remove_small_masks(self, image, contours):
+        new_contours = []
+        image_data = cv2.imread(image.filepath)
+        image_pixels = image_data.shape[0] * image_data.shape[1]
+        contour_removal_threshold = image_pixels / 100
+        for contour in contours:
+            if cv2.contourArea(contour) < contour_removal_threshold:
+                cv2.drawContours(image_data, [contour], -1, color=(0, 0, 0), thickness=cv2.FILLED)
+            else:
+                new_contours.append(contour)
+        return new_contours
+
     def extract_bounding_boxes(self, contours):
         objects_bounding_boxes = []
         for contour in contours:
@@ -68,6 +81,7 @@ class SegmentAnythingObjectCounter:
             return 0
         binary_image = self.process_mask(result_mask)
         contours, _ = cv2.findContours(binary_image, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+        contours = self.remove_small_masks(image, contours)
         object_count = len(contours)
 
         log.info("Number of objects found: %s", object_count)
