@@ -2,7 +2,6 @@ export interface ImageElement {
     topLeft: [number, number],
     bottomRight: [number, number],
     certainty: number,
-    classification: string,
     classificationIndex: number
 }
 

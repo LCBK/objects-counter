@@ -19,10 +19,6 @@ const props = defineProps({
         type: Number,
         required: true
     },
-    classification: {
-        type: String,
-        required: true
-    },
     classificationIndex: {
         type: Number,
         required: true
@@ -30,6 +26,7 @@ const props = defineProps({
 });
 
 const boxColor = computed(() => imageState.objectClassifications[props.classificationIndex].boxColor);
+const classification = computed(() => imageState.objectClassifications[props.classificationIndex].classificationName);
 const scale = computed(() => imageState.boundingBoxScale);
 
 // CSS properties
@@ -44,11 +41,11 @@ const height = computed(() => (props.bottomRight[1] - props.topLeft[1]) * scale.
     <div class="bounding-box"
             v-bind:data-topleft="props.topLeft[0] + ',' + props.topLeft[1]"
             v-bind:data-bottomright="props.bottomRight[0] + ',' + props.bottomRight[1]"
-            v-bind:data-certainty="props.certainty" v-bind:data-classification="props.classification"
+            v-bind:data-certainty="props.certainty" v-bind:data-classification="classification"
             v-if="imageState.objectClassifications[classificationIndex].showBoxes">
         <div v-if="viewState.showBoundingBoxInfo">
             <div class="box-certainty">{{ props.certainty }}</div>
-            <div class="box-classification">{{ props.classification }}</div>
+            <div class="box-classification">{{ classification }}</div>
         </div>
     </div>
 </template>

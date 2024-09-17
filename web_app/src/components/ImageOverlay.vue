@@ -3,8 +3,7 @@ import { useImageStateStore } from "@/stores/imageState";
 import { useViewStateStore } from "@/stores/viewState";
 import BoundingBox from "./BoundingBox.vue";
 import SelectionPoint from "./SelectionPoint.vue";
-import { ref, onMounted, computed, onBeforeUpdate } from "vue";
-import { boundingBoxColors } from "@/config";
+import { ref, onMounted, computed } from "vue";
 import LoadingSpinner from "./LoadingSpinner.vue";
 
 

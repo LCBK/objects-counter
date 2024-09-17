@@ -36,7 +36,6 @@ function handleConfirmBackground() {
                     topLeft: object.top_left,
                     bottomRight: object.bottom_right,
                     certainty: object.certainty,
-                    classification: element.classification,           // delete
                     classificationIndex: index
                 });
             });
