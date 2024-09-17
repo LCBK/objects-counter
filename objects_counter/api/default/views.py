@@ -1,24 +1,24 @@
 import json
 import logging
-
 import os
 import random
 import string
 import time
 import typing
 
-import cv2
 import flask
 from flask import request
 from flask_restx import Resource, Namespace
 from werkzeug.datastructures import FileStorage
+from werkzeug.exceptions import NotFound
 from werkzeug.utils import secure_filename
 
 from image_segmentation.segment_anything_object_counter import SegmentAnythingObjectCounter
 from objects_counter.api.default.models import points_model
 from objects_counter.api.utils import authentication_optional
 from objects_counter.consts import SAM_CHECKPOINT
-from objects_counter.db.dataops.image import insert_image
+from objects_counter.db.dataops.image import insert_image, update_background_points, get_image_by_id
+from objects_counter.db.dataops.result import insert_result
 from objects_counter.db.models import User
 
 api = Namespace('default', description='Default namespace')
@@ -67,15 +67,15 @@ class Process(Resource):
 
         # save file location in the db
         image_obj = insert_image(dst)
-        # TODO: pass image_obj to the sam object, use models.Image in sam instead of index
-        image_content = cv2.imread(image_obj.filepath)
-        index = sam.add_image(image_content)
-        return index, 201
+        return image_obj.id, 201
 
 
 @api.route('/images/<int:image_id>/background')
 class BackgroundPoints(Resource):
     @api.doc(params={'image_id': 'The image ID'})
+    @api.response(200, "Background points updated")
+    @api.response(400, "No points provided")
+    @api.response(404, "Image not found")
     @api.expect(points_model)
     def put(self, image_id: int) -> typing.Any:
         points = request.json
@@ -85,10 +85,15 @@ class BackgroundPoints(Resource):
         if not isinstance(points, dict):
             log.error("Points should be a dictionary")
             return 'Points should be a dictionary', 400
+        try:
+            image = get_image_by_id(image_id)
+        except NotFound as e:
+            log.exception("Image %s not found: %s", image_id, e)
+            return 'Image not found', 404
 
         # save the points in the db
-        sam.calculate_image_mask(image_id, points["data"])
-        mask = sam.get_image_mask(image_id).tolist()
+        update_background_points(image_id, points)
+        mask = sam.calculate_image_mask(image).tolist()
         result = {
             "mask": mask
         }
@@ -98,25 +103,27 @@ class BackgroundPoints(Resource):
 @api.route('/images/<int:image_id>/background/accept')
 class AcceptBackgroundPoints(Resource):
     @api.doc(params={'image_id': 'The image ID'})
+    @api.response(200, "Objects counted")
+    @api.response(201, "Objects counted and results saved")
+    @api.response(404, "Image not found")
+    @api.response(500, "Error processing image")
     @authentication_optional
     def post(self, current_user: User, image_id: int) -> typing.Any:
-        result = sam.get_object_count(image_id)
-        response = {}
-        if not result:
-            log.error("No result received")
-            return 'Error processing image', 500
-        response["id"] = image_id
-        response["data"] = []
-        for obj in result[1]:
-            response["data"].append({
-                "top_left": obj[0],
-                "bottom_right": obj[1],
-                "certainty": 1.0,
-                "class": "NotImplemented"
-            })
+        try:
+            image = get_image_by_id(image_id)
+        except NotFound as e:
+            log.exception("Image %s not found: %s", image_id, e)
+            return 'Image not found', 404
+        sam.get_object_count(image)
+
+        # TODO: use classification
+
+        response = {"objects": []}
+        for element in image.elements:
+            response["objects"].append(element.as_dict())
 
         if current_user:
-            # user_id = current_user.id
-            # insert_result(user_id, image_obj.id, result)
+            user_id = current_user.id
+            insert_result(user_id, image.id, response)
             return json.dumps(response), 201
         return json.dumps(response), 200

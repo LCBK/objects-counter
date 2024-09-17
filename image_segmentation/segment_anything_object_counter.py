@@ -1,6 +1,4 @@
 import logging
-from dataclasses import dataclass
-from typing import Any
 
 import cv2
 import numpy as np
@@ -8,13 +6,11 @@ import torch
 import torchvision
 from segment_anything import sam_model_registry, SamPredictor
 
+from objects_counter.db.dataops.image import bulk_set_elements, get_background_points
+from objects_counter.db.models import Image
+
 log = logging.getLogger(__name__)
 
-@dataclass
-class Image:
-    data: Any
-    result: Any = None
-    objects_coords: Any = None
 
 class SegmentAnythingObjectCounter:
     def __init__(self, sam_checkpoint_path, model_type="vit_h"):
@@ -31,31 +27,15 @@ class SegmentAnythingObjectCounter:
             self.sam.to(device="cpu")
 
         self.predictor = SamPredictor(self.sam)
-        self.images = []
 
-    def add_image(self, data):
-        self.images.append(Image(data))
-        return len(self.images) - 1
-
-    def set_image_objects_coords(self, index, coords):
-        self.images[index].objects_coords = coords
-
-    def calculate_image_mask(self, index, points):
-        if index < 0 or index >= len(self.images):
-            log.error("Given image index is out of bounds. index: %s images array size: %s", index, len(self.images))
-            return False
-        self.predictor.set_image(self.images[index].data)
+    def calculate_image_mask(self, image: Image):
+        image_data = cv2.imread(image.filepath)
+        self.predictor.set_image(image_data)
+        points = get_background_points(image)
         masks, _, _ = self.predictor.predict(point_coords=np.array(points),
                                              point_labels=np.array([1] * len(points)),
                                              multimask_output=True)
-        self.images[index].result = masks[2]
-        return True
-
-    def get_image_mask(self, index):
-        if index < 0 or index >= len(self.images):
-            log.error("Given image index is out of bounds. index: %s images array size: %s", index, len(self.images))
-            return None
-        return self.images[index].result
+        return masks[2]
 
     def process_mask(self, mask):
         result_mask = np.array(mask) * 255
@@ -81,34 +61,23 @@ class SegmentAnythingObjectCounter:
             objects_bounding_boxes.append(((x, y), (x + w, y + h)))
         return objects_bounding_boxes
 
-    def get_object_count(self, index):
-        if index < 0 or index >= len(self.images):
-            print("Given image index is out of bounds. index: " + str(index) + " images array size:" + str(
-                len(self.images)))
-            return None, None
-        result_mask = self.get_image_mask(index=index)
+    def get_object_count(self, image: Image) -> int:
+        result_mask = self.calculate_image_mask(image)
         if result_mask is None:
-            return None, None
+            log.warning("No mask found for image: %s", image.id)
+            return 0
         binary_image = self.process_mask(result_mask)
         contours, _ = cv2.findContours(binary_image, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
         object_count = len(contours)
 
         log.info("Number of objects found: %s", object_count)
 
-        objects_coords = self.get_bounding_boxes(index)
-        self.set_image_objects_coords(index, objects_coords)
+        bounding_boxes = self.get_bounding_boxes(contours)
+        bulk_set_elements(image, bounding_boxes)
         return object_count
 
-    def get_bounding_boxes(self, index):
-        if index < 0 or index >= len(self.images):
-            print("Given image index is out of bounds. index: " + str(index) + " images array size:" + str(
-                len(self.images)))
+    def get_bounding_boxes(self, contours):
+        if contours is None:
             return []
-
-        result_mask = self.get_image_mask(index=index)
-        if result_mask is None:
-            return []
-        binary_image = self.process_mask(result_mask)
-        contours, _ = cv2.findContours(binary_image, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
         bounding_boxes = self.extract_bounding_boxes(contours)
         return bounding_boxes
