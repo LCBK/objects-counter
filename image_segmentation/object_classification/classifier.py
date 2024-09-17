@@ -3,11 +3,11 @@ from typing import List
 
 import numpy as np
 import torch
-from PIL import Image
 
+from PIL import Image as PILImage
+from objects_counter.db.models import Image, ImageElement
 from .feature_extraction import CosineSimilarity, compute_color_histogram, compute_color_similarity
 from ..constants import TEMP_IMAGE_DIR
-from ..object_detection.object_segmentation import Object
 from ..utils import crop_image
 
 
@@ -23,11 +23,11 @@ class ObjectClassifier:
 
     def crop_objects(self, image: Image) -> None:
         """Crops detected objects from the image and saves them to the temporary directory."""
-        image_data = np.array(Image.open(image.filepath))
-        objects = image.categories[0]
+        image_data = np.array(PILImage.open(image.filepath))
+        objects = image.elements
 
         for obj in objects:
-            cropped_image = crop_image(image_data, obj.top_left_coord, obj.bottom_right_coord)
+            cropped_image = crop_image(image_data, obj.top_left, obj.bottom_right)
             cropped_image.save(os.path.join(TEMP_IMAGE_DIR, f"object_{obj.index}.jpg"))
 
     def compute_embeddings(self) -> None:
@@ -39,8 +39,8 @@ class ObjectClassifier:
 
     def calculate_similarity(self, index_i: int, index_j: int, color_weight: float = 0.7) -> float:
         """Calculates combined feature and color similarity between two objects."""
-        hist_i = compute_color_histogram(Image.open(f"{TEMP_IMAGE_DIR}/object_{index_i}.jpg"))
-        hist_j = compute_color_histogram(Image.open(f"{TEMP_IMAGE_DIR}/object_{index_j}.jpg"))
+        hist_i = compute_color_histogram(PILImage.open(f"{TEMP_IMAGE_DIR}/object_{index_i}.jpg"))
+        hist_j = compute_color_histogram(PILImage.open(f"{TEMP_IMAGE_DIR}/object_{index_j}.jpg"))
 
         embedding_i = self.embeddings[index_i]
         embedding_j = self.embeddings[index_j]
@@ -55,11 +55,11 @@ class ObjectClassifier:
         """Groups objects by their similarity based on a combination of feature and color similarity."""
         self.crop_objects(image)
         self.compute_embeddings()
-        self.assign_categories_based_on_similarity(threshold, color_weight)
+        self.assign_categories_based_on_similarity(image, threshold, color_weight)
 
     def assign_categories_based_on_similarity(self, image: Image, threshold, color_weight):
         """Assigns objects to categories based on their similarity scores."""
-        objects = image.categories[0]
+        objects = image.elements
 
         num_objects = len(self.embeddings)
         category_id = 0
@@ -70,11 +70,11 @@ class ObjectClassifier:
                 continue
 
             new_category = [
-                Object(
-                    objects[index_i].index,
-                    objects[index_i].top_left_coord,
-                    objects[index_i].bottom_right_coord,
-                    probability=1.0)]
+                ImageElement(
+                    objects[index_i].id,
+                    objects[index_i].top_left,
+                    objects[index_i].bottom_right,
+                    certainty=1.0)]
 
             categories.append(new_category)
             self.analyzed_images.add(index_i)

@@ -13,7 +13,9 @@ from werkzeug.datastructures import FileStorage
 from werkzeug.exceptions import NotFound
 from werkzeug.utils import secure_filename
 
-from image_segmentation.segment_anything_object_counter import SegmentAnythingObjectCounter
+from image_segmentation.object_classification.classifier import ObjectClassifier
+from image_segmentation.object_classification.feature_extraction import CosineSimilarity
+from image_segmentation.object_detection.object_segmentation import ObjectSegmentation
 from objects_counter.api.default.models import points_model
 from objects_counter.api.utils import authentication_optional
 from objects_counter.consts import SAM_CHECKPOINT
@@ -24,7 +26,8 @@ from objects_counter.db.models import User
 api = Namespace('default', description='Default namespace')
 process_parser = api.parser()
 process_parser.add_argument('image', type=FileStorage, location='files')
-sam = SegmentAnythingObjectCounter(SAM_CHECKPOINT)
+sam = ObjectSegmentation(SAM_CHECKPOINT)
+similarity_model = CosineSimilarity()
 
 log = logging.getLogger(__name__)
 
@@ -93,7 +96,7 @@ class BackgroundPoints(Resource):
 
         # save the points in the db
         update_background_points(image_id, points)
-        mask = sam.calculate_image_mask(image).tolist()
+        mask = sam.calculate_mask(image).tolist()
         result = {
             "mask": mask
         }
@@ -114,9 +117,11 @@ class AcceptBackgroundPoints(Resource):
         except NotFound as e:
             log.exception("Image %s not found: %s", image_id, e)
             return 'Image not found', 404
-        sam.get_object_count(image)
+        sam.count_objects(image)
 
         # TODO: use classification
+        object_grouper = ObjectClassifier(sam, similarity_model)
+        object_grouper.group_objects_by_similarity(image)
 
         response = {"objects": []}
         for element in image.elements:

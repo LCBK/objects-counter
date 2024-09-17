@@ -13,21 +13,6 @@ from objects_counter.db.models import Image
 log = logging.getLogger(__name__)
 
 
-class Object:
-    """Represents an individual detected object in an image."""
-    index: int
-    top_left_coord: Tuple[float, float]
-    bottom_right_coord: Tuple[float, float]
-    probability: float
-
-    def __init__(self, index: int, top_left: Tuple[float, float], bottom_right: Tuple[float, float],
-                 probability: float):
-        self.index = index
-        self.top_left_coord = top_left
-        self.bottom_right_coord = bottom_right
-        self.probability = probability
-
-
 class ObjectSegmentation:
     """Handles image segmentation and object detection using the Segment Anything Model (SAM)."""
 
@@ -50,24 +35,24 @@ class ObjectSegmentation:
                                              multimask_output=True)
         return masks[2]
 
-    def process_mask(self, mask: np.ndarray) -> np.ndarray:
+    def process_mask(self, mask):
         """Converts mask to binary format and processes edges for contour detection."""
         result_mask = np.array(mask) * 255
-        h, w = result_mask.shape
+        image = np.ascontiguousarray(result_mask, dtype=np.uint8)
 
-        for x in range(h):
-            if result_mask[x, 0] == 0:
-                cv2.floodFill(result_mask, None, (0, x), 255)
-            if result_mask[x, w - 1] == 0:
-                cv2.floodFill(result_mask, None, (w - 1, x), 255)
+        for x in range(0, image.shape[0]):
+            if image[x][0] == 0:
+                cv2.floodFill(image, None, (0, x), 255)
+            if image[x][image.shape[1] - 1] == 0:
+                cv2.floodFill(image, None, (image.shape[1] - 1, x), 255)
+        for y in range(0, image.shape[1]):
+            if image[0][y] == 0:
+                cv2.floodFill(image, None, (y, 0), 255)
+            if image[image.shape[0] - 1][y] == 0:
+                cv2.floodFill(image, None, (y, image.shape[0] - 1), 255)
 
-        for y in range(w):
-            if result_mask[0, y] == 0:
-                cv2.floodFill(result_mask, None, (y, 0), 255)
-            if result_mask[h - 1, y] == 0:
-                cv2.floodFill(result_mask, None, (y, h - 1), 255)
+        _, binary_image = cv2.threshold(image, 127, 255, cv2.THRESH_BINARY_INV)
 
-        _, binary_image = cv2.threshold(result_mask, 127, 255, cv2.THRESH_BINARY_INV)
         return binary_image
 
     def get_bounding_boxes(self, contours) -> List[Tuple[Tuple[int, int], Tuple[int, int]]]:
@@ -82,6 +67,7 @@ class ObjectSegmentation:
     def count_objects(self, image: Image) -> int:
         result_mask = self.calculate_mask(image)
         if result_mask is None:
+            log.warning("No mask found for image: %s", image.id)
             return 0
 
         binary_mask = self.process_mask(result_mask)
@@ -102,5 +88,3 @@ class ObjectSegmentation:
             x, y, w, h = cv2.boundingRect(contour)
             bounding_boxes.append(((x, y), (x + w, y + h)))
         return bounding_boxes
-
-    # def add_objects_from_bounding_boxes(self, image_index: int,  #                                     bounding_boxes: List[Tuple[Tuple[int, int], Tuple[int, int]]]) -> None:  #     """Adds detected objects to the image based on bounding boxes."""  #     new_objects = []  #     index = 0  #     for top_left, bottom_right in bounding_boxes:  #         new_object = Object(index=index, top_left=top_left, bottom_right=bottom_right, probability=0.0)  #         new_objects.append(new_object)  #         index += 1  #  #     self.images[image_index].categories.append(new_objects)

@@ -4,11 +4,11 @@ import sys
 from typing import List, Dict, Tuple
 
 import numpy as np
-from PIL import Image
 
 from image_segmentation.constants import TEMP_IMAGE_DIR
 from image_segmentation.object_classification.classifier import ObjectClassifier
 from image_segmentation.utils import crop_image
+from objects_counter.db.models import Image
 
 log = logging.getLogger(__name__)
 
