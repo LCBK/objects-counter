@@ -109,11 +109,18 @@
     color: #60a5fa;
     font-weight: 400;
     letter-spacing: 0.3px;
+    user-select: none;
+}
+
+.quantity-switch .p-inputswitch-input {
+    width: 40px;
+    left: 50%;
+    transform: translateX(-50%);
 }
 
 .quantity-switch .p-inputswitch-slider {
-    left: 20px;
-    right: 20px;
+    width: 40px;
+    margin: 0 auto;
 }
 
 .p-inputswitch-slider::before {

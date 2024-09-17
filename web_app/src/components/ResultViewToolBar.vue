@@ -43,6 +43,7 @@ const classifications = computed(() => imageState.objectClassifications);
     letter-spacing: 0.3px;
     margin: 12px 0 6px 0;
     color: #60a5fa;
+    user-select: none;
 }
 
 .quantities-col:nth-child(1) {

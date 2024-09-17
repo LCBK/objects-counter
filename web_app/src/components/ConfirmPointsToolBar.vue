@@ -22,10 +22,10 @@ function handleConfirmBackground() {
     responsePromise.then((response) => {
         viewState.isWaitingForResponse = false;
 
-        response.classifications.forEach((element: any, index: number) => {
+        JSON.parse(response).classifications.forEach((element: any, index: number) => {
             imageState.objectClassifications.push({
                 index: index,
-                classificationName: element.class_id,
+                classificationName: element.classification,
                 count: element.objects.length,
                 isNameAssigned: false,
                 showBoxes: true,
@@ -36,7 +36,7 @@ function handleConfirmBackground() {
                     topLeft: object.top_left,
                     bottomRight: object.bottom_right,
                     certainty: object.certainty,
-                    classification: element.class_id,           // delete
+                    classification: element.classification,           // delete
                     classificationIndex: index
                 });
             });
