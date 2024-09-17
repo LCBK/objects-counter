@@ -13,6 +13,15 @@ log = logging.getLogger(__name__)
 
 
 class SegmentAnythingObjectCounter:
+
+    class ImageCache:
+        def __init__(self, image_mask, points_selected):
+            self.image_mask = image_mask
+            self.points_selected = points_selected
+
+        def is_valid(self, current_points_selected):
+            return self.points_selected == current_points_selected
+
     def __init__(self, sam_checkpoint_path, model_type="vit_h"):
         log.info("Creating new Segment Anything Object Counter")
         log.info("PyTorch version: %s", torch.__version__)
@@ -28,14 +37,35 @@ class SegmentAnythingObjectCounter:
             self.sam.to(device="cpu")
 
         self.predictor = SamPredictor(self.sam)
+        self.cache = []
+
+    def get_mask_cache(self, image_id, current_points):
+        for cached_image_id, cache_data in self.cache:
+            if cached_image_id == image_id and cache_data.is_valid(current_points):
+                return cache_data.image_mask
+            elif cached_image_id == image_id and not cache_data.is_valid(current_points):
+                self.cache.remove([image_id, cache_data])
+                return None
+        return None
+
+    def add_mask_cache(self, image_id, current_points, cache_data):
+        if(len(self.cache)) > 10:
+            self.cache = self.cache[1:]
+        cache = self.ImageCache(cache_data, current_points)
+        self.cache.append([image_id, cache])
 
     def calculate_image_mask(self, image: Image) -> object:
+        points = get_background_points(image)
+        cache_data = self.get_mask_cache(image.id, points)
+        if cache_data is not None:
+            return cache_data
+
         image_data = cv2.imread(image.filepath)
         self.predictor.set_image(image_data)
-        points = get_background_points(image)
         masks, _, _ = self.predictor.predict(point_coords=np.array(points),
                                              point_labels=np.array([1] * len(points)),
                                              multimask_output=True)
+        self.add_mask_cache(image.id, points, masks[2])
         return masks[2]
 
     def process_mask(self, mask):
