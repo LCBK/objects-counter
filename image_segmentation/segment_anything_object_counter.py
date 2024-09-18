@@ -8,7 +8,6 @@ from segment_anything import sam_model_registry, SamPredictor
 
 from objects_counter.db.dataops.image import bulk_set_elements, get_background_points
 from objects_counter.db.models import Image
-# pylint: disable=R0903
 log = logging.getLogger(__name__)
 
 
