@@ -17,10 +17,10 @@ class ObjectSegmentation:
     """Handles image segmentation and object detection using the Segment Anything Model (SAM)."""
 
     def __init__(self, sam_checkpoint_path: str, model_type: str = "vit_h"):
-        log.info("Initializing Object Segmentation.")
-        log.info(f"PyTorch version: {torch.__version__}")
-        log.info(f"Torchvision version: {torchvision.__version__}")
-        log.info(f"CUDA is available: {torch.cuda.is_available()}")
+        log.info("Creating new Segment Anything Object Counter")
+        log.info("PyTorch version: %s", torch.__version__)
+        log.info("Torchvision version: %s", torchvision.__version__)
+        log.info("CUDA is available: %s", torch.cuda.is_available())
 
         self.device = "cuda" if torch.cuda.is_available() else "cpu"
         self.sam = sam_model_registry[model_type](checkpoint=sam_checkpoint_path).to(self.device)
@@ -74,7 +74,7 @@ class ObjectSegmentation:
         contours, _ = cv2.findContours(binary_mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
         object_count = len(contours)
-        log.info(f"Number of objects detected: {object_count}")
+        log.info("Number of objects detected: %s", object_count)
 
         bounding_boxes = self.get_bounding_boxes(contours)
         bulk_set_elements(image, bounding_boxes)

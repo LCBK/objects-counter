@@ -21,8 +21,8 @@ def compare_number_of_elements(image_1: Image, image_2: Image) -> bool:
     num_elements_image_1 = sum(len(category) for category in image_1.categories)
     num_elements_image_2 = sum(len(category) for category in image_2.categories)
 
-    log.info(f"Number of elements in image 1: {num_elements_image_1}")
-    log.info(f"Number of elements in image 2: {num_elements_image_2}")
+    log.info("Number of elements in image 1: %s", num_elements_image_1)
+    log.info("Number of elements in image 2: %s", num_elements_image_2)
 
     return num_elements_image_1 == num_elements_image_2
 
@@ -83,8 +83,6 @@ def compute_similarity_and_map(classifier: ObjectClassifier, objects_1_indices: 
         if most_similar_idx != -1 and best_similarity >= threshold:
             used_indices_2.add(most_similar_idx)
             category_mapping[idx1] = most_similar_idx
-            log.info(f"Category {idx1} from Image 1 is most similar to Category {most_similar_idx} from Image 2 with "
-                     f"similarity score {best_similarity}")
 
     return category_mapping
 
@@ -104,7 +102,11 @@ def find_missing_elements(image_1: Image, image_2: Image, classifier: ObjectClas
         objects_1_indices, objects_2_indices = crop_and_save_images(image_1, image_2)
 
         # Compute the similarity and obtain the mapping
-        mapping = compute_similarity_and_map(classifier, objects_1_indices, objects_2_indices, threshold=0.7, color_weight=0.8)
+        mapping = compute_similarity_and_map(classifier,
+                                             objects_1_indices,
+                                             objects_2_indices,
+                                             threshold=0.7,
+                                             color_weight=0.8)
 
         image_1_mapped_indices = set(mapping.keys())
 
@@ -115,8 +117,9 @@ def find_missing_elements(image_1: Image, image_2: Image, classifier: ObjectClas
 
                 if len(category_1) != len(category_2):
                     log.warning(
-                        f"Category {idx1} in Image 1 has {len(category_1)} objects, "
-                        f"but Category {mapped_idx2} in Image 2 has {len(category_2)} objects."
+                        "Category %s in Image 1 has %s objects: "
+                        "Category %s in Image 2 has %s objects.",
+                        idx1, len(category_1), mapped_idx2, len(category_2)
                     )
 
     else:
