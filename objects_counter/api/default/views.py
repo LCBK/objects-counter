@@ -117,13 +117,32 @@ class AcceptBackgroundPoints(Resource):
         except NotFound as e:
             log.exception("Image %s not found: %s", image_id, e)
             return 'Image not found', 404
+
         object_count = sam.count_objects(image)
 
         object_grouper.group_objects_by_similarity(image)
 
-        response = {"count": object_count, "classifications": [{"classification": "1", "objects": []}]}
+        response = {
+            "count": len(image.elements),
+            "classifications": []
+        }
+
+        classification_dict = {}
+
         for element in image.elements:
-            response["classifications"][0]["objects"].append(element.as_dict())
+            element_data = element.as_dict()
+
+            element_data["certainty"] = f"{element.certainty:.2f}"
+
+            if element.classification not in classification_dict:
+                classification_dict[element.classification] = {
+                    "classification": element.classification,
+                    "objects": []
+                }
+
+            classification_dict[element.classification]["objects"].append(element_data)
+
+        response["classifications"] = list(classification_dict.values())
 
         if current_user:
             user_id = current_user.id
