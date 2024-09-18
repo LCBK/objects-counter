@@ -21,7 +21,7 @@ const defaultState = {
     isWaitingForResponse: false,
     showPoints: true,
     showBackground: false,
-    showBoundingBoxInfo: false,
+    showBoundingBoxInfo: true,
     currentNavBarTitle: "",
     currentStateName: "beforeUpload",
     currentView: MainView,
