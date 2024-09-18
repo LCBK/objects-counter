@@ -28,7 +28,9 @@ export const useImageStateStore = defineStore("imageState", {
     actions: {
         reset() {
             Object.assign(this, defaultState);
-            this.points = []
+            this.imageElements = [];
+            this.points = [];
+            this.objectClassifications = [];
         },
 
         addPoint(isPositive: boolean, x: number, y: number) {

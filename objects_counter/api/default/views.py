@@ -132,7 +132,7 @@ class AcceptBackgroundPoints(Resource):
         for element in image.elements:
             element_data = element.as_dict()
 
-            element_data["certainty"] = f"{element.certainty:.2f}"
+            element_data["certainty"] = round(element.certainty, 2)
 
             if element.classification not in classification_dict:
                 classification_dict[element.classification] = {
