@@ -13,7 +13,9 @@ from werkzeug.datastructures import FileStorage
 from werkzeug.exceptions import NotFound
 from werkzeug.utils import secure_filename
 
-from image_segmentation.segment_anything_object_counter import SegmentAnythingObjectCounter
+from image_segmentation.object_classification.classifier import ObjectClassifier
+from image_segmentation.object_classification.feature_extraction import CosineSimilarity
+from image_segmentation.object_detection.object_segmentation import SegmentAnythingObjectCounter
 from objects_counter.api.default.models import points_model
 from objects_counter.api.utils import authentication_optional
 from objects_counter.consts import SAM_CHECKPOINT
@@ -25,8 +27,11 @@ api = Namespace('default', description='Default namespace')
 process_parser = api.parser()
 process_parser.add_argument('image', type=FileStorage, location='files')
 sam = SegmentAnythingObjectCounter(SAM_CHECKPOINT)
+similarity_model = CosineSimilarity()
+object_grouper = ObjectClassifier(sam, similarity_model)
 
 log = logging.getLogger(__name__)
+
 
 @api.route('/is-alive')
 class IsAlive(Resource):
@@ -94,9 +99,7 @@ class BackgroundPoints(Resource):
         # save the points in the db
         update_background_points(image_id, points)
         mask = sam.calculate_image_mask(image).tolist()
-        result = {
-            "mask": mask
-        }
+        result = {"mask": mask}
         return json.dumps(result), 200
 
 
@@ -114,13 +117,32 @@ class AcceptBackgroundPoints(Resource):
         except NotFound as e:
             log.exception("Image %s not found: %s", image_id, e)
             return 'Image not found', 404
-        object_count = sam.get_object_count(image)
 
-        # TODO: use classification
+        sam.count_objects(image)
 
-        response = {"count": object_count, "classifications": [{"classification": "1", "objects": []}]}
+        object_grouper.group_objects_by_similarity(image)
+
+        response = {
+            "count": len(image.elements),
+            "classifications": []
+        }
+
+        classification_dict = {}
+
         for element in image.elements:
-            response["classifications"][0]["objects"].append(element.as_dict())
+            element_data = element.as_dict()
+
+            element_data["certainty"] = f"{element.certainty:.2f}"
+
+            if element.classification not in classification_dict:
+                classification_dict[element.classification] = {
+                    "classification": element.classification,
+                    "objects": []
+                }
+
+            classification_dict[element.classification]["objects"].append(element_data)
+
+        response["classifications"] = list(classification_dict.values())
 
         if current_user:
             user_id = current_user.id
