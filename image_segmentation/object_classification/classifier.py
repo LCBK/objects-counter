@@ -6,11 +6,12 @@ import torch
 
 from PIL import Image as PILImage
 
+from image_segmentation.constants import TEMP_IMAGE_DIR
+from image_segmentation.object_classification.feature_extraction import CosineSimilarity, compute_color_histogram, \
+    compute_color_similarity
+from image_segmentation.utils import crop_image
 from objects_counter.db.dataops.image import update_element_classification
 from objects_counter.db.models import Image, ImageElement
-from .feature_extraction import CosineSimilarity, compute_color_histogram, compute_color_similarity
-from ..constants import TEMP_IMAGE_DIR
-from ..utils import crop_image
 
 
 class ObjectClassifier:
