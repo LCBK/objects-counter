@@ -69,7 +69,7 @@ class ObjectClassifier:
         objects = image.elements
         num_objects = len(objects)
 
-        category_id = 0
+        category_id = 1
 
         for index_i in range(num_objects):
             obj_i = objects[index_i]
@@ -99,10 +99,10 @@ class ObjectClassifier:
             if similarity > new_object.certainty:
                 # Update the classification and certainty if the new similarity is higher
                 bbox = new_object.top_left, new_object.bottom_right
-                update_element_classification(bbox, f"category_{category_id}", similarity)
+                update_element_classification(bbox, f"{category_id}", similarity)
         else:
             # If the object doesn't have a classification, assign it
             bbox = new_object.top_left, new_object.bottom_right
-            update_element_classification(bbox, f"category_{category_id}", similarity)
+            update_element_classification(bbox, f"{category_id}", similarity)
 
         self.analyzed_images.add(new_object.id)
