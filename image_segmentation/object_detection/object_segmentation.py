@@ -128,10 +128,3 @@ class SegmentAnythingObjectCounter:
         bounding_boxes = self.get_bounding_boxes(contours)
         bulk_set_elements(image, bounding_boxes)
         return object_count
-
-    def get_bounding_boxes(self, contours) -> List[Tuple[Tuple[int, int], Tuple[int, int]]]:
-        """Returns bounding boxes of detected objects in the image."""
-        if contours is None:
-            return []
-        bounding_boxes = self.extract_bounding_boxes(contours)
-        return bounding_boxes
