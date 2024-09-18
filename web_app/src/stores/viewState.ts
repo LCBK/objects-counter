@@ -7,6 +7,7 @@ import ImageView from "../components/views/ImageView.vue";
 import ConfirmPointsToolBar from "../components/ConfirmPointsToolBar.vue";
 import EditPointsToolBar from "../components/EditPointsToolBar.vue";
 import ResultViewToolBar from "../components/ResultViewToolBar.vue";
+import { useImageStateStore } from "./imageState";
 
 
 // Stores data about current application states and views
@@ -32,6 +33,9 @@ export const useViewStateStore = defineStore("viewState", {
     state: () => ({ ...defaultState }),
     actions: {
         reset() {
+            const imageState = useImageStateStore();
+            imageState.reset();
+
             Object.assign(this, defaultState);
         },
         
