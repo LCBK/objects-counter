@@ -3,8 +3,7 @@ import { useImageStateStore } from "@/stores/imageState";
 import { useViewStateStore } from "@/stores/viewState";
 import BoundingBox from "./BoundingBox.vue";
 import SelectionPoint from "./SelectionPoint.vue";
-import { ref, onMounted, computed, onBeforeUpdate } from "vue";
-import { boundingBoxColors } from "@/config";
+import { ref, onMounted, computed } from "vue";
 import LoadingSpinner from "./LoadingSpinner.vue";
 
 
@@ -14,7 +13,7 @@ const viewState = useViewStateStore();
 const overlay = ref<HTMLDivElement>();
 const innerOverlay = ref<HTMLDivElement>();
 
-const results = computed(() => imageState.results);
+const elements = computed(() => imageState.imageElements);
 const points = imageState.points;
 
 const scale = computed(() => imageState.boundingBoxScale);
@@ -29,64 +28,48 @@ function scaleOverlay() {
     const imageElement = document.querySelector("#displayed-image") as HTMLImageElement;
     if (!imageElement) return;
 
-    const overlayWidth = overlay.value.clientWidth;
-    const overlayHeight = overlay.value.clientHeight;
-    const overlayRatio = overlayWidth / overlayHeight;
-    const srcImageRatio = imageState.width / imageState.height;
-    let innerImageWidth = 0, innerImageHeight = 0;
-    let destinationHeightFraction = 0, destinationWidthFraction = 0;
+    const overlayWidth = overlay.value.clientWidth;                     // Overlay element width
+    const overlayHeight = overlay.value.clientHeight;                   // Overlay element height
+    const overlayRatio = overlayWidth / overlayHeight;                  // Overlay ratio of width/height
+    const srcImageRatio = imageState.width / imageState.height;         // Image ratio of width/height
+    let innerImageWidth = 0, innerImageHeight = 0;                      // Dimensions of <img> element (differ from original)
+    let destinationHeightFraction = 1, destinationWidthFraction = 1;    // Fractions used for scaling the <img> element dimensions
 
+    // Calculate which <img> element dimension to scale
     if (srcImageRatio > overlayRatio) {
-        destinationWidthFraction = 1;
+        // Original image wider than <img> element
         destinationHeightFraction = (imageState.height / overlayHeight) / (imageState.width / overlayWidth);
     }
     else {
+        // <img> element wider than original image
         destinationWidthFraction = (imageState.width / overlayWidth) / (imageState.height / overlayHeight);
-        destinationHeightFraction = 1;
     }
 
+    // Scale <img> element to fit overlay
     innerImageWidth = overlayWidth * destinationWidthFraction;
     innerImageHeight = overlayHeight * destinationHeightFraction;
 
-    const top_margin = Math.max((overlayHeight - innerImageHeight) / 2, 0);
-    const left_margin = Math.max((overlayWidth - innerImageWidth) / 2, 0);
+    // Calculate overlay offsets
+    const topMargin = Math.max((overlayHeight - innerImageHeight) / 2, 0);
+    const leftMargin = Math.max((overlayWidth - innerImageWidth) / 2, 0);
 
+    // Calculate CSS properties
     innerOverlay.value.style.width = innerImageWidth + "px";
     innerOverlay.value.style.height = innerImageHeight + "px";
-    innerOverlay.value.style.top = top_margin + "px";
-    innerOverlay.value.style.left = left_margin + "px";
+    innerOverlay.value.style.top = topMargin + "px";
+    innerOverlay.value.style.left = leftMargin + "px";
 
+    // Store current scale/offset info
     imageState.scaledImageWidth = innerImageWidth;
     imageState.scaledImageHeight = innerImageHeight;
-    imageState.overlayOffsetLeft = left_margin;
-    imageState.overlayOffsetTop = top_margin;
-
+    imageState.overlayOffsetLeft = leftMargin;
+    imageState.overlayOffsetTop = topMargin;
     if (srcImageRatio > overlayRatio) {
         imageState.boundingBoxScale = innerImageWidth / imageState.width;
     }
     else {
         imageState.boundingBoxScale = innerImageHeight / imageState.height;
     }
-}
-
-function assignClassColors() {
-    const assignedClasses: Array<string> = [];
-    const assignedColors: Array<string> = [];
-
-    let colorIndex = 0;
-    imageState.results.forEach((box) => {
-        if (!assignedClasses.includes(box.class)) {
-            let newColor = boundingBoxColors[colorIndex % boundingBoxColors.length];
-            assignedClasses.push(box.class);
-            assignedColors.push(newColor);
-            colorIndex++;
-            box.color = newColor;
-        }
-        else {
-            let colorIndex = assignedClasses.indexOf(box.class);
-            box.color = assignedColors[colorIndex];
-        }
-    });
 }
 
 function handleOverlayClick(event: MouseEvent) {
@@ -101,6 +84,8 @@ function handleOverlayClick(event: MouseEvent) {
         imageState.addPoint(viewState.isPointTypePositive, x, y);
     }
     else if (viewState.isRemovingPoint) {
+        // When clicking a point and not the overlay, mouse coords returned by the event differ
+        // If clicked a point, get its coords from data attributes instead of event
         if ((event.target! as HTMLElement).classList.contains("selection-point")) {
             const pointX = Number((event.target! as HTMLElement).getAttribute("data-x"));
             const pointY = Number((event.target! as HTMLElement).getAttribute("data-y"));
@@ -111,10 +96,6 @@ function handleOverlayClick(event: MouseEvent) {
 }
 
 
-onBeforeUpdate(() => {
-    assignClassColors();
-})
-
 onMounted(() => {
     scaleOverlay();
     window.addEventListener("resize", scaleOverlay);
@@ -124,19 +105,14 @@ onMounted(() => {
 
 <template>
     <div class="img-overlay" ref="overlay">
-        <div class="inner-overlay" ref="innerOverlay" style="position: absolute"
-                @click="handleOverlayClick">
+        <div class="inner-overlay" ref="innerOverlay" style="position: absolute" @click="handleOverlayClick">
             <img id="mask-image" :src="imageState.backgroundMaskDataURL">
             <div class="bounding-boxes">
-                <BoundingBox v-for="([, box], index) in Object.entries(results)" :key="index"
-                        v-bind:top-left="box.top_left" v-bind:bottom-right="box.bottom_right"
-                        v-bind:certainty="box.certainty" v-bind:class="box.class"
-                        v-bind:index="index" v-bind:color="box.color" />
+                <BoundingBox v-for="([, box], index) in Object.entries(elements)" :key="index" v-bind="box" />
             </div>
             <div class="selection-points" v-if="viewState.showPoints">
                 <SelectionPoint v-for="([, point], index) in Object.entries(points)" :key="index"
-                        v-bind:is-positive="point.isPositive" v-bind:position="point.position"
-                        v-bind:class="[point.isPositive ? 'positive' : 'negative']" />
+                        v-bind="point" v-bind:class="[point.positive ? 'positive' : 'negative']" />
             </div>
         </div>
         <Transition name="waiting-overlay">

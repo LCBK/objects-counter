@@ -25,8 +25,8 @@ function setPositivePointType() {
 
 function setNegativePointType() {
     viewState.isPointTypePositive = false;
-    negativePointButton.value!.classList.add("checked");
     positivePointButton.value!.classList.remove("checked");
+    negativePointButton.value!.classList.add("checked");
 }
 
 function handleAddClick() {
@@ -42,14 +42,14 @@ function handleRemoveClick() {
 function handleConfirmPoints() {
     if (imageState.points.length === 0) return;
 
-    const pointPositions = imageState.points.map((point) => point.position);
     const requestUri = config.serverUri + endpoints.sendSelection.replace("{image_id}", imageState.imageId.toString());
-    const requestData = JSON.stringify({ "data": pointPositions });
+    const requestData = JSON.stringify({"data": imageState.points});
     const responsePromise = sendRequest(requestUri, requestData, "PUT");
 
     viewState.isWaitingForResponse = true;
     displayPointTypes.value = false;
     
+    // Backend returns a background mask
     responsePromise.then((response) => {
         viewState.isWaitingForResponse = false;
         
