@@ -5,6 +5,8 @@ import numpy as np
 import torch
 
 from PIL import Image as PILImage
+
+from objects_counter.db.dataops.image import update_element_classification
 from objects_counter.db.models import Image, ImageElement
 from .feature_extraction import CosineSimilarity, compute_color_histogram, compute_color_similarity
 from ..constants import TEMP_IMAGE_DIR
@@ -28,7 +30,7 @@ class ObjectClassifier:
 
         for obj in objects:
             cropped_image = crop_image(image_data, obj.top_left, obj.bottom_right)
-            cropped_image.save(os.path.join(TEMP_IMAGE_DIR, f"object_{obj.index}.jpg"))
+            cropped_image.save(os.path.join(TEMP_IMAGE_DIR, f"object_{obj.id}.jpg"))
 
     def compute_embeddings(self) -> None:
         """Computes embeddings for all cropped images."""
@@ -37,13 +39,15 @@ class ObjectClassifier:
             embedding = self.similarity_model.get_embedding(image_tensor)
             self.embeddings.append(embedding)
 
-    def calculate_similarity(self, index_i: int, index_j: int, color_weight: float = 0.7) -> float:
+    def calculate_similarity(self, obj_i: ImageElement, obj_j: ImageElement, color_weight: float = 0.7) -> float:
         """Calculates combined feature and color similarity between two objects."""
-        hist_i = compute_color_histogram(PILImage.open(f"{TEMP_IMAGE_DIR}/object_{index_i}.jpg"))
-        hist_j = compute_color_histogram(PILImage.open(f"{TEMP_IMAGE_DIR}/object_{index_j}.jpg"))
+        min_index = obj_i.image.elements[0].id
 
-        embedding_i = self.embeddings[index_i]
-        embedding_j = self.embeddings[index_j]
+        hist_i = compute_color_histogram(PILImage.open(f"{TEMP_IMAGE_DIR}/object_{obj_i.id}.jpg"))
+        hist_j = compute_color_histogram(PILImage.open(f"{TEMP_IMAGE_DIR}/object_{obj_j.id}.jpg"))
+
+        embedding_i = self.embeddings[obj_i.id - min_index]
+        embedding_j = self.embeddings[obj_j.id - min_index]
 
         # pylint: disable=not-callable
         feature_sim = torch.nn.functional.cosine_similarity(embedding_i, embedding_j).item()
@@ -60,53 +64,42 @@ class ObjectClassifier:
     def assign_categories_based_on_similarity(self, image: Image, threshold, color_weight):
         """Assigns objects to categories based on their similarity scores."""
         objects = image.elements
+        num_objects = len(objects)
 
-        num_objects = len(self.embeddings)
         category_id = 0
-        categories = []
 
         for index_i in range(num_objects):
-            if index_i in self.analyzed_images:
+            obj_i = objects[index_i]
+            if obj_i.id in self.analyzed_images:
                 continue
 
-            new_category = [
-                ImageElement(
-                    objects[index_i].id,
-                    objects[index_i].top_left,
-                    objects[index_i].bottom_right,
-                    certainty=1.0)]
-
-            categories.append(new_category)
-            self.analyzed_images.add(index_i)
+            if not obj_i.classification:
+                bbox = obj_i.top_left, obj_i.bottom_right
+                update_element_classification(bbox, f"category_{category_id}", 1.0)
+                self.analyzed_images.add(obj_i.id)
 
             for index_j in range(index_i + 1, num_objects):
-                combined_similarity = self.calculate_similarity(index_i, index_j, color_weight)
+                obj_j = objects[index_j]
+                combined_similarity = self.calculate_similarity(obj_i, obj_j, color_weight)
 
                 if combined_similarity >= threshold:
-                    self.add_object_to_category(objects[index_j], combined_similarity, category_id, categories)
+                    self.add_object_to_category(obj_j, combined_similarity, category_id)
 
             category_id += 1
 
-        image.categories = categories
-
-    def add_object_to_category(self, new_object, similarity, category_id, categories):
+    def add_object_to_category(self, new_object, similarity, category_id):
         """Adds an object to a category or updates its similarity if already present in another category."""
 
-        # Check if the object already exists in another category
-        for cat_id, category in enumerate(categories):
-            if cat_id == category_id:
-                continue
+        # Check if the object already has a classification
+        if new_object.classification:
+            # If it already has a classification, check if we should update it
+            if similarity > new_object.certainty:
+                # Update the classification and certainty if the new similarity is higher
+                bbox = new_object.top_left, new_object.bottom_right
+                update_element_classification(bbox, f"category_{category_id}", similarity)
+        else:
+            # If the object doesn't have a classification, assign it
+            bbox = new_object.top_left, new_object.bottom_right
+            update_element_classification(bbox, f"category_{category_id}", similarity)
 
-            for i, obj in enumerate(category):
-                if obj.index == new_object.index:
-                    # Update similarity if the new one is higher, or skip
-                    if similarity > obj.probability:
-                        category.pop(i)  # Remove the object from the current category
-                        break
-                    else:
-                        return
-
-        # Add the object to the current category
-        new_object.probability = similarity
-        categories[category_id].append(new_object)
-        self.analyzed_images.add(new_object.index)
+        self.analyzed_images.add(new_object.id)

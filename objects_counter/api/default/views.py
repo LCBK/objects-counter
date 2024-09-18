@@ -28,8 +28,10 @@ process_parser = api.parser()
 process_parser.add_argument('image', type=FileStorage, location='files')
 sam = ObjectSegmentation(SAM_CHECKPOINT)
 similarity_model = CosineSimilarity()
+object_grouper = ObjectClassifier(sam, similarity_model)
 
 log = logging.getLogger(__name__)
+
 
 @api.route('/is-alive')
 class IsAlive(Resource):
@@ -97,9 +99,7 @@ class BackgroundPoints(Resource):
         # save the points in the db
         update_background_points(image_id, points)
         mask = sam.calculate_mask(image).tolist()
-        result = {
-            "mask": mask
-        }
+        result = {"mask": mask}
         return json.dumps(result), 200
 
 
@@ -119,8 +119,6 @@ class AcceptBackgroundPoints(Resource):
             return 'Image not found', 404
         sam.count_objects(image)
 
-        # TODO: use classification
-        object_grouper = ObjectClassifier(sam, similarity_model)
         object_grouper.group_objects_by_similarity(image)
 
         response = {"objects": []}
