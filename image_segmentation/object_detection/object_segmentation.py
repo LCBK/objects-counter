@@ -91,7 +91,7 @@ class ObjectSegmentation:
         new_contours = []
         image_data = cv2.imread(image.filepath)
         image_pixels = image_data.shape[0] * image_data.shape[1]
-        contour_removal_threshold = image_pixels / 100
+        contour_removal_threshold = image_pixels / 1000
         for contour in contours:
             if cv2.contourArea(contour) < contour_removal_threshold:
                 cv2.drawContours(image_data, [contour], -1, color=(0, 0, 0), thickness=cv2.FILLED)
