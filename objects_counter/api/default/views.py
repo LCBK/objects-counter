@@ -118,7 +118,7 @@ class AcceptBackgroundPoints(Resource):
             log.exception("Image %s not found: %s", image_id, e)
             return 'Image not found', 404
 
-        object_count = sam.count_objects(image)
+        sam.count_objects(image)
 
         object_grouper.group_objects_by_similarity(image)
 
