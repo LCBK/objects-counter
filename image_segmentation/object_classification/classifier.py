@@ -9,7 +9,7 @@ from PIL import Image as PILImage
 from image_segmentation.constants import TEMP_IMAGE_DIR
 from image_segmentation.object_classification.feature_extraction import CosineSimilarity, compute_color_histogram, \
     compute_color_similarity
-from image_segmentation.utils import crop_image
+from image_segmentation.utils import crop_image, delete_temp_images
 from objects_counter.db.dataops.image import update_element_classification
 from objects_counter.db.models import Image, ImageElement
 
@@ -58,9 +58,11 @@ class ObjectClassifier:
 
     def group_objects_by_similarity(self, image: Image, threshold: float = 0.7, color_weight: float = 0.7) -> None:
         """Groups objects by their similarity based on a combination of feature and color similarity."""
+        delete_temp_images(TEMP_IMAGE_DIR)
         self.crop_objects(image)
         self.compute_embeddings()
         self.assign_categories_based_on_similarity(image, threshold, color_weight)
+        delete_temp_images(TEMP_IMAGE_DIR)
 
     def assign_categories_based_on_similarity(self, image: Image, threshold, color_weight):
         """Assigns objects to categories based on their similarity scores."""
@@ -76,7 +78,7 @@ class ObjectClassifier:
 
             if not obj_i.classification:
                 bbox = obj_i.top_left, obj_i.bottom_right
-                update_element_classification(bbox, f"category_{category_id}", 1.0)
+                update_element_classification(bbox, f"{category_id}", 1.0)
                 self.analyzed_images.add(obj_i.id)
 
             for index_j in range(index_i + 1, num_objects):
