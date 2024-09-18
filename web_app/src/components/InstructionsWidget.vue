@@ -12,7 +12,7 @@ const currentViewState = computed(() => viewState.currentStateName);
 const isButtonAnimated = ref<Boolean>();
 
 const props = defineProps({
-    labeled: Boolean
+    labeled: Boolean                // labeled with "Instruction" string and styled as a wider button
 });
 
 
@@ -36,7 +36,7 @@ onMounted(() => animateButton());
             @click="visible = true" label="Instructions" class="instructions-button-labeled" />
     <VButton v-else text rounded id="instructions-button" icon="pi pi-info-circle" ref="button"
             @click="visible = true" :class="{ animated: isButtonAnimated }" />
-    <VDialog v-model:visible="visible" modal header="Instructions" id="instructions-popup">
+    <VDialog v-model:visible="visible" modal header="Instructions" id="instructions-popup" :dismissable-mask="true">
         <div v-if="currentViewState == 'beforeUpload'" class="instructions-text">
             <p>First off, take or upload a picture of the objects you want to count.</p>
             <p>To get the best results, follow these guidelines:</p>
