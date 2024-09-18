@@ -1,19 +1,20 @@
-export interface Result {
-    index: number,
-    top_left: [number, number],
-    bottom_right: [number, number],
+export interface ImageElement {
+    topLeft: [number, number],
+    bottomRight: [number, number],
     certainty: number,
-    class: string,
-    color: string
+    classificationIndex: number
 }
 
-export interface Quantity {
+export interface ObjectClassification {
     index: number,
-    class: string,
-    count: number
+    classificationName: string,
+    count: number,
+    isNameAssigned: boolean,                // Determines whether the user named the classification or not
+    showBoxes: boolean,
+    boxColor: string
 }
 
-export interface Point {
-    isPositive: boolean,                  // true - positive, false - negative
+export interface BackgroundPoint {
     position: [number, number]
+    positive: boolean,                    // true - positive, false - negative
 }

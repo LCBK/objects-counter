@@ -2,7 +2,7 @@
 import VButton from "primevue/button";
 import { useViewStateStore } from "@/stores/viewState";
 import { useImageStateStore } from "@/stores/imageState";
-import { config, endpoints } from "@/config";
+import { boundingBoxColors, config, endpoints } from "@/config";
 import { sendRequest } from "@/utils";
 import { computed } from "vue";
 
@@ -18,9 +18,29 @@ function handleConfirmBackground() {
 
     viewState.isWaitingForResponse = true;
     
+    // Backend returns counted and classified image elements
     responsePromise.then((response) => {
         viewState.isWaitingForResponse = false;
-        imageState.results = JSON.parse(response).data;
+
+        JSON.parse(response).classifications.forEach((element: any, index: number) => {
+            imageState.objectClassifications.push({
+                index: index,
+                classificationName: element.classification,
+                count: element.objects.length,
+                isNameAssigned: false,
+                showBoxes: true,
+                boxColor: boundingBoxColors[index % boundingBoxColors.length]
+            });
+            element.objects.forEach((object: any) => {
+                imageState.imageElements.push({
+                    topLeft: object.top_left,
+                    bottomRight: object.bottom_right,
+                    certainty: object.certainty,
+                    classificationIndex: index
+                });
+            });
+        });
+
         viewState.setState('viewResult');
     });
 }

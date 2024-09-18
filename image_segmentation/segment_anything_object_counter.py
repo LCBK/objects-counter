@@ -31,9 +31,9 @@ class SegmentAnythingObjectCounter:
     def calculate_image_mask(self, image: Image):
         image_data = cv2.imread(image.filepath)
         self.predictor.set_image(image_data)
-        points = get_background_points(image)
+        points, labels = get_background_points(image)
         masks, _, _ = self.predictor.predict(point_coords=np.array(points),
-                                             point_labels=np.array([1] * len(points)),
+                                             point_labels=np.array([1 if label else 0 for label in labels]),
                                              multimask_output=True)
         return masks[2]
 

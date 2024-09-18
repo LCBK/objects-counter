@@ -4,7 +4,7 @@ import { computed } from 'vue';
 
 const imageState = useImageStateStore();
 const props = defineProps({
-    isPositive: {
+    positive: {
         type: Boolean,                  // true - positive, false - negative
         required: true
     },
@@ -24,9 +24,9 @@ const left = computed(() => (props.position[0]) * scale.value - 12 + "px");
 
 <template>
     <div class="selection-point"
-            :data-positive="props.isPositive"
+            :data-positive="props.positive"
             :data-x="props.position[0]" :data-y="props.position[1]">
-        {{ props.isPositive == true ? "+" : "-" }}
+        {{ props.positive == true ? "+" : "-" }}
     </div>
 </template>
 
