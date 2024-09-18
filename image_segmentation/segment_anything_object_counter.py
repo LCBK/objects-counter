@@ -8,7 +8,7 @@ from segment_anything import sam_model_registry, SamPredictor
 
 from objects_counter.db.dataops.image import bulk_set_elements, get_background_points
 from objects_counter.db.models import Image
-
+# pylint: disable=R0903
 log = logging.getLogger(__name__)
 
 
@@ -28,7 +28,7 @@ class SegmentAnythingObjectCounter:
         log.info("Torchvision version: %s", torchvision.__version__)
         log.info("CUDA is available: %s", torch.cuda.is_available())
 
-        assert(sam_checkpoint_path is not None)
+        assert sam_checkpoint_path is not None
         self.sam = sam_model_registry[model_type](checkpoint=sam_checkpoint_path)
 
         if torch.cuda.is_available():
@@ -43,7 +43,7 @@ class SegmentAnythingObjectCounter:
         for cached_image_id, cache_data in self.cache:
             if cached_image_id == image_id and cache_data.is_valid(current_points):
                 return cache_data.image_mask
-            elif cached_image_id == image_id and not cache_data.is_valid(current_points):
+            if cached_image_id == image_id and not cache_data.is_valid(current_points):
                 self.cache.remove([image_id, cache_data])
                 return None
         return None
