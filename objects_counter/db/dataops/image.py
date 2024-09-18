@@ -51,13 +51,24 @@ def delete_image_by_id(image_id: int) -> None:
 
 
 def bulk_set_elements(image: Image, elements: list[tuple[tuple[int, int], tuple[int, int]]]) -> None:
-    image.elements = []
+    delete_elements_by_image(image)
     for element in elements:
         insert_element(image, element[0], element[1], do_commit=False)
     try:
         db.session.commit()
     except DatabaseError as e:
         log.exception('Failed to insert elements: %s', e)
+        db.session.rollback()
+        raise
+
+
+def delete_elements_by_image(image: Image) -> None:
+    for element in image.elements:
+        db.session.delete(element)
+    try:
+        db.session.commit()
+    except DatabaseError as e:
+        log.exception('Failed to delete elements: %s', e)
         db.session.rollback()
         raise
 
