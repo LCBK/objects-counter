@@ -20,7 +20,6 @@ class ObjectClassifier:
         self.segmenter = segmenter
         self.similarity_model = similarity_model
         self.embeddings: List[torch.Tensor] = []
-        self.analyzed_images = set()
 
         os.makedirs(TEMP_IMAGE_DIR, exist_ok=True)
 
@@ -68,18 +67,19 @@ class ObjectClassifier:
         """Assigns objects to categories based on their similarity scores."""
         objects = image.elements
         num_objects = len(objects)
+        analyzed_objects = set()
 
         category_id = 1
 
         for index_i in range(num_objects):
             obj_i = objects[index_i]
-            if obj_i.id in self.analyzed_images:
+            if obj_i.id in analyzed_objects:
                 continue
 
             if not obj_i.classification:
                 bbox = obj_i.top_left, obj_i.bottom_right
                 update_element_classification(bbox, f"{category_id}", 1.0)
-                self.analyzed_images.add(obj_i.id)
+                analyzed_objects.add(obj_i.id)
 
             for index_j in range(index_i + 1, num_objects):
                 obj_j = objects[index_j]
@@ -87,6 +87,7 @@ class ObjectClassifier:
 
                 if combined_similarity >= threshold:
                     self.add_object_to_category(obj_j, combined_similarity, category_id)
+                    analyzed_objects.add(obj_j.id)
 
             category_id += 1
 
@@ -104,5 +105,3 @@ class ObjectClassifier:
             # If the object doesn't have a classification, assign it
             bbox = new_object.top_left, new_object.bottom_right
             update_element_classification(bbox, f"{category_id}", similarity)
-
-        self.analyzed_images.add(new_object.id)
