@@ -16,6 +16,10 @@ then
 else
     echo "SAM_CHECKPOINT is set to $SAM_CHECKPOINT"
 fi
+if [ -n "$2" ]
+then
+    export SAM_MODEL_TYPE=$2
+fi
 cd objects_counter || exit
 flask db init
 flask db upgrade
