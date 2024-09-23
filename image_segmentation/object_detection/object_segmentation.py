@@ -87,11 +87,11 @@ class ObjectSegmentation:
 
         return binary_image
 
-    def remove_small_masks(self, image, contours):
+    def remove_small_masks(self, image, contours, threshold_fraction = 0.001):
         new_contours = []
         image_data = cv2.imread(image.filepath)
         image_pixels = image_data.shape[0] * image_data.shape[1]
-        contour_removal_threshold = image_pixels / 1000
+        contour_removal_threshold = image_pixels * threshold_fraction
         for contour in contours:
             if cv2.contourArea(contour) < contour_removal_threshold:
                 cv2.drawContours(image_data, [contour], -1, color=(0, 0, 0), thickness=cv2.FILLED)
