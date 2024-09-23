@@ -1,4 +1,5 @@
 import logging
+from typing import Tuple, List
 
 import cv2
 import numpy as np
@@ -8,10 +9,12 @@ from segment_anything import sam_model_registry, SamPredictor
 
 from objects_counter.db.dataops.image import bulk_set_elements, get_background_points
 from objects_counter.db.models import Image
+
 log = logging.getLogger(__name__)
 
 
-class SegmentAnythingObjectCounter:
+class ObjectSegmentation:
+    """Handles image segmentation and object detection using the Segment Anything Model (SAM)."""
 
     class ImageCache:
         def __init__(self, image_mask, points_selected):
@@ -28,13 +31,8 @@ class SegmentAnythingObjectCounter:
         log.info("CUDA is available: %s", torch.cuda.is_available())
 
         assert sam_checkpoint_path is not None
-        self.sam = sam_model_registry[model_type](checkpoint=sam_checkpoint_path)
-
-        if torch.cuda.is_available():
-            self.sam.to(device="cuda")
-        else:
-            self.sam.to(device="cpu")
-
+        self.device = "cuda" if torch.cuda.is_available() else "cpu"
+        self.sam = sam_model_registry[model_type](checkpoint=sam_checkpoint_path).to(self.device)
         self.predictor = SamPredictor(self.sam)
         self.cache = []
 
@@ -53,7 +51,8 @@ class SegmentAnythingObjectCounter:
         cache = self.ImageCache(cache_data, current_points)
         self.cache.append([image_id, cache])
 
-    def calculate_image_mask(self, image: Image) -> object:
+    def calculate_mask(self, image: Image) -> object:
+        """Calculates and assigns a mask to the image based on input points."""
         points = get_background_points(image)
         cache_data = self.get_mask_cache(image.id, points)
         if cache_data is not None:
@@ -69,6 +68,7 @@ class SegmentAnythingObjectCounter:
         return masks[2]
 
     def process_mask(self, mask):
+        """Converts mask to binary format and processes edges for contour detection."""
         result_mask = np.array(mask) * 255
         image = np.ascontiguousarray(result_mask, dtype=np.uint8)
 
@@ -82,14 +82,16 @@ class SegmentAnythingObjectCounter:
                 cv2.floodFill(image, None, (y, 0), 255)
             if image[image.shape[0] - 1][y] == 0:
                 cv2.floodFill(image, None, (y, image.shape[0] - 1), 255)
+
         _, binary_image = cv2.threshold(image, 127, 255, cv2.THRESH_BINARY_INV)
+
         return binary_image
 
-    def remove_small_masks(self, image, contours):
+    def remove_small_masks(self, image, contours, threshold_fraction = 0.001):
         new_contours = []
         image_data = cv2.imread(image.filepath)
         image_pixels = image_data.shape[0] * image_data.shape[1]
-        contour_removal_threshold = image_pixels / 100
+        contour_removal_threshold = image_pixels * threshold_fraction
         for contour in contours:
             if cv2.contourArea(contour) < contour_removal_threshold:
                 cv2.drawContours(image_data, [contour], -1, color=(0, 0, 0), thickness=cv2.FILLED)
@@ -97,15 +99,16 @@ class SegmentAnythingObjectCounter:
                 new_contours.append(contour)
         return new_contours
 
-    def extract_bounding_boxes(self, contours):
+    def extract_bounding_boxes(self, contours) -> List[Tuple[Tuple[int, int], Tuple[int, int]]]:
+        """Extracts bounding boxes from contours."""
         objects_bounding_boxes = []
         for contour in contours:
             x, y, w, h = cv2.boundingRect(contour)
             objects_bounding_boxes.append(((x, y), (x + w, y + h)))
         return objects_bounding_boxes
 
-    def get_object_count(self, image: Image) -> int:
-        result_mask = self.calculate_image_mask(image)
+    def count_objects(self, image: Image) -> int:
+        result_mask = self.calculate_mask(image)
         if result_mask is None:
             log.warning("No mask found for image: %s", image.id)
             return 0
@@ -113,14 +116,14 @@ class SegmentAnythingObjectCounter:
         contours, _ = cv2.findContours(binary_image, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
         contours = self.remove_small_masks(image, contours)
         object_count = len(contours)
-
-        log.info("Number of objects found: %s", object_count)
+        log.info("Number of objects detected: %s", object_count)
 
         bounding_boxes = self.get_bounding_boxes(contours)
         bulk_set_elements(image, bounding_boxes)
         return object_count
 
     def get_bounding_boxes(self, contours):
+        """Returns bounding boxes of detected objects in the image."""
         if contours is None:
             return []
         bounding_boxes = self.extract_bounding_boxes(contours)
