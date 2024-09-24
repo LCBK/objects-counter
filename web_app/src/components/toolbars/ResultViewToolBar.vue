@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import VButton from "primevue/button";
 import VSidebar from "primevue/sidebar";
-import QuantitiesEntry from "./QuantitiesEntry.vue";
+import QuantitiesEntry from "../QuantitiesEntry.vue";
 import { useImageStateStore } from "@/stores/imageState";
 import { useViewStateStore } from "@/stores/viewState";
 import { computed } from "vue";

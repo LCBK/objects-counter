@@ -4,9 +4,9 @@ import MainView from "../components/views/MainView.vue";
 import LoadingView from "../components/views/LoadingView.vue";
 import ImageView from "../components/views/ImageView.vue";
 
-import ConfirmPointsToolBar from "../components/ConfirmPointsToolBar.vue";
-import EditPointsToolBar from "../components/EditPointsToolBar.vue";
-import ResultViewToolBar from "../components/ResultViewToolBar.vue";
+import ConfirmPointsToolBar from "../components/toolbars/ConfirmPointsToolBar.vue";
+import EditPointsToolBar from "../components/toolbars/EditPointsToolBar.vue";
+import ResultViewToolBar from "../components/toolbars/ResultViewToolBar.vue";
 import { useImageStateStore } from "./imageState";
 
 
