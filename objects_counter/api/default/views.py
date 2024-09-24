@@ -18,7 +18,7 @@ from image_segmentation.object_classification.feature_extraction import CosineSi
 from image_segmentation.object_detection.object_segmentation import ObjectSegmentation
 from objects_counter.api.default.models import points_model
 from objects_counter.api.utils import authentication_optional
-from objects_counter.consts import SAM_CHECKPOINT
+from objects_counter.consts import SAM_CHECKPOINT, SAM_MODEL_TYPE
 from objects_counter.db.dataops.image import insert_image, update_background_points, get_image_by_id
 from objects_counter.db.dataops.result import insert_result
 from objects_counter.db.models import User
@@ -26,7 +26,7 @@ from objects_counter.db.models import User
 api = Namespace('default', description='Default namespace')
 process_parser = api.parser()
 process_parser.add_argument('image', type=FileStorage, location='files')
-sam = ObjectSegmentation(SAM_CHECKPOINT)
+sam = ObjectSegmentation(SAM_CHECKPOINT, model_type=SAM_MODEL_TYPE)
 similarity_model = CosineSimilarity()
 object_grouper = ObjectClassifier(sam, similarity_model)
 
