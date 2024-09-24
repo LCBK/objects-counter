@@ -1,11 +1,13 @@
 <script setup lang="ts">
 import ImageInput from "../ImageInput.vue";
 import InstructionsWidget from "../InstructionsWidget.vue";
+import MainViewNavBar from "../navbars/MainViewNavBar.vue";
 </script>
 
 
 <template>
     <div id="main-view" class="view">
+        <MainViewNavBar />
         <ImageInput />
         <InstructionsWidget labeled />
     </div>

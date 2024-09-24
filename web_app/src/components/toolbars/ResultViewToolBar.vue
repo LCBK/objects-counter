@@ -3,7 +3,7 @@ import VButton from "primevue/button";
 import VSidebar from "primevue/sidebar";
 import QuantitiesEntry from "../QuantitiesEntry.vue";
 import { useImageStateStore } from "@/stores/imageState";
-import { useViewStateStore } from "@/stores/viewState";
+import { useViewStateStore, ViewStates } from "@/stores/viewState";
 import { computed } from "vue";
 
 const imageState = useImageStateStore();
@@ -22,7 +22,7 @@ const classifications = computed(() => imageState.objectClassifications);
             <span class="element-count-label">Elements</span>
         </div>
         <VButton text label="Adjust" class="edit-selection" icon="pi pi-pencil"
-                @click="viewState.setState('editPoints'); imageState.clearResult();" />
+                @click="viewState.setState(ViewStates.ImageEditPoints); imageState.clearResult();" />
     </div>
     <VSidebar v-model:visible="visible" position="bottom" style="height: auto" class="quantities" header="Counted elements">
         <div class="quantities-header">
@@ -94,7 +94,7 @@ const classifications = computed(() => imageState.objectClassifications);
 
 .element-count-value {
     display: block;
-    font-weight: bold;
+    font-weight: 700;
     font-size: 2.25rem;
 }
 

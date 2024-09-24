@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import VButton from "primevue/button";
-import { useViewStateStore } from "@/stores/viewState";
+import { useViewStateStore, ViewStates } from "@/stores/viewState";
 import { useImageStateStore } from "@/stores/imageState";
 import { boundingBoxColors, config, endpoints } from "@/config";
 import { sendRequest } from "@/utils";
@@ -41,7 +41,7 @@ function handleConfirmBackground() {
             });
         });
 
-        viewState.setState('viewResult');
+        viewState.setState(ViewStates.ImageViewResult);
     });
 }
 </script>
@@ -50,7 +50,7 @@ function handleConfirmBackground() {
 <template>
     <div class="image-view-tool-bar bar">
         <VButton text label="Edit selection" class="edit-selection" icon="pi pi-pencil"
-                :disabled="allButtonsDisabled" @click="viewState.setState('editPoints')" />
+                :disabled="allButtonsDisabled" @click="viewState.setState(ViewStates.ImageEditPoints)" />
         <VButton text label="Confirm selection" class="confirm-selection" icon="pi pi-check"
                 :disabled="allButtonsDisabled" @click="handleConfirmBackground" />
     </div>

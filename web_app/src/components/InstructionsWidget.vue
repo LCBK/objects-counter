@@ -1,14 +1,14 @@
 <script setup lang="ts">
 import VButton from "primevue/button";
 import VDialog from "primevue/dialog";
-import { useViewStateStore } from "../stores/viewState";
+import { useViewStateStore, ViewStates } from "../stores/viewState";
 import { computed, onMounted, ref, watch } from "vue";
 
 
 const visible = defineModel<boolean>();
 const viewState = useViewStateStore();
 
-const currentViewState = computed(() => viewState.currentStateName);
+const currentViewState = computed(() => viewState.currentState);
 const isButtonAnimated = ref<Boolean>();
 
 const props = defineProps({
@@ -25,7 +25,10 @@ function animateButton() {
     }, 4000);
 }
 
-watch(currentViewState, async () => animateButton());
+watch(currentViewState, async () => {
+    animateButton();
+    visible.value = false;
+});
 
 onMounted(() => animateButton());
 </script>
@@ -37,7 +40,7 @@ onMounted(() => animateButton());
     <VButton v-else text rounded id="instructions-button" icon="pi pi-info-circle" ref="button"
             @click="visible = true" :class="{ animated: isButtonAnimated }" />
     <VDialog v-model:visible="visible" modal header="Instructions" id="instructions-popup" :dismissable-mask="true">
-        <div v-if="currentViewState == 'beforeUpload'" class="instructions-text">
+        <div v-if="currentViewState == ViewStates.MainView" class="instructions-text">
             <p>First off, take or upload a picture of the objects you want to count.</p>
             <p>To get the best results, follow these guidelines:</p>
             <ul>
@@ -47,7 +50,7 @@ onMounted(() => animateButton());
             </ul>
             <p>Follow instructions given in the next steps for more help.</p>
         </div>
-        <div v-else-if="currentViewState == 'editPoints'" class="instructions-text">
+        <div v-else-if="currentViewState == ViewStates.ImageEditPoints" class="instructions-text">
             <p>Select the background in your image that separates objects from one another.</p>
             <p>
                 Place points using the toolbar below to indicate where the background is. <br>
@@ -58,14 +61,14 @@ onMounted(() => animateButton());
                 To exclude a part of the image from the background, use "negative" points.
             </p>
         </div>
-        <div v-else-if="currentViewState == 'confirmBackground'" class="instructions-text">
+        <div v-else-if="currentViewState == ViewStates.ImageConfirmBackground" class="instructions-text">
             <p>Your image has been processed and the background selected by the algorithm is highlighted on the preview.</p>
             <p>
                 If the selection is correct, confirm your selection. Objects on the image will now get counted. <br>
                 Otherwise, edit your selection by adjusting the points placed in the previous step.
             </p>
         </div>
-        <div v-else-if="currentViewState == 'viewResult'" class="instructions-text">
+        <div v-else-if="currentViewState == ViewStates.ImageViewResult" class="instructions-text">
             <p>That's it!</p>
             <p>You can see the element count on the bottom.</p>
             <p>To see how many elements of specific types were counted, use the "Details" button.</p>

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import VButton from "primevue/button";
-import { useViewStateStore } from "@/stores/viewState";
+import { useViewStateStore, ViewStates } from "@/stores/viewState";
 import { config, endpoints } from "@/config";
 import { useImageStateStore } from "@/stores/imageState";
 import { createMaskImage, sendRequest } from "@/utils";
@@ -58,7 +58,7 @@ function handleConfirmPoints() {
         const ctx = canvas.getContext("2d");
         if (ctx == undefined) return;
 
-        viewState.setState("confirmBackground");
+        viewState.setState(ViewStates.ImageConfirmBackground);
 
         ctx.canvas.width = imageState.width;
         ctx.canvas.height = imageState.height;
