@@ -102,3 +102,23 @@ const classifications = computed(() => imageState.objectClassifications);
     display: block;
 }
 </style>
+
+<style>
+.quantities .p-sidebar-header-content {
+    color: #60a5fa;
+    font-weight: 400;
+    letter-spacing: 0.3px;
+    user-select: none;
+}
+
+.quantity-switch .p-inputswitch-input {
+    width: 40px;
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+.quantity-switch .p-inputswitch-slider {
+    width: 40px;
+    margin: 0 auto;
+}
+</style>

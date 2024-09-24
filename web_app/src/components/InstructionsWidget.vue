@@ -105,6 +105,25 @@ onMounted(() => animateButton());
     animation: pulse-animation 1s infinite linear;
 }
 
+#instructions-popup .instructions-text {
+    font-weight: 300;
+    letter-spacing: 0.2px;
+}
+
+#instructions-popup .instructions-text p {
+    margin: 12px 0;
+    font-size: 0.9rem;
+}
+
+#instructions-popup .instructions-text ul {
+    padding-left: 25px;
+}
+
+#instructions-popup .instructions-text li {
+    margin: 4px 0;
+    font-size: 0.9rem;
+}
+
 @keyframes pulse-animation {
     0% {
         background-color: rgba(96, 165, 250, 0.0);
@@ -118,5 +137,26 @@ onMounted(() => animateButton());
         background-color: rgba(96, 165, 250, 0.0);
         box-shadow: 0 0 0 12px rgba(96, 165, 250, 0.0);
     }
+}
+</style>
+
+<style>
+#instructions-button .pi {
+    margin-right: 0 !important;
+    font-size: 1.5rem;
+    text-shadow: 0px 0px 6px var(--color-background);
+}
+
+#instructions-popup {
+    width: 90vw;
+}
+
+#instructions-popup .p-dialog-header {
+    padding-bottom: 10px;
+}
+
+#instructions-popup .p-dialog-title {
+    font-weight: 500;
+    letter-spacing: 0.3px;
 }
 </style>

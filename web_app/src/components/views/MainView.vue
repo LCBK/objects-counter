@@ -24,3 +24,9 @@ import InstructionsWidget from "../InstructionsWidget.vue";
     margin: auto 0;
 }
 </style>
+
+<style>
+#main-view .p-button-label {
+    font-weight: 600;
+}
+</style>
