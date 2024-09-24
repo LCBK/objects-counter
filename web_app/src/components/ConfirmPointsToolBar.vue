@@ -2,20 +2,46 @@
 import VButton from "primevue/button";
 import { useViewStateStore } from "@/stores/viewState";
 import { useImageStateStore } from "@/stores/imageState";
-import { config, endpoints } from "@/config";
+import { boundingBoxColors, config, endpoints } from "@/config";
 import { sendRequest } from "@/utils";
+import { computed } from "vue";
 
 const viewState = useViewStateStore();
 const imageState = useImageStateStore();
+
+const allButtonsDisabled = computed(() => viewState.isWaitingForResponse);
 
 function handleConfirmBackground() {
     const requestUri = config.serverUri + endpoints.acceptBackground.replace("{image_id}", imageState.imageId.toString());
     const requestData = JSON.stringify({});
     const responsePromise = sendRequest(requestUri, requestData, "POST");
+
+    viewState.isWaitingForResponse = true;
     
+    // Backend returns counted and classified image elements
     responsePromise.then((response) => {
+        viewState.isWaitingForResponse = false;
+
+        JSON.parse(response).classifications.forEach((element: any, index: number) => {
+            imageState.objectClassifications.push({
+                index: index,
+                classificationName: element.classification,
+                count: element.objects.length,
+                isNameAssigned: false,
+                showBoxes: true,
+                boxColor: boundingBoxColors[index % boundingBoxColors.length]
+            });
+            element.objects.forEach((object: any) => {
+                imageState.imageElements.push({
+                    topLeft: object.top_left,
+                    bottomRight: object.bottom_right,
+                    certainty: object.certainty,
+                    classificationIndex: index
+                });
+            });
+        });
+
         viewState.setState('viewResult');
-        imageState.results = JSON.parse(response).data;
     });
 }
 </script>
@@ -24,9 +50,9 @@ function handleConfirmBackground() {
 <template>
     <div class="image-view-tool-bar bar">
         <VButton text label="Edit selection" class="edit-selection" icon="pi pi-pencil"
-                @click="viewState.setState('editPoints')" />
+                :disabled="allButtonsDisabled" @click="viewState.setState('editPoints')" />
         <VButton text label="Confirm selection" class="confirm-selection" icon="pi pi-check"
-                @click="handleConfirmBackground" />
+                :disabled="allButtonsDisabled" @click="handleConfirmBackground" />
     </div>
 </template>
 

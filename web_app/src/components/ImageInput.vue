@@ -96,5 +96,6 @@ function onImageUpload(event: Event) : void {
 <style>
 .image-select .p-button-icon {
     font-size: 1.25rem;
+    font-weight: 600;
 }
 </style>

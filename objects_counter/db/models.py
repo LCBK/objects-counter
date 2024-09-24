@@ -15,6 +15,24 @@ class Image(db.Model):
     background_points = db.Column(db.JSON, nullable=True)
 
 
+class ImageElement(db.Model):
+    __tablename__ = 'image_element'
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    image_id = db.Column(db.Integer, db.ForeignKey(Image.id), nullable=False)
+    top_left = db.Column(db.JSON, nullable=False)
+    bottom_right = db.Column(db.JSON, nullable=False)
+    classification = db.Column(db.String(255), nullable=True)
+    certainty = db.Column(db.Float, nullable=True)
+    image = db.relationship('Image', backref='elements')
+
+    def as_dict(self):
+        return {
+            'top_left': self.top_left,
+            'bottom_right': self.bottom_right,
+            'certainty': self.certainty,
+        }
+
+
 class User(db.Model):
     __tablename__ = 'user'
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)

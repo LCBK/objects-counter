@@ -1,7 +1,9 @@
-import type { Point, Result } from "@/types";
+import type { BackgroundPoint, ImageElement, ObjectClassification } from "@/types";
 import { distance } from "@/utils";
 import { defineStore } from "pinia";
 
+
+// Stores data related to user's image, e.g.: dimensions, canvas scale/offset, selection points, bounding boxes
 
 const defaultState = {
     url: "",
@@ -16,8 +18,9 @@ const defaultState = {
     backgroundMaskDataURL: "",
     isPanning: false,
     userZoom: 1,
-    results: [] as Array<Result>,
-    points: [] as Array<Point>
+    imageElements: [] as Array<ImageElement>,
+    points: [] as Array<BackgroundPoint>,
+    objectClassifications: [] as Array<ObjectClassification>
 }
 
 export const useImageStateStore = defineStore("imageState", {
@@ -25,11 +28,13 @@ export const useImageStateStore = defineStore("imageState", {
     actions: {
         reset() {
             Object.assign(this, defaultState);
-            this.points = []
+            this.imageElements = [];
+            this.points = [];
+            this.objectClassifications = [];
         },
 
         addPoint(isPositive: boolean, x: number, y: number) {
-            this.points.push({ isPositive: isPositive, position: [x, y] } as Point);
+            this.points.push({ positive: isPositive, position: [x, y] } as BackgroundPoint);
         },
 
         removeNearbyPoint(x: number, y: number, tolerance: number = 60) {
@@ -46,7 +51,7 @@ export const useImageStateStore = defineStore("imageState", {
         },
 
         clearResult() {
-            this.results = [];
+            this.imageElements = [];
         }
     }
 });
