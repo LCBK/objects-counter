@@ -160,7 +160,7 @@ class CompareImageElements(Resource):
     def post(self):
         first_image_id = request.json["first_image_id"]
         second_image_id = request.json["second_image_id"]
-        
+
         try:
             first_image = get_image_by_id(first_image_id)
         except NotFound as e:
