@@ -117,8 +117,7 @@ function submitRegisterForm() {
         <div v-if="userState.isLoggedIn" class="user-container user-details">
             <p style="color: var(--vt-c-text-dark-1)">Currently logged in as: <span>{{ userState.username }}</span></p>
             <p style="color: var(--vt-c-text-dark-1)">TODO: more details</p>
-            <VButton class="logout-button wide-button" icon="pi pi-sign-out" outlined
-                    label="Logout" @click="onLogout()" />
+            <VButton class="logout-button wide-button" icon="pi pi-sign-out" label="Logout" @click="onLogout()" />
         </div>
         <div v-else-if="!isRegistering" class="user-container user-login">
             <p class="login-label">Login</p>

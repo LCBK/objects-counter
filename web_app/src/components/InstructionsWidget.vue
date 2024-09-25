@@ -93,7 +93,7 @@ onMounted(() => animateButton());
     position: relative;
     top: 0;
     right: 0;
-    margin-top: 30px;
+    margin-top: 40px;
     width: 90%;
     max-width: 240px;
     height: 50px;
@@ -144,10 +144,15 @@ onMounted(() => animateButton());
 </style>
 
 <style>
+
 #instructions-button .pi {
     margin-right: 0 !important;
     font-size: 1.5rem;
     text-shadow: 0px 0px 6px var(--color-background);
+}
+
+#main-view #instructions-button .pi {
+    font-size: 1.3rem;
 }
 
 #instructions-popup {

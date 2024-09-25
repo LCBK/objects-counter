@@ -18,7 +18,9 @@ export const endpoints = {
     sendSelection: "/api/images/{image_id}/background",
     acceptBackground: "/api/images/{image_id}/background/accept",
     userRegister: "/api/users/register",
-    userLogin: "/api/users/login"
+    userLogin: "/api/users/login",
+    results: "/api/results/",
+    compareElements: "/api/images/compare"
 };
 
 export const boundingBoxColors = [

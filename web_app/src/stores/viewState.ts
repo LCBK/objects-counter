@@ -4,6 +4,8 @@ import MainView from "@/components/views/MainView.vue";
 import LoadingView from "@/components/views/LoadingView.vue";
 import ImageView from "@/components/views/ImageView.vue";
 import UserView from "@/components/views/UserView.vue";
+import DebugView from "@/components/views/DebugView.vue";
+import DebugCompareView from "@/components/views/DebugCompareView.vue";
 
 import ConfirmPointsToolBar from "@/components/toolbars/ConfirmPointsToolBar.vue";
 import EditPointsToolBar from "@/components/toolbars/EditPointsToolBar.vue";
@@ -17,6 +19,8 @@ import { useImageStateStore } from "./imageState";
 export enum ViewStates {
     MainView,
     UserView,
+    DebugView,
+    DebugCompareView,
     Uploading,
     ImageEditPoints,
     ImageConfirmBackground,
@@ -90,6 +94,15 @@ export const useViewStateStore = defineStore("viewState", {
 
                 case ViewStates.UserView:
                     this.currentView = UserView;
+                    break;
+
+                case ViewStates.DebugView:
+                    this.currentView = DebugView;
+                    break;
+
+                case ViewStates.DebugCompareView:
+                    this.currentView = DebugCompareView;
+                    break;
             }
         },
 

@@ -18,8 +18,8 @@ def compare_number_of_elements(image_1: Image, image_2: Image) -> bool:
     Compares the number of objects between two images.
     Returns True if they match, otherwise False.
     """
-    num_elements_image_1 = sum(len(category) for category in image_1.categories)
-    num_elements_image_2 = sum(len(category) for category in image_2.categories)
+    num_elements_image_1 = len(image_1.elements)
+    num_elements_image_2 = len(image_2.elements)
 
     log.info("Number of elements in image 1: %s", num_elements_image_1)
     log.info("Number of elements in image 2: %s", num_elements_image_2)

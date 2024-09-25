@@ -14,6 +14,7 @@ from werkzeug.exceptions import NotFound
 from werkzeug.utils import secure_filename
 
 from image_segmentation.object_classification.classifier import ObjectClassifier
+from image_segmentation.object_classification.comparison import compare_number_of_elements
 from image_segmentation.object_classification.feature_extraction import CosineSimilarity
 from image_segmentation.object_detection.object_segmentation import ObjectSegmentation
 from objects_counter.api.default.models import points_model
@@ -148,4 +149,36 @@ class AcceptBackgroundPoints(Resource):
             user_id = current_user.id
             insert_result(user_id, image.id, response)
             return json.dumps(response), 201
+        return json.dumps(response), 200
+
+# Temporary, to change in the future
+@api.route('/images/compare')
+class CompareImageElements(Resource):
+    @api.doc(params={'image_id': 'The image ID'})
+    @api.response(200, "Elements compared")
+    @api.response(404, "Image not found")
+    def post(self):
+        first_image_id = request.json["first_image_id"]
+        second_image_id = request.json["second_image_id"]
+        
+        try:
+            first_image = get_image_by_id(first_image_id)
+        except NotFound as e:
+            log.exception("Image %s not found: %s", first_image_id, e)
+            return 'Image not found', 404
+
+        try:
+            second_image = get_image_by_id(second_image_id)
+        except NotFound as e:
+            log.exception("Image %s not found: %s", second_image_id, e)
+            return 'Image not found', 404
+
+        result = compare_number_of_elements(first_image, second_image)
+
+        response = {
+            "first_count": len(first_image.elements),
+            "second_count": len(second_image.elements),
+            "result": result
+        }
+
         return json.dumps(response), 200
