@@ -22,7 +22,7 @@ function handleConfirmBackground() {
     responsePromise.then((response) => {
         viewState.isWaitingForResponse = false;
 
-        JSON.parse(response).classifications.forEach((element: any, index: number) => {
+        JSON.parse(response.data).classifications.forEach((element: any, index: number) => {
             imageState.objectClassifications.push({
                 index: index,
                 classificationName: element.classification,

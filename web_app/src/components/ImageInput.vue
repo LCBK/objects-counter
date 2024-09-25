@@ -51,7 +51,7 @@ function onImageUpload(event: Event) : void {
             viewState.isImageUploading = false;
             viewState.isImageUploaded = true;
             viewState.setState(ViewStates.ImageEditPoints);
-            imageState.imageId = response;
+            imageState.imageId = response.data;
         });
     }
 }

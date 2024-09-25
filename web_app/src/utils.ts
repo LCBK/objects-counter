@@ -1,18 +1,35 @@
+import { useUserStateStore } from "./stores/userState";
+
+export interface Response {
+    data: any,
+    status: number
+}
+
 export async function sendRequest(
     uri: string, data: FormData | string, method: string = "POST", type: string = "application/json"
-) : Promise<any> {
+) : Promise<Response> {
     try {
+        const userState = useUserStateStore();
+
         const request: RequestInit = {
             method: method,
             body: data
-        } 
-        if (!(data instanceof FormData)) {
-            request.headers = { "Content-Type": type };
         }
+
+        const requestHeaders: HeadersInit = new Headers();
+        if (!(data instanceof FormData)) {
+            requestHeaders.append("Content-Type", type);
+        }
+        if (userState.isLoggedIn) {
+            requestHeaders.append("Authorization", userState.userToken);
+        }
+        request.headers = requestHeaders;
+
         const response = await fetch(uri, request);
         const result = await response.clone().json().catch(() => response.text());
-        console.log(`Request to ${uri} succeeded. Result: `, result);
-        return result;
+        console.log(`Request to ${uri} succeeded (${response.status}). Result: `, result);
+        
+        return { data: result, status: response.status };
     } catch (error) {
         return Promise.reject(`Request to ${uri} failed: ${error}`);
     }

@@ -1,11 +1,24 @@
 export const config = {
-    serverUri: "http://" + import.meta.env.VITE_BACKEND_ADDRESS
+    // Backend communication
+    serverUri: "http://" + import.meta.env.VITE_BACKEND_ADDRESS,
+
+    // User validation
+    minUsernameLength: 4,
+    maxUsernameLength: 255,
+    minPasswordLength: 8,
+    maxPasswordLength: 255,
+    requirePasswordLowerChar: true,
+    requirePasswordUpperChar: true,
+    requirePasswordDigit: true,
+    requirePasswordSymbol: true,
 };
 
 export const endpoints = {
     uploadImage: "/api/upload",
     sendSelection: "/api/images/{image_id}/background",
-    acceptBackground: "/api/images/{image_id}/background/accept"
+    acceptBackground: "/api/images/{image_id}/background/accept",
+    userRegister: "/api/users/register",
+    userLogin: "/api/users/login"
 };
 
 export const boundingBoxColors = [

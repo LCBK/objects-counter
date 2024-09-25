@@ -5,6 +5,8 @@ import { defineStore } from "pinia";
 
 const defaultState = {
     username: "Guest",
+    userId: 0,
+    userToken: "",
     isLoggedIn: false
 }
 
