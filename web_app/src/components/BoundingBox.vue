@@ -70,7 +70,7 @@ const height = computed(() => (props.bottomRight[1] - props.topLeft[1]) * scale.
     bottom: -16px;
     right: -2px;
     font-size: 12px;
-    font-weight: bold;
+    font-weight: 700;
     color: white;
     padding: 0 3px;
 }
@@ -82,7 +82,7 @@ const height = computed(() => (props.bottomRight[1] - props.topLeft[1]) * scale.
     bottom: -16px;
     left: -2px;
     font-size: 12px;
-    font-weight: bold;
+    font-weight: 700;
     color: white;
     padding: 0 3px;
 }

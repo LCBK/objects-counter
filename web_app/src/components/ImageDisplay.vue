@@ -51,7 +51,7 @@ onMounted(() => {
 
 <template>
     <div class="image-display" ref="displayContainer">
-        <img id="displayed-image" alt="Uploaded image" ref="displayedImage" src="../assets/logo.svg" />
+        <img id="displayed-image" alt="Uploaded image" ref="displayedImage" />
         <ImageOverlay />
     </div>
 </template>
