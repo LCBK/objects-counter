@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import ImageDisplay from "../ImageDisplay.vue";
-import ImageViewNavBar from "../ImageViewNavBar.vue";
+import ImageViewNavBar from "../navbars/ImageViewNavBar.vue";
 import { useViewStateStore } from "../../stores/viewState";
 import InstructionsViewWidget from "../InstructionsWidget.vue";
 

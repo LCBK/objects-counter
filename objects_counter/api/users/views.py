@@ -31,7 +31,8 @@ class Login(Resource):
             token = jwt.encode({"user_id": user.id}, current_app.config['SECRET_KEY'], algorithm='HS256')
             return Response(json.dumps({
                 'token': token,
-                'user_id': user.id
+                'user_id': user.id,
+                'username': username
             }), status=200, content_type='application/json')
         except Exception as e:
             log.exception('Failed to generate token: %s', e)
@@ -46,13 +47,13 @@ class Register(Resource):
             username, password = get_user_from_input(data)
         except ValueError as e:
             log.exception('Failed to get user from input: %s', e)
-            msg = e.args[1]
+            msg = e.args[0]
             return Response(msg, status=400)
         try:
             user = insert_user(username, password)
         except ValueError as e:
             log.exception('Failed to insert user: %s', e)
-            msg = e.args[1]
+            msg = e.args[0]
             return Response(msg, status=400)
         return Response(json.dumps({
             'user_id': user.id,

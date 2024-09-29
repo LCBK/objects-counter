@@ -2,7 +2,7 @@
 import { ref } from "vue";
 import VButton from "primevue/button";
 import { useImageStateStore } from "@/stores/imageState";
-import { useViewStateStore } from "@/stores/viewState";
+import { useViewStateStore, ViewStates } from "@/stores/viewState";
 import { sendRequest } from "@/utils";
 import { config, endpoints } from "@/config";
 
@@ -43,15 +43,15 @@ function onImageUpload(event: Event) : void {
         const requestData = new FormData();
         requestData.append("image", imageFile);
         viewState.isImageUploading = true;
-        viewState.setState("uploading");
+        viewState.setState(ViewStates.Uploading);
         const responsePromise = sendRequest(requestUri, requestData, "POST", "multipart/form-data");
 
         // Handle server response
         responsePromise.then((response) => {
             viewState.isImageUploading = false;
             viewState.isImageUploaded = true;
-            viewState.setState("editPoints");
-            imageState.imageId = response;
+            viewState.setState(ViewStates.ImageEditPoints);
+            imageState.imageId = response.data;
         });
     }
 }
@@ -60,8 +60,8 @@ function onImageUpload(event: Event) : void {
 
 <template>
     <div class="image-select">
-        <VButton label="Capture image" icon="pi pi-camera" @click="onCaptureClick()"></VButton>
-        <VButton label="Upload image" icon="pi pi-upload" @click="onUploadClick()"></VButton>
+        <VButton class="wide-button" label="Capture image" icon="pi pi-camera" @click="onCaptureClick()"></VButton>
+        <VButton class="wide-button" label="Upload image" icon="pi pi-upload" @click="onUploadClick()"></VButton>
     </div>
     <div class="image-select-inputs">
         <input type="file" name="image-capture" ref="captureInput"
@@ -78,12 +78,6 @@ function onImageUpload(event: Event) : void {
     flex-direction: column;
     align-items: center;
     gap: 30px;
-}
-
-.image-select button {
-    width: 90%;
-    max-width: 240px;
-    height: 50px;
 }
 
 .image-select-inputs input {

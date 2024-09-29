@@ -5,7 +5,7 @@ from http import HTTPStatus
 import jwt
 from flask import request, Response, current_app
 
-from objects_counter.consts import MAX_DB_STRING_LENGTH
+from objects_counter.consts import MAX_DB_STRING_LENGTH, MIN_USERNAME_LENGTH
 from objects_counter.db.dataops.user import get_user_by_id
 
 log = logging.getLogger(__name__)
@@ -49,6 +49,7 @@ def authentication_optional(f):
             try:
                 data = jwt.decode(token, current_app.config['SECRET_KEY'], algorithms=['HS256'])
                 current_user = get_user_by_id(data['user_id'])
+                log.info('User %s authenticated', current_user.username)
                 if current_user is None:
                     log.error('Invalid token')
                     return Response('Invalid token', HTTPStatus.UNAUTHORIZED)
@@ -74,8 +75,10 @@ def get_user_from_input(data):
     if not data:
         raise ValueError('No input data provided')
     username = data.get('username')
+    if len(username) < MIN_USERNAME_LENGTH:
+        raise ValueError(f'Username too short (min. {MIN_USERNAME_LENGTH})')
     if len(username) > MAX_DB_STRING_LENGTH:
-        raise ValueError('Username too long')
+        raise ValueError(f'Username too long (max. {MAX_DB_STRING_LENGTH})')
     password = data.get('password')
     if not username.isalnum() or not validate_password(password):
         raise ValueError('Invalid input data')
