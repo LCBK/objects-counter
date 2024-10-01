@@ -6,7 +6,7 @@ import numpy as np
 from PIL import Image
 
 
-def crop_element(image: np.ndarray, top_left: Tuple[float, float], bottom_right: Tuple[float, float]) -> Image.Image:
+def crop_image(image: np.ndarray, top_left: Tuple[float, float], bottom_right: Tuple[float, float]) -> Image.Image:
     """Crops the image based on bounding box coordinates."""
     pil_image = Image.fromarray(cv2.cvtColor(image, cv2.COLOR_BGR2RGB))
     (x_min, y_min), (x_max, y_max) = top_left, bottom_right
