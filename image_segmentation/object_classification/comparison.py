@@ -1,16 +1,88 @@
 import logging
 import os
-import sys
-from typing import List, Dict, Tuple
+from typing import List, Dict, Tuple, Any
 
 import numpy as np
+from PIL import Image as PILImage
 
 from image_segmentation.constants import TEMP_IMAGE_DIR
 from image_segmentation.object_classification.classifier import ObjectClassifier
-from image_segmentation.utils import crop_image
-from objects_counter.db.models import Image
+from image_segmentation.utils import crop_element
+from objects_counter.db.models import Image, ImageElement
 
 log = logging.getLogger(__name__)
+
+
+def load_image(filepath: str) -> np.ndarray:
+    """
+    Loads an image from the given filepath and returns it as a NumPy array.
+    """
+    try:
+        return np.array(PILImage.open(filepath))
+    except FileNotFoundError as e:
+        log.error(f"Image file not found: {e}")
+        return None
+
+
+def group_elements_by_classification(elements: List[ImageElement]) -> Dict[str, List[ImageElement]]:
+    """
+    Groups ImageElements by their classification.
+    """
+    grouped_elements = {}
+    for element in elements:
+        classification = element.classification
+        if classification not in grouped_elements:
+            grouped_elements[classification] = []
+        grouped_elements[classification].append(element)
+    return grouped_elements
+
+
+def crop_and_save_object(image_data: np.ndarray, element: ImageElement, category: str) -> bool:
+    """
+    Crops and saves the image element.
+    Returns True if saved successfully, otherwise False.
+    """
+    if image_data is None:
+        return False
+
+    cropped_image = crop_element(image_data, element.top_left, element.bottom_right)
+    if cropped_image is None:
+        return False
+
+    filepath = os.path.join(TEMP_IMAGE_DIR, f"object_{element.id}")
+    cropped_image.save(filepath)
+    return True
+
+
+def process_image_elements(image: Image) -> List[ImageElement]:
+    """
+    Processes the image elements by cropping and saving the first object from each classification category.
+    Returns a list of the processed ImageElement objects.
+    """
+    image_data = load_image(image.filepath)
+    if image_data is None:
+        return []
+
+    grouped_elements = group_elements_by_classification(image.elements)
+    processed_elements = []
+
+    for classification, elements in grouped_elements.items():
+        if elements:
+            first_element = elements[0]
+            if crop_and_save_object(image_data, first_element, classification):
+                processed_elements.append(first_element)
+
+    return processed_elements
+
+
+def crop_and_save_images(image_1: Image, image_2: Image) -> Tuple[List[ImageElement], List[ImageElement]]:
+    """
+    Crops and saves the first object from each classification category in image_1 and image_2.
+    Returns the indices of processed objects for each image.
+    """
+    first_elements_1 = process_image_elements(image_1)
+    first_elements_2 = process_image_elements(image_2)
+    return first_elements_1, first_elements_2
 
 
 def compare_number_of_elements(image_1: Image, image_2: Image) -> bool:
@@ -27,100 +99,77 @@ def compare_number_of_elements(image_1: Image, image_2: Image) -> bool:
     return num_elements_image_1 == num_elements_image_2
 
 
-def crop_and_save_images(image_1: Image, image_2: Image) -> Tuple[List[int], List[int]]:
-    """
-    Crops and saves the first object from each category in image_1 and image_2, and returns their indices.
-    """
-    first_objects_1_indices = []
-    first_objects_2_indices = []
-
-    image_data_1 = np.array(Image.open(image_1.filepath))
-    image_data_2 = np.array(Image.open(image_2.filepath))
-
-    for i, cat in enumerate(image_1.categories):
-        if len(cat) > 0:
-            obj = cat[0]
-            cropped_image = crop_image(image_data_1, obj.top_left_coord, obj.bottom_right_coord)
-            filepath = os.path.join(TEMP_IMAGE_DIR, f"image_1_object_{i}.jpg")
-            cropped_image.save(filepath)
-            first_objects_1_indices.append(i)
-
-    for i, cat in enumerate(image_2.categories):
-        if len(cat) > 0:
-            obj = cat[0]
-            cropped_image = crop_image(image_data_2, obj.top_left_coord, obj.bottom_right_coord)
-            filepath = os.path.join(TEMP_IMAGE_DIR, f"image_2_object_{i}.jpg")
-            cropped_image.save(filepath)
-            first_objects_2_indices.append(len(first_objects_1_indices) + i)
-
-    return first_objects_1_indices, first_objects_2_indices
-
-
-def compute_similarity_and_map(classifier: ObjectClassifier, objects_1_indices: List[int], objects_2_indices: List[int],
-                               threshold: float, color_weight: float) -> Dict[int, int]:
+def compute_similarity_and_map(classifier, elements_1: List[ImageElement], elements_2: List[ImageElement],
+                               threshold: float = 0.7, color_weight: float = 0.8) -> Dict[int, int]:
     """
     Computes the similarity between the first objects from image_1 and image_2, and updates the category mapping.
     """
-    category_mapping = {}
-    used_indices_2 = set()  # To keep track of used indices from image_2
+    similarity_map = {}
 
-    # Compute embeddings for all cropped objects
-    classifier.compute_embeddings()
+    for idx1, elem1 in enumerate(elements_1):
+        max_similarity = float('-inf')
+        best_match_idx = None
 
-    for idx1 in objects_1_indices:
-        best_similarity = -1
-        most_similar_idx = -1
+        for idx2, elem2 in enumerate(elements_2):
+            similarity = classifier.calculate_similarity(elem1, elem2, color_weight=color_weight)
 
-        for idx2 in objects_2_indices:
-            if idx2 in used_indices_2:
-                continue
+            if similarity > max_similarity and similarity >= threshold:
+                max_similarity = similarity
+                best_match_idx = idx2
 
-            similarity = classifier.calculate_similarity(idx1, idx2, color_weight)
-            if similarity > best_similarity:
-                best_similarity = similarity
-                most_similar_idx = idx2
+        if best_match_idx is not None:
+            similarity_map[idx1] = best_match_idx
 
-        if most_similar_idx != -1 and best_similarity >= threshold:
-            used_indices_2.add(most_similar_idx)
-            category_mapping[idx1] = most_similar_idx
-
-    return category_mapping
+    return similarity_map
 
 
-def find_missing_elements(image_1: Image, image_2: Image, classifier: ObjectClassifier) -> None:
+def find_missing_elements(image_1: Image, image_2: Image, classifier: ObjectClassifier) -> Dict[str, Any]:
     """
-    Identifies and reports missing elements between two images.
-    Exits with an error if the number of categories does not match.
+    Identifies and reports all missing elements between two images.
+    Returns a structured result including all discrepancies found.
     """
-    # Compare the number of categories between the two images
-    if len(image_1.categories) != len(image_2.categories):
+    # Check if the number of categories match
+    categories_image_1 = set(element.classification for element in image_1.elements if element.classification)
+    categories_image_2 = set(element.classification for element in image_2.elements if element.classification)
+
+    if len(categories_image_1) != len(categories_image_2):
         log.error("Number of categories does not match between the two images.")
-        sys.exit(1)
+        return {"status": "error", "message": "Number of categories mismatch"}
 
-    if not compare_number_of_elements(image_1, image_2):
-        # Get the indices of objects to compare
-        objects_1_indices, objects_2_indices = crop_and_save_images(image_1, image_2)
+    # Log and compare the total number of elements even though the comparison will occur regardless
+    compare_number_of_elements(image_1, image_2)
 
-        # Compute the similarity and obtain the mapping
-        mapping = compute_similarity_and_map(classifier,
-                                             objects_1_indices,
-                                             objects_2_indices,
-                                             threshold=0.7,
-                                             color_weight=0.8)
+    # Get the ImageElement objects from the cropped images
+    elements_1, elements_2 = crop_and_save_images(image_1, image_2)
 
-        image_1_mapped_indices = set(mapping.keys())
+    if not elements_1 or not elements_2:
+        log.error("Failed to retrieve object elements from the images.")
+        return {"status": "error", "message": "Failed to retrieve object elements from images"}
 
-        for idx1, category_1 in enumerate(image_1.categories):
-            if idx1 in image_1_mapped_indices:
-                mapped_idx2 = mapping[idx1]
-                category_2 = image_2.categories[mapped_idx2]
+    mapping = compute_similarity_and_map(classifier, elements_1, elements_2, threshold=0.7, color_weight=0.8)
 
-                if len(category_1) != len(category_2):
-                    log.warning(
-                        "Category %s in Image 1 has %s objects: "
-                        "Category %s in Image 2 has %s objects.",
-                        idx1, len(category_1), mapped_idx2, len(category_2)
-                    )
+    missing_elements = []
 
-    else:
-        log.info("All elements are present.")
+    # Identify mismatches in counts
+    for idx1, elem1 in enumerate(elements_1):
+        if idx1 in mapping:
+            # Retrieve the mapped element from image_2 using the mapping
+            mapped_idx2 = mapping[idx1]
+            mapped_element_2 = elements_2[mapped_idx2]
+
+            # Calculate the number of elements with the same classification in image_1
+            category_1_size = sum(1 for element in image_1.elements if element.classification == elem1.classification)
+
+            # Calculate the number of elements with the same classification in image_2
+            category_2_size = sum(1 for element in image_2.elements if element.classification == mapped_element_2.classification)
+
+            # Check if the count of elements differs between the two categories
+            if category_1_size != category_2_size:
+                missing_elements.append({
+                    "category_image_1": elem1.classification,  # Classification name instead of idx1
+                    "count_image_1": category_1_size,
+                    "category_image_2": mapped_element_2.classification,
+                    "count_image_2": category_2_size,
+                })
+
+    return {"status": "success", "missing_elements": missing_elements}
