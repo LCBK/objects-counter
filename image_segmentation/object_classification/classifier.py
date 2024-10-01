@@ -19,7 +19,9 @@ class ObjectClassifier:
     def __init__(self, segmenter, similarity_model: CosineSimilarity):
         self.segmenter = segmenter
         self.similarity_model = similarity_model
+
         self.embeddings: List[torch.Tensor] = []
+        self.histograms: List[np.ndarray] = []
 
         os.makedirs(TEMP_IMAGE_DIR, exist_ok=True)
 
@@ -38,6 +40,14 @@ class ObjectClassifier:
             image_tensor = self.similarity_model.preprocess_image(os.path.join(TEMP_IMAGE_DIR, filename))
             embedding = self.similarity_model.get_embedding(image_tensor)
             self.embeddings.append(embedding)
+
+    def compute_histograms(self) -> None:
+        """Computes histograms for all cropped images."""
+        for filename in sorted(os.listdir(TEMP_IMAGE_DIR)):
+            image_path = os.path.join(TEMP_IMAGE_DIR, filename)
+            image = PILImage.open(image_path)
+            histogram = compute_color_histogram(image, bins=16)
+            self.histograms.append(histogram)
 
     def calculate_similarity(self, obj_i: ImageElement, obj_j: ImageElement, color_weight: float = 0.7) -> float:
         """Calculates combined feature and color similarity between two objects."""
