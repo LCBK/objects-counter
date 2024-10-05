@@ -17,9 +17,9 @@ from objects_counter.db.models import ImageElement
 
 
 class ImageElementProcessor:
-    def __init__(self, feature_similarity_model):
+    def __init__(self, feature_similarity_model, color_similarity_model):
         self.feature_similarity_model = feature_similarity_model
-
+        self.color_similarity_model = color_similarity_model
 
     def process_image_element(self, element: ImageElement) -> None:
         """Crops, saves, computes embedding, computes histogram, and deletes element image."""
@@ -46,7 +46,7 @@ class ImageElementProcessor:
     def _calculate_histogram(self, image_path: str) -> np.ndarray:
         """Calculates the histogram for the image at the given path."""
         image = PILImage.open(image_path)
-        return ColorSimilarity.compute_color_histogram(image, bins=16)
+        return self.color_similarity_model.compute_color_histogram(image, bins=16)
 
 
 class FeatureSimilarity:

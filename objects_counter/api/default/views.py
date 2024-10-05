@@ -14,8 +14,8 @@ from werkzeug.exceptions import NotFound
 from werkzeug.utils import secure_filename
 
 from image_segmentation.object_classification.classifier import ObjectClassifier
-from image_segmentation.object_classification.comparison import compare_number_of_elements, find_missing_elements
-from image_segmentation.object_classification.feature_extraction import FeatureSimilarity
+from image_segmentation.object_classification.comparison import find_missing_elements
+from image_segmentation.object_classification.feature_extraction import FeatureSimilarity, ColorSimilarity
 from image_segmentation.object_detection.object_segmentation import ObjectSegmentation
 from objects_counter.api.default.models import points_model
 from objects_counter.api.utils import authentication_optional
@@ -28,8 +28,9 @@ api = Namespace('default', description='Default namespace')
 process_parser = api.parser()
 process_parser.add_argument('image', type=FileStorage, location='files')
 sam = ObjectSegmentation(SAM_CHECKPOINT, model_type=SAM_MODEL_TYPE)
-similarity_model = FeatureSimilarity()
-object_grouper = ObjectClassifier(sam, similarity_model)
+feature_similarity_model = FeatureSimilarity()
+color_similarity_model = ColorSimilarity()
+object_grouper = ObjectClassifier(sam, feature_similarity_model, color_similarity_model)
 
 log = logging.getLogger(__name__)
 

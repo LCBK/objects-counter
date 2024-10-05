@@ -3,7 +3,23 @@ from typing import Tuple
 
 import cv2
 import numpy as np
-from PIL import Image
+from PIL import Image, ImageDraw, ImageFont
+
+from objects_counter.db.dataops.image import get_image_by_id
+from objects_counter.db.models import ImageElement
+from PIL import Image as PILImage
+
+
+def display_element(element: ImageElement):
+    image = get_image_by_id(element.image_id)
+    image_data = np.array(PILImage.open(image.filepath))
+
+    cropped_image = crop_element(image_data, element.top_left, element.bottom_right)
+
+    draw = ImageDraw.Draw(cropped_image)
+    draw.text((0, 0), "Class: " + str(element.classification))
+
+    cropped_image.show()
 
 
 def crop_element(image: np.ndarray, top_left: Tuple[float, float], bottom_right: Tuple[float, float]) -> Image.Image:
