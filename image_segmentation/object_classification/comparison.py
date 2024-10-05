@@ -93,4 +93,4 @@ def get_elements_with_certainty_one(elements: List[ImageElement]) -> [List[Tuple
             result.append((element.classification, element))
             classifications_seen.add(element.classification)
 
-    return result if result else None
+    return result
