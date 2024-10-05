@@ -70,7 +70,7 @@ onMounted(() => {
     margin: auto 0;
     align-items: center;
     gap: 10px;
-    color: var(--vt-c-text-dark-1);
+    color: var(--text-color);
     user-select: none;
 }
 

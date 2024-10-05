@@ -199,7 +199,7 @@ function submitRegisterForm() {
 
 #user-view .login-label {
     text-align: center;
-    color: var(--vt-c-text-dark-1);
+    color: var(--text-color);
     font-size: 1.45rem;
     font-weight: 700;
     letter-spacing: 0.4px;
@@ -209,7 +209,7 @@ function submitRegisterForm() {
 #user-view .login-label-small,
 #user-view .login-label-small-first {
     text-align: center;
-    color: var(--vt-c-text-dark-2);
+    color: var(--text-color-secondary);
     font-size: 0.85rem;
     font-weight: 400;
     letter-spacing: 0.3px;
@@ -237,7 +237,7 @@ function submitRegisterForm() {
 
 #user-view .register-notice {
     text-align: center;
-    color: var(--vt-c-text-dark-2);
+    color: var(--text-color-secondary);
     font-size: 0.85rem;
     font-weight: 400;
     letter-spacing: 0.3px;

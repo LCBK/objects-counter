@@ -26,7 +26,7 @@ import LoadingSpinner from "../LoadingSpinner.vue";
 }
 
 #loading-view .uploading-text {
-    color: #60a5fa;
+    color: var(--primary-color);
     font-weight: 700;
     letter-spacing: 0.5px;
     font-size: 1.1rem;

@@ -109,7 +109,7 @@ onMounted(() => animateButton());
 }
 
 #instructions-popup .instructions-text {
-    font-weight: 300;
+    font-weight: 400;
     letter-spacing: 0.2px;
 }
 
@@ -144,11 +144,10 @@ onMounted(() => animateButton());
 </style>
 
 <style>
-
 #instructions-button .pi {
     margin-right: 0 !important;
     font-size: 1.5rem;
-    text-shadow: 0px 0px 6px var(--color-background);
+    text-shadow: 0px 0px 6px var(--surface-ground);
 }
 
 #main-view #instructions-button .pi {
