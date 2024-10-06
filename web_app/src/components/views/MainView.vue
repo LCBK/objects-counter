@@ -72,11 +72,11 @@ onMounted(async () => {
 
 <style scoped>
 .status-fade-enter-active, .status-fade-leave-active {
-  transition: opacity .4s;
+    transition: opacity .4s;
 }
 
 .status-fade-enter-from, .status-fade-leave-to {
-  opacity: 0;
+    opacity: 0;
 }
 
 .status-fade-enter-to, .status-fade-leave-from {
