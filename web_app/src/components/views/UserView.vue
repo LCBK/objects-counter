@@ -22,14 +22,14 @@ const registerForm = ref<HTMLFormElement>();
 
 const isLoginValid = computed(() => {
     return (
-        validateUsername(username.value) && 
+        validateUsername(username.value) &&
         validatePassword(password.value)
     );
 });
 
 const isRegisterValid = computed(() => {
     return (
-        validateUsername(username.value) && 
+        validateUsername(username.value) &&
         validatePassword(password.value) &&
         password.value == confirmPassword.value
     );
@@ -62,11 +62,11 @@ function onBack() {
 }
 
 function onLogout() {
-    userState.reset();
+    userState.logout();
 }
 
 function submitLoginForm() {
-    loginForm.value!.submit();      // For triggering credential saving in browsers
+    loginForm.value!.submit();      // For triggering credential saving in browsers (action set to "javascript:void(0);")
 
     const requestUri = config.serverUri + endpoints.userLogin;
     const requestData = JSON.stringify({
@@ -78,10 +78,7 @@ function submitLoginForm() {
     responsePromise.then((response: Response) => {
         if (response.status === 200) {
             alert(`TODO: proper response handling\nSUCCESS: id ${response.data.user_id}, token ${response.data.token}, ${response.data.username}`);
-            userState.userId = response.data.user_id;
-            userState.username = response.data.username;
-            userState.userToken = response.data.token;      // todo: persist in some storage
-            userState.isLoggedIn = true;
+            userState.login(response.data.username, response.data.user_id, response.data.token);
         } else {
             alert(`TODO: proper response handling\nFAILED: ${response.data}`);
         }

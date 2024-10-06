@@ -11,6 +11,9 @@ export const config = {
     requirePasswordUpperChar: true,
     requirePasswordDigit: true,
     requirePasswordSymbol: true,
+
+    // Other
+    logResponses: false         // Can leak JWT token
 };
 
 export const endpoints = {

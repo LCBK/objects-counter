@@ -1,3 +1,4 @@
+import { config } from "./config";
 import { useUserStateStore } from "./stores/userState";
 
 export interface Response {
@@ -27,7 +28,10 @@ export async function sendRequest(
 
         const response = await fetch(uri, request);
         const result = await response.clone().json().catch(() => response.text());
-        console.log(`Request to ${uri} succeeded (${response.status}). Result: `, result);
+
+        if (config.logResponses) {
+            console.log(`Request to ${uri} succeeded (${response.status}). Result: `, result);
+        }
 
         return { data: result, status: response.status };
     } catch (error) {
