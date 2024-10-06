@@ -12,6 +12,7 @@ import { config } from "@/config";
 const viewState = useViewStateStore();
 
 const isOffline = ref<boolean>(false);
+const isOnline = ref<boolean>(false);
 const isChecking = ref<boolean>(false);
 
 function performServerCheck() {
@@ -22,10 +23,12 @@ function performServerCheck() {
         if (status) {
             isChecking.value = false;
             isOffline.value = false;
+            isOnline.value = true;
         }
         else {
             isChecking.value = false;
             isOffline.value = true;
+            isOnline.value = false;
         }
     });
 }
@@ -36,7 +39,10 @@ function onRetry() {
 }
 
 onMounted(async () => {
-    window.setTimeout(() => isChecking.value = true, config.serverIsAliveDelay);
+    window.setTimeout(() => {
+        if (isOnline.value) return;
+        isChecking.value = true;
+    }, config.serverIsAliveDelay);
     performServerCheck();
 });
 </script>
