@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import VButton from "primevue/button";
+import VDialog from "primevue/dialog";
 import VInputGroup from "primevue/inputgroup";
 import VInputGroupAddon from "primevue/inputgroupaddon";
 import VInputText from "primevue/inputtext";
@@ -19,6 +20,8 @@ const confirmPassword = ref<string>("");
 const isRegistering = ref<boolean>(false);
 const loginForm = ref<HTMLFormElement>();
 const registerForm = ref<HTMLFormElement>();
+const showError = ref<boolean>(false);
+const errorText = ref<string>("");
 
 const isLoginValid = computed(() => {
     return (
@@ -77,10 +80,12 @@ function submitLoginForm() {
 
     responsePromise.then((response: Response) => {
         if (response.status === 200) {
-            alert(`TODO: proper response handling\nSUCCESS: id ${response.data.user_id}, token ${response.data.token}, ${response.data.username}`);
+            viewState.setState(ViewStates.MainView);
             userState.login(response.data.username, response.data.user_id, response.data.token);
+        } else if (response.status === 404) {
+            showErrorDialog("Incorrect user or password");
         } else {
-            alert(`TODO: proper response handling\nFAILED: ${response.data}`);
+            showErrorDialog("Login failed");
         }
     });
 }
@@ -97,79 +102,97 @@ function submitRegisterForm() {
 
     responsePromise.then((response: Response) => {
         if (response.status === 201) {
-            alert(`TODO: proper response handling\nSUCCESS: id ${response.data.user_id}, ${response.data.username}`);
+            viewState.setState(ViewStates.MainView);
+            userState.login(response.data.username, response.data.user_id, response.data.token);
+        } else if (response.status === 400) {
+            showErrorDialog("Invalid data or user already exists");
         } else {
-            alert(`TODO: proper response handling\nFAILED: ${response.data}`);
+            showErrorDialog("Registration failed");
         }
     });
 }
 
-// todo: proper response handling
+function showErrorDialog(text: string) {
+    showError.value = true;
+    errorText.value = text;
+    setTimeout(() => {
+        showError.value = false;
+        errorText.value = "";
+    }, 2500);
+}
 </script>
 
 
 <template>
     <div id="user-view" class="view">
-        <div v-if="userState.isLoggedIn" class="user-container user-details">
-            <p style="color: var(--vt-c-text-dark-1)">Currently logged in as: <span>{{ userState.username }}</span></p>
-            <p style="color: var(--vt-c-text-dark-1)">TODO: more details</p>
-            <VButton class="logout-button wide-button" icon="pi pi-sign-out" label="Logout" @click="onLogout()" />
-        </div>
-        <div v-else-if="!isRegistering" class="user-container user-login">
-            <p class="login-label">Login</p>
-            <p class="login-label-small">Sign in to access history and comparison.</p>
-            <form name="login" ref="loginForm" action="javascript:void(0);">
-                <VInputGroup class="user-input">
-                    <VInputGroupAddon>
-                        <i class="pi pi-user"></i>
-                    </VInputGroupAddon>
-                    <VInputText v-model="username" placeholder="Username" />
-                </VInputGroup>
-                <VInputGroup class="user-input">
-                    <VInputGroupAddon>
-                        <i class="pi pi-key"></i>
-                    </VInputGroupAddon>
-                    <VPassword v-model="password" placeholder="Password" :feedback="false" toggle-mask />
-                </VInputGroup>
-                <VButton class="login-button wide-button" icon="pi pi-sign-in" icon-pos="right"
-                        label="Login" @click="submitLoginForm()" :disabled="!isLoginValid" />
-            </form>
-            <p class="register-notice">Don't have an account?
-                <VButton class="register-button" text label="Register" @click="isRegistering = true" />
-            </p>
-        </div>
-        <div v-else class="user-container user-register">
-            <p class="login-label">Register</p>
-            <p class="login-label-small-first">Create a new account.</p>
-            <p class="login-label-small">TBD data collection statement/details.</p>
-            <form name="register" ref="registerForm" action="javascript:void(0);">
-                <VInputGroup class="user-input">
-                    <VInputGroupAddon>
-                        <i class="pi pi-user"></i>
-                    </VInputGroupAddon>
-                    <VInputText v-model="username" placeholder="Username" />
-                </VInputGroup>
-                <VInputGroup class="user-input">
-                    <VInputGroupAddon>
-                        <i class="pi pi-key"></i>
-                    </VInputGroupAddon>
-                    <VPassword v-model="password" placeholder="Password"
-                            :feedback="false" toggle-mask />
-                </VInputGroup>
-                <VInputGroup class="user-input">
-                    <VInputGroupAddon>
-                        <i class="pi pi-key"></i>
-                    </VInputGroupAddon>
-                    <VPassword v-model="confirmPassword" placeholder="Confirm password"
-                            :feedback="false" toggle-mask />
-                </VInputGroup>
-                <VButton class="login-button wide-button" icon="pi pi-sign-in" icon-pos="right"
-                        label="Register" @click="submitRegisterForm()" :disabled="!isRegisterValid" />
-            </form>
-            <p class="register-notice">Want to login instead?
-                <VButton class="register-button" text label="Login" @click="isRegistering = false" />
-            </p>
-        </div>
+        <Transition name="user-fade" mode="out-in">
+            <div v-if="userState.isLoggedIn" class="user-container user-details">
+                <p style="color: var(--text-color)">Currently logged in as: <span>{{ userState.username }}</span></p>
+                <p style="color: var(--text-color)">TODO: more details</p>
+                <VButton class="logout-button wide-button" icon="pi pi-sign-out" label="Logout" @click="onLogout()" />
+            </div>
+            <div v-else-if="!isRegistering" class="user-container user-login">
+                <p class="login-label">Login</p>
+                <p class="login-label-small">Sign in to access history and comparison.</p>
+                <form name="login" ref="loginForm" action="javascript:void(0);">
+                    <VInputGroup class="user-input">
+                        <VInputGroupAddon>
+                            <i class="pi pi-user"></i>
+                        </VInputGroupAddon>
+                        <VInputText v-model="username" placeholder="Username" />
+                    </VInputGroup>
+                    <VInputGroup class="user-input">
+                        <VInputGroupAddon>
+                            <i class="pi pi-key"></i>
+                        </VInputGroupAddon>
+                        <VPassword v-model="password" placeholder="Password" :feedback="false" toggle-mask />
+                    </VInputGroup>
+                    <VButton class="login-button wide-button" icon="pi pi-sign-in" icon-pos="right"
+                            label="Login" @click="submitLoginForm()" :disabled="!isLoginValid" />
+                </form>
+                <p class="register-notice">Don't have an account?
+                    <VButton class="register-button" text label="Register" @click="isRegistering = true" />
+                </p>
+                <VDialog v-model:visible="showError" modal :dismissable-mask="false" header="Error" class="user-dialog">
+                    <p>{{ errorText }}</p>
+                </VDialog>
+            </div>
+            <div v-else-if="isRegistering" class="user-container user-register">
+                <p class="login-label">Register</p>
+                <p class="login-label-small-first">Create a new account.</p>
+                <p class="login-label-small">TBD data collection statement/details.</p>
+                <form name="register" ref="registerForm" action="javascript:void(0);">
+                    <VInputGroup class="user-input">
+                        <VInputGroupAddon>
+                            <i class="pi pi-user"></i>
+                        </VInputGroupAddon>
+                        <VInputText v-model="username" placeholder="Username" />
+                    </VInputGroup>
+                    <VInputGroup class="user-input">
+                        <VInputGroupAddon>
+                            <i class="pi pi-key"></i>
+                        </VInputGroupAddon>
+                        <VPassword v-model="password" placeholder="Password"
+                                :feedback="false" toggle-mask />
+                    </VInputGroup>
+                    <VInputGroup class="user-input">
+                        <VInputGroupAddon>
+                            <i class="pi pi-key"></i>
+                        </VInputGroupAddon>
+                        <VPassword v-model="confirmPassword" placeholder="Confirm password"
+                                :feedback="false" toggle-mask />
+                    </VInputGroup>
+                    <VButton class="login-button wide-button" icon="pi pi-sign-in" icon-pos="right"
+                            label="Register" @click="submitRegisterForm()" :disabled="!isRegisterValid" />
+                </form>
+                <p class="register-notice">Want to login instead?
+                    <VButton class="register-button" text label="Login" @click="isRegistering = false" />
+                </p>
+                <VDialog v-model:visible="showError" modal :dismissable-mask="false" header="Error" class="user-dialog">
+                    <p>{{ errorText }}</p>
+                </VDialog>
+            </div>
+        </Transition>
         <VButton class="return-button wide-button" icon="pi pi-chevron-left" outlined
                 label="Return" @click="onBack()" />
     </div>
@@ -177,6 +200,18 @@ function submitRegisterForm() {
 
 
 <style scoped>
+.user-fade-enter-active, .user-fade-leave-active {
+    transition: opacity .2s;
+}
+
+.user-fade-enter-from, .user-fade-leave-to {
+    opacity: 0;
+}
+
+.user-fade-enter-to, .user-fade-leave-from {
+    opacity: 1;
+}
+
 #user-view {
     display: flex;
     flex-direction: column;
@@ -224,7 +259,7 @@ function submitRegisterForm() {
     height: 38px;
     width: 100%;
     max-width: 100%;
-    margin-top: 12px;
+    margin-top: 24px;
 }
 
 #user-view .logout-button {
@@ -256,5 +291,18 @@ function submitRegisterForm() {
 <style>
 #user-view .register-button .p-button-label {
     font-size: 0.85rem;
+}
+
+.user-dialog .p-dialog-header-icons {
+    display: none;
+}
+
+.user-dialog .p-dialog-header {
+    padding: 20px 10px 12px 10px;
+}
+
+.user-dialog .p-dialog-header > span {
+    width: 100%;
+    text-align: center;
 }
 </style>
