@@ -23,17 +23,17 @@ export const useUserStateStore = defineStore("userState", {
             this.userToken = userToken;
             this.isLoggedIn = true;
 
-            document.cookie = `username=${username}; path=/; sameSite=strict; expires=Fri, 31 Dec 9999 23:59:59 GMT`;
-            document.cookie = `userId=${userId}; path=/; sameSite=strict; expires=Fri, 31 Dec 9999 23:59:59 GMT`;
-            document.cookie = `userToken=${userToken}; path=/; sameSite=strict; expires=Fri, 31 Dec 9999 23:59:59 GMT`;
+            document.cookie = `username=${username}; path=/; secure; sameSite=strict; expires=Fri, 31 Dec 9999 23:59:59 GMT`;
+            document.cookie = `userId=${userId}; path=/; secure; sameSite=strict; expires=Fri, 31 Dec 9999 23:59:59 GMT`;
+            document.cookie = `userToken=${userToken}; path=/; secure; sameSite=strict; expires=Fri, 31 Dec 9999 23:59:59 GMT`;
         },
 
         logout() {
             this.reset();
 
-            document.cookie = "username=; path=/; sameSite=strict; expires=Thu, 01 Jan 1970 00:00:00 GMT";
-            document.cookie = "userId=; path=/; sameSite=strict; expires=Thu, 01 Jan 1970 00:00:00 GMT";
-            document.cookie = "userToken=; path=/; sameSite=strict; expires=Thu, 01 Jan 1970 00:00:00 GMT";
+            document.cookie = "username=; path=/; secure; sameSite=strict; expires=Thu, 01 Jan 1970 00:00:00 GMT";
+            document.cookie = "userId=; path=/; secure; sameSite=strict; expires=Thu, 01 Jan 1970 00:00:00 GMT";
+            document.cookie = "userToken=; path=/; secure; sameSite=strict; expires=Thu, 01 Jan 1970 00:00:00 GMT";
         },
 
         loadFromCookies() {
