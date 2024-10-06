@@ -11,6 +11,7 @@ import ConfirmPointsToolBar from "@/components/toolbars/ConfirmPointsToolBar.vue
 import EditPointsToolBar from "@/components/toolbars/EditPointsToolBar.vue";
 import ResultViewToolBar from "@/components/toolbars/ResultViewToolBar.vue";
 import { useImageStateStore } from "./imageState";
+import { themeUrls } from "@/config";
 
 
 // Stores data about current application states and views
@@ -117,13 +118,13 @@ export const useViewStateStore = defineStore("viewState", {
         },
 
         setDarkTheme() {
-            (document.getElementById("theme-link") as HTMLLinkElement).href = "/themes/aura-dark-blue/theme.css";
+            (document.getElementById("theme-link") as HTMLLinkElement).href = themeUrls.dark;
             document.documentElement.classList.add("dark");
             document.documentElement.classList.remove("light");
         },
 
         setLightTheme() {
-            (document.getElementById("theme-link") as HTMLLinkElement).href = "/themes/aura-light-blue/theme.css";
+            (document.getElementById("theme-link") as HTMLLinkElement).href = themeUrls.light;
             document.documentElement.classList.add("light");
             document.documentElement.classList.remove("dark");
         },
