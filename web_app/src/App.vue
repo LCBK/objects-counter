@@ -2,6 +2,12 @@
 import { useViewStateStore } from "./stores/viewState";
 
 const viewState = useViewStateStore();
+viewState.setThemeToPreferred();
+
+const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
+mediaQuery.addEventListener("change", () => {
+    viewState.setThemeToPreferred();
+});
 </script>
 
 <template>

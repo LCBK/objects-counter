@@ -42,7 +42,7 @@ const classifications = computed(() => imageState.objectClassifications);
     font-weight: 300;
     letter-spacing: 0.3px;
     margin: 12px 0 6px 0;
-    color: #60a5fa;
+    color: var(--primary-color);
     user-select: none;
 }
 
@@ -79,17 +79,17 @@ const classifications = computed(() => imageState.objectClassifications);
 .element-count {
     display: flex;
     flex-direction: column;
-    color: #60a5fa;
+    color: var(--primary-color);
     text-align: center;
     justify-content: space-between;
     margin-top: -20px;
-    background-color: #1c1c20;
+    background-color: var(--surface-card);
     border-top-left-radius: 30px;
     border-top-right-radius: 30px;
     padding: 10px 25px;
-    -webkit-box-shadow: 0px 0px 6px 0px rgba(9, 9, 11, 0.5);
-    -moz-box-shadow: 0px 0px 6px 0px rgba(9, 9, 11, 0.5);
-    box-shadow: 0px 0px 6px 0px rgba(9, 9, 11, 0.5);
+    -webkit-box-shadow: 0px 0px 6px 0px var(--color-shadow);
+    -moz-box-shadow: 0px 0px 6px 0px var(--color-shadow);
+    box-shadow: 0px 0px 6px 0px var(--color-shadow);
 }
 
 .element-count-value {
@@ -100,12 +100,13 @@ const classifications = computed(() => imageState.objectClassifications);
 
 .element-count-label {
     display: block;
+    font-weight: 500;
 }
 </style>
 
 <style>
 .quantities .p-sidebar-header-content {
-    color: #60a5fa;
+    color: var(--primary-color);
     font-weight: 400;
     letter-spacing: 0.3px;
     user-select: none;

@@ -52,7 +52,7 @@ const showBoxes = computed({
 
 .quantity:not(:first-child) {
     padding-top: 3px;
-    border-top: 1px solid #282828;
+    border-top: 1px solid var(--surface-border);
 }
 
 .quantity-count {

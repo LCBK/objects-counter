@@ -52,13 +52,13 @@ export const useViewStateStore = defineStore("viewState", {
 
             Object.assign(this, defaultState);
         },
-        
+
         setState(state: ViewStates) {
             this.currentState = state;
             this.isWaitingForResponse = false;
             this.isAddingPoint = false;
             this.isRemovingPoint = false;
-            
+
             switch (state) {
                 case ViewStates.MainView:
                     this.reset();
@@ -67,7 +67,7 @@ export const useViewStateStore = defineStore("viewState", {
                 case ViewStates.Uploading:
                     this.currentView = LoadingView;
                     break;
-                
+
                 case ViewStates.ImageEditPoints:
                     this.currentView = ImageView;
                     this.currentImageViewToolBar = EditPointsToolBar;
@@ -114,6 +114,27 @@ export const useViewStateStore = defineStore("viewState", {
         toggleRemovePoint() {
             this.isRemovingPoint = !this.isRemovingPoint;
             if (this.isRemovingPoint) this.isAddingPoint = false;
+        },
+
+        setDarkTheme() {
+            (document.getElementById("theme-link") as HTMLLinkElement).href = "/themes/aura-dark-blue/theme.css";
+            document.documentElement.classList.add("dark");
+            document.documentElement.classList.remove("light");
+        },
+
+        setLightTheme() {
+            (document.getElementById("theme-link") as HTMLLinkElement).href = "/themes/aura-light-blue/theme.css";
+            document.documentElement.classList.add("light");
+            document.documentElement.classList.remove("dark");
+        },
+
+        setThemeToPreferred() {
+            if (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches) {
+                this.setDarkTheme();
+            }
+            else {
+                this.setLightTheme();
+            }
         }
     }
 });
