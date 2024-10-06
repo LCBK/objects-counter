@@ -14,14 +14,13 @@ mediaQuery.addEventListener("change", () => {
 });
 </script>
 
-<template>
-    <header>
 
-    </header>
+<template>
     <main>
         <component :is="viewState.currentView"></component>
     </main>
 </template>
+
 
 <style scoped>
 main {

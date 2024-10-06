@@ -105,7 +105,6 @@ function submitRegisterForm() {
 }
 
 // todo: proper response handling
-// todo: persist login status
 </script>
 
 

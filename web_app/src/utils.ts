@@ -1,4 +1,4 @@
-import { config } from "./config";
+import { config, endpoints } from "./config";
 import { useUserStateStore } from "./stores/userState";
 
 export interface Response {
@@ -60,4 +60,18 @@ export function createMaskImage(mask: Array<Array<boolean>>) : ImageData {
 
     const imageData = new ImageData(buffer, width, height);
     return imageData;
+}
+
+export function checkServerStatus() : Promise<boolean> {
+    return new Promise((resolve) => {
+        sendRequest(config.serverUri + endpoints.isAlive, null, "GET")
+            .then(response => {
+                if (response.status === 200) {
+                    resolve(true);
+                } else {
+                    resolve(false);
+                }
+            })
+            .catch(() => resolve(false));
+    });
 }

@@ -1,6 +1,8 @@
 export const config = {
     // Backend communication
     serverUri: "http://" + import.meta.env.VITE_BACKEND_ADDRESS,
+    serverIsAliveDelay: 1500,           // [ms]
+    serverIsAliveTimeout: 5000,         // [ms]
 
     // User validation
     minUsernameLength: 4,
@@ -17,6 +19,7 @@ export const config = {
 };
 
 export const endpoints = {
+    isAlive: "/api/is-alive",
     uploadImage: "/api/upload",
     sendSelection: "/api/images/{image_id}/background",
     acceptBackground: "/api/images/{image_id}/background/accept",
