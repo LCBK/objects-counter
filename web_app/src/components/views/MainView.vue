@@ -14,14 +14,8 @@ const viewState = useViewStateStore();
 const isOffline = ref<boolean>(false);
 const isChecking = ref<boolean>(false);
 
-function onRetry() {
-    window.location.reload();
-}
-
-onMounted(async () => {
-    window.setTimeout(() => isChecking.value = true, config.serverIsAliveDelay);
-
-    await Promise.race([
+function performServerCheck() {
+    Promise.race([
         checkServerStatus(),
         new Promise((resolve) => setTimeout(() => resolve(false), config.serverIsAliveTimeout))
     ]).then((status) => {
@@ -34,6 +28,16 @@ onMounted(async () => {
             isOffline.value = true;
         }
     });
+}
+
+function onRetry() {
+    isChecking.value = true;
+    performServerCheck();
+}
+
+onMounted(async () => {
+    window.setTimeout(() => isChecking.value = true, config.serverIsAliveDelay);
+    performServerCheck();
 });
 </script>
 
