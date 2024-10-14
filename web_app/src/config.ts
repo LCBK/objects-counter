@@ -4,6 +4,10 @@ export const config = {
     serverIsAliveDelay: 1500,           // [ms]
     serverIsAliveTimeout: 5000,         // [ms]
 
+    // Layout, display
+    displayClassifications: true,
+    displayCertainty: false,
+
     // User validation
     minUsernameLength: 4,
     maxUsernameLength: 255,
