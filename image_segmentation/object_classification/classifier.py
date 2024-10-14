@@ -27,7 +27,7 @@ class ObjectClassifier:
     def process_elements(self, image: Image) -> None:
         """Processes each object in the image to compute embeddings and histograms."""
         for element in image.elements:
-            embedding, histogram = self.process_image_element(image)
+            embedding, histogram = self.process_image_element(element)
             self.embeddings[element.id] = embedding
             self.histograms[element.id] = histogram
 
