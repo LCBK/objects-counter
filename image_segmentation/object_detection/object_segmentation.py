@@ -35,6 +35,7 @@ class ObjectSegmentation:
         self.sam = sam_model_registry[model_type](checkpoint=sam_checkpoint_path).to(self.device)
         self.predictor = SamPredictor(self.sam)
         self.cache = []
+        self.current_image_id = None
 
     def get_mask_cache(self, image_id, current_points):
         for cached_image_id, cache_data in self.cache:
@@ -46,10 +47,20 @@ class ObjectSegmentation:
         return None
 
     def add_mask_cache(self, image_id, current_points, cache_data):
-        if(len(self.cache)) > 10:
+        if (len(self.cache)) > 10:
             self.cache = self.cache[1:]
         cache = self.ImageCache(cache_data, current_points)
         self.cache.append([image_id, cache])
+
+    def set_image(self, image: Image) -> None:
+        if self.current_image_id == image.id:
+            assert self.predictor.is_image_set is True
+            return
+        image_data = cv2.imread(image.filepath)
+        self.predictor.set_image(image_data)
+        assert self.predictor.is_image_set is True
+        self.current_image_id = image.id
+
 
     def calculate_mask(self, image: Image) -> object:
         """Calculates and assigns a mask to the image based on input points."""
@@ -58,8 +69,7 @@ class ObjectSegmentation:
         if cache_data is not None:
             return cache_data
 
-        image_data = cv2.imread(image.filepath)
-        self.predictor.set_image(image_data)
+        self.set_image(image)
         points, labels = get_background_points(image)
         masks, _, _ = self.predictor.predict(point_coords=np.array(points),
                                              point_labels=np.array([1 if label else 0 for label in labels]),
