@@ -59,6 +59,9 @@ class RenameClassification(Resource):
         except Forbidden as e:
             log.exception("Failed to rename classification %s in result %s: %s", classification, result_id, e)
             return Response("Unauthorized", 403)
+        except NotFound as e:
+            log.exception("Failed to rename classification %s in result %s: %s", classification, result_id, e)
+            return Response("Result not found", 404)
         except Exception as e:
             log.exception("Failed to rename classification %s in result %s: %s", classification, result_id, e)
             return Response("Failed to rename classification", 500)
