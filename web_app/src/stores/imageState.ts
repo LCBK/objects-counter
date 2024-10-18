@@ -8,6 +8,7 @@ import { defineStore } from "pinia";
 const defaultState = {
     url: "",
     imageId: 0,
+    resultId: 0,
     width: 0,
     height: 0,
     scaledImageWidth: 0,

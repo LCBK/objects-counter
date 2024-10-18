@@ -76,8 +76,8 @@ function submitLoginForm() {
         "username": username.value,
         "password": password.value
     });
+    
     const responsePromise = sendRequest(requestUri, requestData, "POST");
-
     responsePromise.then((response: Response) => {
         if (response.status === 200) {
             viewState.setState(ViewStates.MainView);
@@ -98,12 +98,24 @@ function submitRegisterForm() {
         "username": username.value,
         "password": password.value
     });
-    const responsePromise = sendRequest(requestUri, requestData, "POST");
 
+    const responsePromise = sendRequest(requestUri, requestData, "POST");
     responsePromise.then((response: Response) => {
         if (response.status === 201) {
             viewState.setState(ViewStates.MainView);
-            userState.login(response.data.username, response.data.user_id, response.data.token);
+
+            const loginRequestUri = config.serverUri + endpoints.userLogin;
+            const loginRequestData = JSON.stringify({
+                "username": username.value,
+                "password": password.value
+            });
+
+            const loginResponsePromise = sendRequest(loginRequestUri, loginRequestData, "POST");
+            loginResponsePromise.then((response: Response) => {
+                if (response.status === 200) {
+                    userState.login(response.data.username, response.data.user_id, response.data.token);
+                }
+            });
         } else if (response.status === 400) {
             showErrorDialog("Invalid data or user already exists");
         } else {

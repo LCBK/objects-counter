@@ -19,7 +19,7 @@ export const config = {
     requirePasswordSymbol: true,
 
     // Other
-    logResponses: false         // Can leak JWT token
+    logResponses: true         // Can leak JWT token
 };
 
 export const endpoints = {
@@ -30,7 +30,8 @@ export const endpoints = {
     userRegister: "/api/users/register",
     userLogin: "/api/users/login",
     results: "/api/results/",
-    compareElements: "/api/images/compare"
+    compareElements: "/api/images/compare",
+    renameClassification: "/api/results/{result_id}/classification/{classification_name}/rename"
 };
 
 export const boundingBoxColors = [

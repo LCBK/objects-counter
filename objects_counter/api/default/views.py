@@ -148,7 +148,8 @@ class AcceptBackgroundPoints(Resource):
 
         if current_user:
             user_id = current_user.id
-            insert_result(user_id, image.id, response)
+            result = insert_result(user_id, image.id, response)
+            response["id"] = result.id
             return json.dumps(response), 201
         return json.dumps(response), 200
 

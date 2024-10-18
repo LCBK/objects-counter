@@ -27,7 +27,7 @@ const classifications = computed(() => imageState.objectClassifications);
     <VSidebar v-model:visible="visible" position="bottom" style="height: auto" class="quantities" header="Counted elements">
         <div class="quantities-header">
             <div class="quantities-col">Count</div>
-            <div class="quantities-col">Type</div>
+            <div class="quantities-col">Label<span class="rename-notice">(tap to rename)</span></div>
             <div class="quantities-col">Show boxes</div>
         </div>
         <QuantitiesEntry v-for="(quantity, index) in classifications" :key="index" :index="quantity.index" />
