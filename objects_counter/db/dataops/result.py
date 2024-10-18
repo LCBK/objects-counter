@@ -52,22 +52,20 @@ def delete_result_by_id(result_id: int) -> None:
         raise
 
 
-def rename_classification(user: User, result_id: int, classification: str) -> None:
+def rename_classification(user: User, result_id: int, old_classification: str, new_classification: str) -> int:
     result = get_result_by_id(result_id)
+    count = 0
     if not user or result.user_id != user.id:
         log.error('User %s is not authorized to rename classification in result %s', user, result_id)
         raise Forbidden(f'User {user} is not authorized to rename classification in result {result_id}')
-    count = ImageElement.query.join(Result, Result.image_id == ImageElement.image_id).filter(
-        and_(
-            ImageElement.classification == classification,
-            Result.id == result_id
-        )
-    ).update(
-        {ImageElement.classification: classification}
-    )
+    for element in result.image.elements:
+        if element.classification == old_classification:
+            element.classification = new_classification
+            db.session.add(element)
+            count += 1
     if count == 0:
-        log.error('Classification %s not found in result %s', classification, result_id)
-        raise ValueError(f'Classification {classification} not found in result {result_id}')
+        log.error('Classification %s not found in result %s', old_classification, result_id)
+        raise ValueError(f'Classification {old_classification} not found in result {result_id}')
     try:
         db.session.commit()
         return count

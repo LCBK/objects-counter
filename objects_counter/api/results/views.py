@@ -1,7 +1,7 @@
 import logging
 import typing
 
-from flask import Response, jsonify
+from flask import Response, jsonify, request
 from flask_restx import Namespace, Resource
 from werkzeug.exceptions import NotFound, Forbidden
 
@@ -47,12 +47,13 @@ class RenameClassification(Resource):
     @api.doc(params={'result_id': 'The result ID', 'classification': 'The classification to rename'})
     @authentication_required
     def post(self, current_user: User, result_id: int, classification: str) -> typing.Any:
+        new_classification = request.get_data(as_text=True)
         result_id = int(result_id)
         if result_id < 0:
             return Response('Invalid result ID', 400)
         try:
-            rename_classification(current_user, result_id, classification)
-            return Response("Classification renamed", 200)
+            count = rename_classification(current_user, result_id, classification, new_classification)
+            return Response(f"{count}", 200)
         except ValueError as e:
             log.exception("Failed to rename classification %s in result %s: %s", classification, result_id, e)
             return Response("Invalid classification name", 400)
