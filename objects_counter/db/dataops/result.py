@@ -12,6 +12,7 @@ def insert_result(user_id, image_id, response):
     db.session.add(result)
     try:
         db.session.commit()
+        return result
     except DatabaseError as e:
         log.exception('Failed to insert result: %s', e)
         db.session.rollback()
