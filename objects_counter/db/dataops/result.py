@@ -1,8 +1,10 @@
 import logging
 
+from sqlalchemy import and_
 from sqlalchemy.exc import DatabaseError
+from werkzeug.exceptions import Forbidden
 
-from objects_counter.db.models import Result, db, User
+from objects_counter.db.models import Result, db, User, ImageElement, Image
 
 log = logging.getLogger(__name__)
 
@@ -46,5 +48,30 @@ def delete_result_by_id(result_id: int) -> None:
         db.session.commit()
     except DatabaseError as e:
         log.exception('Failed to delete result: %s', e)
+        db.session.rollback()
+        raise
+
+
+def rename_classification(user: User, result_id: int, classification: str) -> None:
+    result = get_result_by_id(result_id)
+    if not user or result.user_id != user.id:
+        log.error('User %s is not authorized to rename classification in result %s', user, result_id)
+        raise Forbidden(f'User {user} is not authorized to rename classification in result {result_id}')
+    count = ImageElement.query.join(Result, Result.image_id == ImageElement.image_id).filter(
+        and_(
+            ImageElement.classification == classification,
+            Result.id == result_id
+        )
+    ).update(
+        {ImageElement.classification: classification}
+    )
+    if count == 0:
+        log.error('Classification %s not found in result %s', classification, result_id)
+        raise ValueError(f'Classification {classification} not found in result {result_id}')
+    try:
+        db.session.commit()
+        return count
+    except DatabaseError as e:
+        log.exception('Failed to rename classification: %s', e)
         db.session.rollback()
         raise
