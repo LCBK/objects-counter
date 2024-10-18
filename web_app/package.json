@@ -13,7 +13,7 @@
   },
   "dependencies": {
     "@panzoom/panzoom": "^4.5.1",
-    "pinia": "^2.1.7",
+    "pinia": "^2.2.4",
     "primeicons": "^6.0.1",
     "primevue": "^3.50.0",
     "vue": "^3.4.21"
