@@ -1,10 +1,9 @@
 import logging
 
-from sqlalchemy import and_
 from sqlalchemy.exc import DatabaseError
 from werkzeug.exceptions import Forbidden
 
-from objects_counter.db.models import Result, db, User, ImageElement, Image
+from objects_counter.db.models import Result, db, User
 
 log = logging.getLogger(__name__)
 
