@@ -6,6 +6,7 @@ import ImageView from "@/components/views/ImageView.vue";
 import UserView from "@/components/views/UserView.vue";
 import DebugView from "@/components/views/DebugView.vue";
 import DebugCompareView from "@/components/views/DebugCompareView.vue";
+import ResultHistoryView from "@/components/views/ResultHistoryView.vue";
 
 import ConfirmPointsToolBar from "@/components/toolbars/ConfirmPointsToolBar.vue";
 import EditPointsToolBar from "@/components/toolbars/EditPointsToolBar.vue";
@@ -25,7 +26,8 @@ export enum ViewStates {
     Uploading,
     ImageEditPoints,
     ImageConfirmBackground,
-    ImageViewResult
+    ImageViewResult,
+    ResultHistoryView
 }
 
 const defaultState = {
@@ -103,6 +105,10 @@ export const useViewStateStore = defineStore("viewState", {
 
                 case ViewStates.DebugCompareView:
                     this.currentView = DebugCompareView;
+                    break;
+
+                case ViewStates.ResultHistoryView:
+                    this.currentView = ResultHistoryView;
                     break;
             }
         },

@@ -35,6 +35,14 @@
     height: 50px;
 }
 
+.wide-button .p-button-label {
+    font-weight: 600;
+}
+
+.wide-button .pi {
+    font-size: 1.25rem;
+}
+
 .image-view-tool-bar .p-button-label {
     flex-grow: 0;
     font-size: 0.9rem;
