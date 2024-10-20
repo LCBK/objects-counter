@@ -37,7 +37,7 @@ class ObjectSegmentation:
         self.cache = []
         self.current_image_id = None
 
-    def get_mask_cache(self, image_id, current_points):
+    def __get_mask_cache(self, image_id, current_points):
         for cached_image_id, cache_data in self.cache:
             if cached_image_id == image_id and cache_data.is_valid(current_points):
                 return cache_data.image_mask
@@ -46,13 +46,13 @@ class ObjectSegmentation:
                 return None
         return None
 
-    def add_mask_cache(self, image_id, current_points, cache_data):
+    def __add_mask_cache(self, image_id, current_points, cache_data):
         if (len(self.cache)) > 10:
             self.cache = self.cache[1:]
         cache = self.ImageCache(cache_data, current_points)
         self.cache.append([image_id, cache])
 
-    def set_image(self, image: Image) -> None:
+    def __set_image(self, image: Image) -> None:
         if self.current_image_id == image.id:
             assert self.predictor.is_image_set is True
             return
@@ -61,23 +61,22 @@ class ObjectSegmentation:
         assert self.predictor.is_image_set is True
         self.current_image_id = image.id
 
-
     def calculate_mask(self, image: Image) -> object:
         """Calculates and assigns a mask to the image based on input points."""
         points = get_background_points(image)
-        cache_data = self.get_mask_cache(image.id, points)
+        cache_data = self.__get_mask_cache(image.id, points)
         if cache_data is not None:
             return cache_data
 
-        self.set_image(image)
+        self.__set_image(image)
         points, labels = get_background_points(image)
         masks, _, _ = self.predictor.predict(point_coords=np.array(points),
                                              point_labels=np.array([1 if label else 0 for label in labels]),
                                              multimask_output=True)
-        self.add_mask_cache(image.id, points, masks[2])
+        self.__add_mask_cache(image.id, points, masks[2])
         return masks[2]
 
-    def process_mask(self, mask):
+    def __process_mask(self, mask):
         """Converts mask to binary format and processes edges for contour detection."""
         result_mask = np.array(mask) * 255
         image = np.ascontiguousarray(result_mask, dtype=np.uint8)
@@ -97,7 +96,7 @@ class ObjectSegmentation:
 
         return binary_image
 
-    def remove_small_masks(self, image, contours, threshold_fraction = 0.001):
+    def __remove_small_masks(self, image, contours, threshold_fraction = 0.001):
         new_contours = []
         image_data = cv2.imread(image.filepath)
         image_pixels = image_data.shape[0] * image_data.shape[1]
@@ -109,7 +108,7 @@ class ObjectSegmentation:
                 new_contours.append(contour)
         return new_contours
 
-    def extract_bounding_boxes(self, contours) -> List[Tuple[Tuple[int, int], Tuple[int, int]]]:
+    def __extract_bounding_boxes(self, contours) -> List[Tuple[Tuple[int, int], Tuple[int, int]]]:
         """Extracts bounding boxes from contours."""
         objects_bounding_boxes = []
         for contour in contours:
@@ -122,19 +121,19 @@ class ObjectSegmentation:
         if result_mask is None:
             log.warning("No mask found for image: %s", image.id)
             return 0
-        binary_image = self.process_mask(result_mask)
+        binary_image = self.__process_mask(result_mask)
         contours, _ = cv2.findContours(binary_image, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-        contours = self.remove_small_masks(image, contours)
+        contours = self.__remove_small_masks(image, contours)
         object_count = len(contours)
         log.info("Number of objects detected: %s", object_count)
 
-        bounding_boxes = self.get_bounding_boxes(contours)
+        bounding_boxes = self.__get_bounding_boxes(contours)
         bulk_set_elements(image, bounding_boxes)
         return object_count
 
-    def get_bounding_boxes(self, contours):
+    def __get_bounding_boxes(self, contours):
         """Returns bounding boxes of detected objects in the image."""
         if contours is None:
             return []
-        bounding_boxes = self.extract_bounding_boxes(contours)
+        bounding_boxes = self.__extract_bounding_boxes(contours)
         return bounding_boxes

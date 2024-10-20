@@ -61,6 +61,25 @@ class ObjectClassifier:
         self.assign_categories_based_on_similarity(image, threshold, color_weight)
         delete_temp_images(TEMP_IMAGE_DIR)
 
+    def assign_dataset_categories_to_objects(self, image: Image, dataset, representative_ids: List[int]):
+        self.process_elements(image)
+        categories_representatives = []
+        # todo:
+        # categories_representatives = #get imageElements of representatives_ids
+        # get categories representatives present in dataset and add them to categories_representatives variable
+        for element in image.elements:
+            best_certainty = 0
+            best_category = -1
+            for representative, category_id in categories_representatives:
+                current_certainty = self.calculate_similarity(element, representative)
+                if current_certainty > best_certainty:
+                    best_category = category_id
+                    best_certainty = current_certainty
+                assert (best_category != -1)
+                self.update_element_category(element.id, best_category, best_certainty)
+
+
+
     def assign_categories_based_on_similarity(self, image: Image, threshold: float, color_weight: float) -> None:
         """Assigns elements to categories based on their similarity scores."""
         elements = image.elements

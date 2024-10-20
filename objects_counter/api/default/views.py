@@ -153,6 +153,7 @@ class AcceptBackgroundPoints(Resource):
             return json.dumps(response), 201
         return json.dumps(response), 200
 
+
 # Temporary, to change in the future
 @api.route('/images/compare')
 class CompareImageElements(Resource):
@@ -184,3 +185,4 @@ class CompareImageElements(Resource):
         }
 
         return json.dumps(response), 200
+
