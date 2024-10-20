@@ -134,14 +134,6 @@ onMounted(async () => {
 </style>
 
 <style>
-#main-view .p-button-label {
-    font-weight: 600;
-}
-
-#main-view .debug-button .pi {
-    font-size: 1.3rem;
-}
-
 #main-view.server-checking .loader {
     width: 80px;
     height: 80px;

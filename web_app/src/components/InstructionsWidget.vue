@@ -36,7 +36,7 @@ onMounted(() => animateButton());
 
 <template>
     <VButton v-if="labeled" outlined id="instructions-button" icon="pi pi-info-circle" ref="button"
-            @click="visible = true" label="Instructions" class="instructions-button-labeled" />
+            @click="visible = true" label="Instructions" class="instructions-button-labeled wide-button" />
     <VButton v-else text rounded id="instructions-button" icon="pi pi-info-circle" ref="button"
             @click="visible = true" :class="{ animated: isButtonAnimated, noShadow: viewState.isWaitingForResponse }" />
     <VDialog v-model:visible="visible" modal header="Instructions" id="instructions-popup" :dismissable-mask="true">
@@ -49,6 +49,7 @@ onMounted(() => animateButton());
                 <li>Make the background as uniform as possible</li>
             </ul>
             <p>Follow instructions given in the next steps for more help.</p>
+            <p>You can also sign in to compare different results and track your history.</p>
         </div>
         <div v-else-if="currentViewState == ViewStates.ImageEditPoints" class="instructions-text">
             <p>Select the background in your image that separates objects from one another.</p>
