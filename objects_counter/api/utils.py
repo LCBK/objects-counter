@@ -4,6 +4,7 @@ from http import HTTPStatus
 
 import jwt
 from flask import request, Response, current_app
+from jwt import DecodeError
 
 from objects_counter.consts import MAX_DB_STRING_LENGTH, MIN_USERNAME_LENGTH
 from objects_counter.db.dataops.user import get_user_by_id
@@ -25,9 +26,9 @@ def authentication_required(f):
             if current_user is None:
                 log.error('Invalid token')
                 return Response('Invalid token', HTTPStatus.UNAUTHORIZED)
-        except jwt.ExpiredSignatureError:
-            log.error('Token expired')
-            return Response('Token expired', HTTPStatus.UNAUTHORIZED)
+        except (jwt.ExpiredSignatureError, DecodeError) as e:
+            log.error('Issue while processing authentication: %s', e)
+            return Response('Invalid token', HTTPStatus.UNAUTHORIZED)
         except Exception as e:  # pylint: disable=broad-except
             log.exception('Issue while processing authentication: %s', e)
             return Response({
@@ -49,10 +50,13 @@ def authentication_optional(f):
             try:
                 data = jwt.decode(token, current_app.config['SECRET_KEY'], algorithms=['HS256'])
                 current_user = get_user_by_id(data['user_id'])
-                log.info('User %s authenticated', current_user.username)
+                log.debug('User %s authenticated', current_user.username)
                 if current_user is None:
                     log.error('Invalid token')
                     return Response('Invalid token', HTTPStatus.UNAUTHORIZED)
+            except (jwt.ExpiredSignatureError, DecodeError) as e:
+                log.exception('Error while processing authentication: %s', e)
+                return Response('Invalid token', HTTPStatus.UNAUTHORIZED)
             except Exception as e:  # pylint: disable=broad-except
                 log.exception('Issue while processing authentication: %s', e)
                 return Response({
