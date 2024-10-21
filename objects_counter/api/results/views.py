@@ -32,6 +32,7 @@ class GetThumbnails(Resource):
         for result in results:
             with open(result.image.thumbnail, 'rb') as thumbnail:
                 base64_thumbnail = base64.b64encode(thumbnail.read())
+
             thumbnails.append({
                 'id': result.id,
                 'thumbnail': base64_thumbnail.decode('utf-8')
