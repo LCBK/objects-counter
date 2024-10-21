@@ -9,6 +9,12 @@ import { sendRequest, type Response } from "@/utils";
 
 const viewState = useViewStateStore();
 
+
+// todo: !itemsLoaded -> show loading overlay
+// todo: refetch images only when number of results changes
+// todo: pagination
+
+
 const itemsLoaded = ref<boolean>(false);
 const historyItems = ref<ResultHistoryItem[]>([]);
 
@@ -23,6 +29,7 @@ onMounted(async () => {
     requestPromise.then((response: Response) => {
         if (response.status != 200) {
             console.error("Failed to load result history items");
+            viewState.setState(ViewStates.UserView);
             return;
         }
         
@@ -81,8 +88,8 @@ onMounted(async () => {
     display: flex;
     flex-direction: row;
     flex-wrap: wrap;
-    gap: 20px;
-    padding: 20px;
+    gap: 16px;
+    padding: 16px;
     margin-top: 55px;
     overflow: auto;
     user-select: none;

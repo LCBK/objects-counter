@@ -67,10 +67,10 @@ const height = computed(() => (props.bottomRight[1] - props.topLeft[1]) * scale.
 .bounding-box .box-certainty {
     background-color: v-bind(boxColor);
     position: absolute;
-    line-height: 14px;
-    bottom: -14px;
+    line-height: 12px;
+    bottom: -12px;
     right: -2px;
-    font-size: 10px;
+    font-size: 9px;
     font-weight: 700;
     color: white;
     padding: 0 3px;
@@ -79,10 +79,10 @@ const height = computed(() => (props.bottomRight[1] - props.topLeft[1]) * scale.
 .bounding-box .box-classification {
     background-color: v-bind(boxColor);
     position: absolute;
-    line-height: 14px;
-    bottom: -14px;
+    line-height: 12px;
+    bottom: -12px;
     left: -2px;
-    font-size: 10px;
+    font-size: 9px;
     font-weight: 700;
     color: white;
     padding: 0 3px;

@@ -5,7 +5,7 @@ export const config = {
     serverIsAliveTimeout: 5000,         // [ms]
 
     // Layout, display
-    displayClassifications: true,
+    displayClassifications: false,
     displayCertainty: false,
 
     // User validation
