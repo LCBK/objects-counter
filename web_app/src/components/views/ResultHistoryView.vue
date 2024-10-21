@@ -3,20 +3,19 @@ import VButton from "primevue/button";
 import { useViewStateStore, ViewStates } from "@/stores/viewState";
 import { default as ResultHistoryItemComponent } from "../ResultHistoryItem.vue";
 import type { ResultHistoryItem } from "@/types";
-import { onMounted, ref } from "vue";
 import { config, endpoints } from "@/config";
-import { sendRequest, type Response } from "@/utils";
+import { base64ToImageUri, sendRequest, type Response } from "@/utils";
 import SettingsWidget from "../SettingsWidget.vue";
+import LoadingSpinner from "../LoadingSpinner.vue";
+import { onMounted, ref } from "vue";
 
-const viewState = useViewStateStore();
 
-
-// todo: !itemsLoaded -> show loading overlay
 // todo: refetch images only when number of results changes
 // todo: pagination
 
 
-const itemsLoaded = ref<boolean>(false);
+const viewState = useViewStateStore();
+
 const historyItems = ref<ResultHistoryItem[]>([]);
 
 
@@ -29,6 +28,7 @@ onMounted(async () => {
     const requestUri = config.serverUri + endpoints.results;
 
     const requestPromise = sendRequest(requestUri, null, "GET");
+    viewState.isWaitingForResponse = true;
     requestPromise.then((response: Response) => {
         if (response.status != 200) {
             console.error("Failed to load result history items");
@@ -53,11 +53,12 @@ onMounted(async () => {
             //         console.error("Failed to load image for result history item");
             //         return;
             //     }
-            //     historyItem.imageUri = imageResponse.data;
+            //     historyItem.imageUri = base64ToImageUri(imageResponse.data);
             // });
 
             historyItems.value.push(historyItem);
         }
+        viewState.isWaitingForResponse = false;
     });
 });
 </script>
@@ -74,6 +75,11 @@ onMounted(async () => {
             <ResultHistoryItemComponent v-for="(item, index) in historyItems.sort((a, b) => a.timestamp - b.timestamp)"
                     :key="index" v-bind="item" />
         </div>
+        <Transition name="waiting-overlay">
+            <div v-if="viewState.isWaitingForResponse" class="waiting-overlay">
+                <LoadingSpinner />
+            </div>
+        </Transition>
     </div>
 </template>
 

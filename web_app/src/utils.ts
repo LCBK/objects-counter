@@ -75,3 +75,7 @@ export function checkServerStatus() : Promise<boolean> {
             .catch(() => resolve(false));
     });
 }
+
+export function base64ToImageUri(base64: string) : string {
+    return "data:image/png;base64," + base64;
+}
