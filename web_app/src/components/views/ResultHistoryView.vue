@@ -6,6 +6,7 @@ import type { ResultHistoryItem } from "@/types";
 import { onMounted, ref } from "vue";
 import { config, endpoints } from "@/config";
 import { sendRequest, type Response } from "@/utils";
+import SettingsWidget from "../SettingsWidget.vue";
 
 const viewState = useViewStateStore();
 
@@ -65,7 +66,7 @@ onMounted(async () => {
         <div class="history-view-nav-bar nav-bar bar">
             <VButton text rounded icon="pi pi-chevron-left" @click="onBack()" />
             <h2 id="history-view-title">Result history</h2>
-            <VButton text rounded icon="pi pi-cog" @click="onBack()" />
+            <SettingsWidget />
         </div>
         <div class="result-history-items">
             <ResultHistoryItemComponent v-for="(item, index) in historyItems.sort((a, b) => a.timestamp - b.timestamp)"

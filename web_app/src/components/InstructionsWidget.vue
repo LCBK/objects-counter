@@ -5,15 +5,15 @@ import { useViewStateStore, ViewStates } from "../stores/viewState";
 import { computed, onMounted, ref, watch } from "vue";
 
 
-const visible = defineModel<boolean>();
-const viewState = useViewStateStore();
-
-const currentViewState = computed(() => viewState.currentState);
-const isButtonAnimated = ref<Boolean>();
-
 const props = defineProps({
     labeled: Boolean                // labeled with "Instruction" string and styled as a wider button
 });
+
+const viewState = useViewStateStore();
+
+const visible = defineModel<boolean>();
+const currentViewState = computed(() => viewState.currentState);
+const isButtonAnimated = ref<Boolean>();
 
 
 function animateButton() {
@@ -39,7 +39,7 @@ onMounted(() => animateButton());
             @click="visible = true" label="Instructions" class="instructions-button-labeled wide-button" />
     <VButton v-else text rounded id="instructions-button" icon="pi pi-info-circle" ref="button"
             @click="visible = true" :class="{ animated: isButtonAnimated, noShadow: viewState.isWaitingForResponse }" />
-    <VDialog v-model:visible="visible" modal header="Instructions" id="instructions-popup" :dismissable-mask="true">
+    <VDialog v-model:visible="visible" modal header="Instructions" class="popup" id="instructions-popup" :dismissable-mask="true">
         <div v-if="currentViewState == ViewStates.MainView" class="instructions-text">
             <p>First off, take or upload a picture of the objects you want to count.</p>
             <p>To get the best results, follow these guidelines:</p>
@@ -119,6 +119,10 @@ onMounted(() => animateButton());
     font-size: 0.9rem;
 }
 
+#instructions-popup .instructions-text p:last-child {
+    margin-bottom: 0;
+}
+
 #instructions-popup .instructions-text ul {
     padding-left: 25px;
 }
@@ -158,14 +162,6 @@ onMounted(() => animateButton());
 
 #main-view #instructions-button .pi {
     font-size: 1.3rem;
-}
-
-#instructions-popup {
-    width: 90vw;
-}
-
-#instructions-popup .p-dialog-header {
-    padding-bottom: 10px;
 }
 
 #instructions-popup .p-dialog-title {

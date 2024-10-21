@@ -59,6 +59,10 @@
     opacity: 0.7;
 }
 
+.popup {
+    width: calc(100vw - 24px);
+}
+
 /***** PrimeVue styles overrides *****/
 
 .pi {
@@ -114,4 +118,5 @@
 
 .p-dialog-header {
     user-select: none;
+    padding: 20px 24px 10px 24px;
 }
