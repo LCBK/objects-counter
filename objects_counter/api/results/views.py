@@ -1,3 +1,4 @@
+import base64
 import logging
 import typing
 
@@ -6,7 +7,8 @@ from flask_restx import Namespace, Resource
 from werkzeug.exceptions import NotFound, Forbidden
 
 from objects_counter.api.utils import authentication_required
-from objects_counter.db.dataops.result import get_result_by_id, get_user_results_serialized, rename_classification
+from objects_counter.db.dataops.result import (get_result_by_id, get_user_results_serialized, get_user_results,
+                                               rename_classification)
 from objects_counter.db.models import User
 
 api = Namespace('results', description='Results related operations')
@@ -19,6 +21,23 @@ class GetResults(Resource):
     @authentication_required
     def get(self, current_user: User) -> typing.Any:
         return jsonify(get_user_results_serialized(current_user))
+
+
+@api.route('/thumbnails')
+class GetThumbnails(Resource):
+    @authentication_required
+    def get(self, current_user: User) -> typing.Any:
+        results = get_user_results(current_user)
+        thumbnails = []
+        for result in results:
+            with open(result.image.thumbnail, 'rb') as thumbnail:
+                base64_thumbnail = base64.b64encode(thumbnail.read())
+
+            thumbnails.append({
+                'id': result.id,
+                'thumbnail': base64_thumbnail.decode('utf-8')
+            })
+        return jsonify(thumbnails)
 
 
 @api.route('/<int:result_id>')

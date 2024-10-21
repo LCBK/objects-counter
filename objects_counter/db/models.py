@@ -11,8 +11,10 @@ class Image(db.Model):
     __tablename__ = 'image'
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     filepath = db.Column(db.String(255), nullable=False)
+    thumbnail = db.Column(db.String(255), nullable=True)
     timestamp = db.Column(db.DateTime, nullable=False, default=db.func.now())
     background_points = db.Column(db.JSON, nullable=True)
+    result = db.relationship('Result', backref='image', uselist=False)
 
 
 class ImageElement(db.Model):
@@ -48,7 +50,6 @@ class Result(db.Model):
     data = db.Column(db.JSON, nullable=False)
     timestamp = db.Column(db.DateTime, nullable=False, default=db.func.now())
     user = db.relationship('User', backref='results')
-    image = db.relationship('Image', backref='results')
 
     def as_dict(self):
         return {

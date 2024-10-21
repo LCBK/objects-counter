@@ -7,8 +7,8 @@ from objects_counter.db.models import db, Image, ImageElement
 log = logging.getLogger(__name__)
 
 
-def insert_image(filepath: str) -> Image:
-    image = Image(filepath=filepath)
+def insert_image(filepath: str, thumbnail_path: str) -> Image:
+    image = Image(filepath=filepath, thumbnail=thumbnail_path)
     db.session.add(image)
     try:
         db.session.commit()
