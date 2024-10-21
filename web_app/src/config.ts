@@ -4,10 +4,6 @@ export const config = {
     serverIsAliveDelay: 1500,           // [ms]
     serverIsAliveTimeout: 5000,         // [ms]
 
-    // Layout, display
-    displayClassifications: true,
-    displayCertainty: false,
-
     // User validation
     minUsernameLength: 4,
     maxUsernameLength: 255,
@@ -25,11 +21,13 @@ export const config = {
 export const endpoints = {
     isAlive: "/api/is-alive",
     uploadImage: "/api/upload",
+    getImage: "/api/images/{image_id}",
     sendSelection: "/api/images/{image_id}/background",
     acceptBackground: "/api/images/{image_id}/background/accept",
     userRegister: "/api/users/register",
     userLogin: "/api/users/login",
     results: "/api/results/",
+    resultThumbnails: "/api/results/thumbnails",
     compareElements: "/api/images/compare",
     renameClassification: "/api/results/{result_id}/classification/{classification_name}/rename"
 };

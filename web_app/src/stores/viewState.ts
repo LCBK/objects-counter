@@ -6,6 +6,7 @@ import ImageView from "@/components/views/ImageView.vue";
 import UserView from "@/components/views/UserView.vue";
 import DebugView from "@/components/views/DebugView.vue";
 import DebugCompareView from "@/components/views/DebugCompareView.vue";
+import ResultHistoryView from "@/components/views/ResultHistoryView.vue";
 
 import ConfirmPointsToolBar from "@/components/toolbars/ConfirmPointsToolBar.vue";
 import EditPointsToolBar from "@/components/toolbars/EditPointsToolBar.vue";
@@ -25,7 +26,8 @@ export enum ViewStates {
     Uploading,
     ImageEditPoints,
     ImageConfirmBackground,
-    ImageViewResult
+    ImageViewResult,
+    ResultHistoryView
 }
 
 const defaultState = {
@@ -37,7 +39,6 @@ const defaultState = {
     isWaitingForResponse: false,
     showPoints: true,
     showBackground: false,
-    showBoundingBoxInfo: true,
     currentNavBarTitle: "",
     currentState: ViewStates.MainView,
     currentView: MainView,
@@ -104,6 +105,10 @@ export const useViewStateStore = defineStore("viewState", {
                 case ViewStates.DebugCompareView:
                     this.currentView = DebugCompareView;
                     break;
+
+                case ViewStates.ResultHistoryView:
+                    this.currentView = ResultHistoryView;
+                    break;
             }
         },
 
@@ -115,27 +120,6 @@ export const useViewStateStore = defineStore("viewState", {
         toggleRemovePoint() {
             this.isRemovingPoint = !this.isRemovingPoint;
             if (this.isRemovingPoint) this.isAddingPoint = false;
-        },
-
-        setDarkTheme() {
-            (document.getElementById("theme-link") as HTMLLinkElement).href = themeUrls.dark;
-            document.documentElement.classList.add("dark");
-            document.documentElement.classList.remove("light");
-        },
-
-        setLightTheme() {
-            (document.getElementById("theme-link") as HTMLLinkElement).href = themeUrls.light;
-            document.documentElement.classList.add("light");
-            document.documentElement.classList.remove("dark");
-        },
-
-        setThemeToPreferred() {
-            if (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches) {
-                this.setDarkTheme();
-            }
-            else {
-                this.setLightTheme();
-            }
         }
     }
 });
