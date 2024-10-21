@@ -1,7 +1,12 @@
 <script setup lang="ts">
+import { config, endpoints } from "@/config";
 import { useImageStateStore } from "@/stores/imageState";
+import { sendRequest, type Response } from "@/utils";
+import VButton from "primevue/button";
+import VDialog from "primevue/dialog";
 import VInputSwitch from "primevue/inputswitch";
-import { computed } from "vue";
+import VInputText from "primevue/inputtext";
+import { computed, ref } from "vue";
 
 // This component will change imageState, it will update its parents.
 // That's why we have only an index prop, which we use to access and update object classification properties.
@@ -15,10 +20,12 @@ const props = defineProps({
 
 const imageState = useImageStateStore();
 
-// These are not props, because they control parents' states by updating imageState.
+const isRenameDialogVisible = ref<boolean>(false);
+const renameOldLabel = ref<string>("");
+const renameNewLabel = ref<string>("");
+
 const count = computed(() => imageState.objectClassifications[props.index].count);
 const classificationName = computed(() => imageState.objectClassifications[props.index].classificationName);
-const isNameAssigned = computed(() => imageState.objectClassifications[props.index].isNameAssigned);
 const showBoxes = computed({
     get() {
         return imageState.objectClassifications[props.index].showBoxes;
@@ -28,17 +35,42 @@ const showBoxes = computed({
     }
 });
 
-// todo: enable user to name classifications
+function showRenameDialog(oldName: string) {
+    renameOldLabel.value = oldName;
+    renameNewLabel.value = oldName;
+    isRenameDialogVisible.value = true;
+}
+
+function confirmRename() {
+    let requestUri = config.serverUri + endpoints.renameClassification
+            .replace("{result_id}", imageState.resultId.toString())
+            .replace("{classification_name}", renameOldLabel.value);
+    const requestData = renameNewLabel.value
+    
+    const responsePromise = sendRequest(requestUri, requestData, "POST");
+    responsePromise.then(() => {
+        imageState.objectClassifications[props.index].classificationName = renameNewLabel.value;
+        isRenameDialogVisible.value = false;
+    });
+}
 </script>
 
 
 <template>
     <div class="quantity">
         <div class="quantity-count">{{ count }}</div>
-        <div class="quantity-classification">
-            {{ isNameAssigned ? classificationName : "Type " + classificationName }}
+        <div class="quantity-classification" @click="showRenameDialog(classificationName)">
+            {{ /^\d*$/.test(classificationName) ? "Type " + classificationName : classificationName }}
         </div>
         <VInputSwitch class="quantity-switch" v-model="showBoxes" />
+        <VDialog v-model:visible="isRenameDialogVisible" modal :dismissable-mask="true" :draggable="false"
+                header="Change label" class="rename-dialog">
+            <VInputText v-model="renameNewLabel" class="rename-input" :placeholder="renameOldLabel" />
+            <div class="rename-controls">
+                <VButton outlined label="Cancel" class="rename-cancel" @click="isRenameDialogVisible = false" />
+                <VButton label="Rename" class="rename-rename" @click="confirmRename()" />
+            </div>
+        </VDialog>
     </div>
 </template>
 
@@ -69,9 +101,20 @@ const showBoxes = computed({
     font-weight: 300;
     letter-spacing: 0.3px;
     text-indent: 10px;
+    cursor: pointer;
 }
 
 .quantity-switch {
     flex-basis: 25%;
+}
+
+.rename-input {
+    margin-bottom: 24px;
+}
+
+.rename-controls {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
 }
 </style>

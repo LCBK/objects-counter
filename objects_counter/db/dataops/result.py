@@ -1,6 +1,7 @@
 import logging
 
 from sqlalchemy.exc import DatabaseError
+from werkzeug.exceptions import Forbidden
 
 from objects_counter.db.models import Result, db, User
 
@@ -12,6 +13,7 @@ def insert_result(user_id, image_id, response):
     db.session.add(result)
     try:
         db.session.commit()
+        return result
     except DatabaseError as e:
         log.exception('Failed to insert result: %s', e)
         db.session.rollback()
@@ -45,5 +47,28 @@ def delete_result_by_id(result_id: int) -> None:
         db.session.commit()
     except DatabaseError as e:
         log.exception('Failed to delete result: %s', e)
+        db.session.rollback()
+        raise
+
+
+def rename_classification(user: User, result_id: int, old_classification: str, new_classification: str) -> int:
+    result = get_result_by_id(result_id)
+    count = 0
+    if not user or result.user_id != user.id:
+        log.error('User %s is not authorized to rename classification in result %s', user, result_id)
+        raise Forbidden(f'User {user} is not authorized to rename classification in result {result_id}')
+    for element in result.image.elements:
+        if element.classification == old_classification:
+            element.classification = new_classification
+            db.session.add(element)
+            count += 1
+    if count == 0:
+        log.error('Classification %s not found in result %s', old_classification, result_id)
+        raise ValueError(f'Classification {old_classification} not found in result {result_id}')
+    try:
+        db.session.commit()
+        return count
+    except DatabaseError as e:
+        log.exception('Failed to rename classification: %s', e)
         db.session.rollback()
         raise

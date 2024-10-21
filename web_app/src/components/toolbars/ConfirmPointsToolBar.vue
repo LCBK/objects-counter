@@ -27,7 +27,6 @@ function handleConfirmBackground() {
                 index: index,
                 classificationName: element.classification,
                 count: element.objects.length,
-                isNameAssigned: false,
                 showBoxes: true,
                 boxColor: boundingBoxColors[index % boundingBoxColors.length]
             });
@@ -41,6 +40,7 @@ function handleConfirmBackground() {
             });
         });
 
+        if (JSON.parse(response.data).id) imageState.resultId = JSON.parse(response.data).id;
         viewState.setState(ViewStates.ImageViewResult);
     });
 }
