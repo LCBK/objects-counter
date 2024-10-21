@@ -39,7 +39,6 @@ const defaultState = {
     isWaitingForResponse: false,
     showPoints: true,
     showBackground: false,
-    showBoundingBoxInfo: true,
     currentNavBarTitle: "",
     currentState: ViewStates.MainView,
     currentView: MainView,
@@ -121,27 +120,6 @@ export const useViewStateStore = defineStore("viewState", {
         toggleRemovePoint() {
             this.isRemovingPoint = !this.isRemovingPoint;
             if (this.isRemovingPoint) this.isAddingPoint = false;
-        },
-
-        setDarkTheme() {
-            (document.getElementById("theme-link") as HTMLLinkElement).href = themeUrls.dark;
-            document.documentElement.classList.add("dark");
-            document.documentElement.classList.remove("light");
-        },
-
-        setLightTheme() {
-            (document.getElementById("theme-link") as HTMLLinkElement).href = themeUrls.light;
-            document.documentElement.classList.add("light");
-            document.documentElement.classList.remove("dark");
-        },
-
-        setThemeToPreferred() {
-            if (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches) {
-                this.setDarkTheme();
-            }
-            else {
-                this.setLightTheme();
-            }
         }
     }
 });

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import VButton from "primevue/button";
+import SettingsWidget from "../SettingsWidget.vue";
 import { useImageStateStore } from "@/stores/imageState";
 import { useViewStateStore } from "@/stores/viewState";
 
@@ -16,7 +17,7 @@ function onBack() {
     <div class="image-view-nav-bar nav-bar bar">
         <VButton text rounded icon="pi pi-chevron-left" @click="onBack()" />
         <h2 id="image-view-title">{{ viewState.currentNavBarTitle }}</h2>
-        <VButton text rounded icon="pi pi-cog" @click="onBack()" />
+        <SettingsWidget />
     </div>
 </template>
 

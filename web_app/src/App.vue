@@ -1,16 +1,18 @@
 <script setup lang="ts">
+import { useSettingsStateStore } from "./stores/settingsState";
 import { useUserStateStore } from "./stores/userState";
 import { useViewStateStore } from "./stores/viewState";
 
-const viewState = useViewStateStore();
-viewState.setThemeToPreferred();
-
+const settingsState = useSettingsStateStore();
 const userState = useUserStateStore();
+const viewState = useViewStateStore();
+
+settingsState.loadFromLocalStorage();
 userState.loadFromCookies();
 
 const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
 mediaQuery.addEventListener("change", () => {
-    viewState.setThemeToPreferred();
+    settingsState.setThemeToPreferred();
 });
 </script>
 
