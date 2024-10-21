@@ -6,10 +6,12 @@ import { boundingBoxColors, config, endpoints } from "@/config";
 import { sendRequest } from "@/utils";
 import { computed } from "vue";
 
+
 const viewState = useViewStateStore();
 const imageState = useImageStateStore();
 
 const allButtonsDisabled = computed(() => viewState.isWaitingForResponse);
+
 
 function handleConfirmBackground() {
     const requestUri = config.serverUri + endpoints.acceptBackground.replace("{image_id}", imageState.imageId.toString());
@@ -17,7 +19,7 @@ function handleConfirmBackground() {
     const responsePromise = sendRequest(requestUri, requestData, "POST");
 
     viewState.isWaitingForResponse = true;
-    
+
     // Backend returns counted and classified image elements
     responsePromise.then((response) => {
         viewState.isWaitingForResponse = false;

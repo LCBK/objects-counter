@@ -41,7 +41,7 @@ export const useImageStateStore = defineStore("imageState", {
         removeNearbyPoint(x: number, y: number, tolerance: number = 60) {
             if (this.points.length === 0) return;
 
-            const closestPoint = this.points.reduce((a, b) => 
+            const closestPoint = this.points.reduce((a, b) =>
                 distance(a.position[0], a.position[1], x, y) < distance(b.position[0], b.position[1], x, y) ? a : b
             );
 

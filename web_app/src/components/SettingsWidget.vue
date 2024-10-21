@@ -5,6 +5,7 @@ import VDialog from "primevue/dialog";
 import VInputSwitch from "primevue/inputswitch";
 import { computed, onMounted } from "vue";
 
+
 const settingsState = useSettingsStateStore();
 
 const visible = defineModel<boolean>("visible");
@@ -17,6 +18,7 @@ const isDarkTheme = computed({
         else settingsState.setLightTheme();
     }
 });
+
 const showBoxLabel = computed({
     get() {
         return settingsState.showBoxLabel;
@@ -25,6 +27,7 @@ const showBoxLabel = computed({
         settingsState.updateBoxLabelVisibility(value);
     }
 });
+
 const showBoxCertainty = computed({
     get() {
         return settingsState.showBoxCertainty;
@@ -33,6 +36,7 @@ const showBoxCertainty = computed({
         settingsState.updateBoxCertaintyVisibility(value);
     }
 });
+
 
 onMounted(() => {
     isDarkTheme.value = settingsState.isDarkTheme;

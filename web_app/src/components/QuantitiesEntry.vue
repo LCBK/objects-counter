@@ -36,6 +36,7 @@ const showBoxes = computed({
     }
 });
 
+
 function showRenameDialog(oldName: string) {
     renameOldLabel.value = oldName;
     renameNewLabel.value = oldName;
@@ -47,7 +48,7 @@ function confirmRename() {
             .replace("{result_id}", imageState.resultId.toString())
             .replace("{classification_name}", renameOldLabel.value);
     const requestData = renameNewLabel.value
-    
+
     const responsePromise = sendRequest(requestUri, requestData, "POST");
     responsePromise.then(() => {
         imageState.objectClassifications[props.index].classificationName = renameNewLabel.value;

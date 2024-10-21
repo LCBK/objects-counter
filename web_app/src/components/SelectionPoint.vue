@@ -2,6 +2,7 @@
 import { useImageStateStore } from '@/stores/imageState';
 import { computed } from 'vue';
 
+
 const imageState = useImageStateStore();
 const props = defineProps({
     positive: {

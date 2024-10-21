@@ -4,7 +4,9 @@ import SettingsWidget from "../SettingsWidget.vue";
 import { useImageStateStore } from "@/stores/imageState";
 import { useViewStateStore } from "@/stores/viewState";
 
+
 const viewState = useViewStateStore();
+
 
 function onBack() {
     useImageStateStore().reset();

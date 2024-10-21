@@ -11,6 +11,7 @@ import { computed, ref } from "vue";
 import { config, endpoints } from "@/config";
 import { type Response, sendRequest } from "@/utils";
 
+
 const viewState = useViewStateStore();
 const userState = useUserStateStore();
 
@@ -37,6 +38,7 @@ const isRegisterValid = computed(() => {
         password.value == confirmPassword.value
     );
 })
+
 
 function validateUsername(username: string) {
     if (username === undefined) return false;
@@ -76,7 +78,7 @@ function submitLoginForm() {
         "username": username.value,
         "password": password.value
     });
-    
+
     const responsePromise = sendRequest(requestUri, requestData, "POST");
     responsePromise.then((response: Response) => {
         if (response.status === 200) {

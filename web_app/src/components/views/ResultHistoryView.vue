@@ -19,13 +19,15 @@ const viewState = useViewStateStore();
 const itemsLoaded = ref<boolean>(false);
 const historyItems = ref<ResultHistoryItem[]>([]);
 
+
 function onBack() {
     viewState.setState(ViewStates.UserView);
 }
 
+
 onMounted(async () => {
     const requestUri = config.serverUri + endpoints.results;
-    
+
     const requestPromise = sendRequest(requestUri, null, "GET");
     requestPromise.then((response: Response) => {
         if (response.status != 200) {
@@ -33,7 +35,7 @@ onMounted(async () => {
             viewState.setState(ViewStates.UserView);
             return;
         }
-        
+
         const responseItems = response.data;
         for (const item of responseItems) {
             const historyItem: ResultHistoryItem = {

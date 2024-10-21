@@ -25,6 +25,7 @@ function animateButton() {
     }, 4000);
 }
 
+
 watch(currentViewState, async () => {
     animateButton();
     visible.value = false;
@@ -83,7 +84,7 @@ onMounted(() => animateButton());
 
 
 <style scoped>
-#instructions-button {    
+#instructions-button {
     position: absolute;
     top: 65px;
     right: 8px;

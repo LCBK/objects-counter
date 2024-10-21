@@ -9,11 +9,13 @@ import { checkServerStatus } from "@/utils";
 import { onMounted, ref } from "vue";
 import { config } from "@/config";
 
+
 const viewState = useViewStateStore();
 
 const isOffline = ref<boolean>(false);
 const isOnline = ref<boolean>(false);
 const isChecking = ref<boolean>(false);
+
 
 function performServerCheck() {
     Promise.race([
@@ -37,6 +39,7 @@ function onRetry() {
     isChecking.value = true;
     performServerCheck();
 }
+
 
 onMounted(async () => {
     window.setTimeout(() => {

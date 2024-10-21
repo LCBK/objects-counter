@@ -12,7 +12,6 @@ import ConfirmPointsToolBar from "@/components/toolbars/ConfirmPointsToolBar.vue
 import EditPointsToolBar from "@/components/toolbars/EditPointsToolBar.vue";
 import ResultViewToolBar from "@/components/toolbars/ResultViewToolBar.vue";
 import { useImageStateStore } from "./imageState";
-import { themeUrls } from "@/config";
 
 
 // Stores data about current application states and views
