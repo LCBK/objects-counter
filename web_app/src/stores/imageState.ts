@@ -53,6 +53,7 @@ export const useImageStateStore = defineStore("imageState", {
 
         clearResult() {
             this.imageElements = [];
+            this.objectClassifications = [];
         }
     }
 });
