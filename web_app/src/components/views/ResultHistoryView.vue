@@ -25,11 +25,10 @@ function onBack() {
 
 
 onMounted(async () => {
-    const requestUri = config.serverUri + endpoints.results;
-
-    const requestPromise = sendRequest(requestUri, null, "GET");
+    const resultsRequestUri = config.serverUri + endpoints.getResults;
+    const resultsRequestPromise = sendRequest(resultsRequestUri, null, "GET");
     viewState.isWaitingForResponse = true;
-    requestPromise.then((response: Response) => {
+    resultsRequestPromise.then((response: Response) => {
         if (response.status != 200) {
             console.error("Failed to load result history items");
             viewState.setState(ViewStates.UserView);
@@ -46,20 +45,28 @@ onMounted(async () => {
                 elementCount: item.data.count
             };
 
-            // const imageRequestUri = config.serverUri + endpoints.getImage.replace("{image_id}", item.image_id);
-            // const imageRequestPromise = sendRequest(imageRequestUri, null, "GET");
-            // imageRequestPromise.then((imageResponse: Response) => {
-            //     if (imageResponse.status != 200) {
-            //         console.error("Failed to load image for result history item");
-            //         return;
-            //     }
-            //     historyItem.imageUri = base64ToImageUri(imageResponse.data);
-            // });
-
             historyItems.value.push(historyItem);
         }
-        viewState.isWaitingForResponse = false;
     });
+
+    const thumbnailsRequestUri = config.serverUri + endpoints.getResultsThumbnails;
+    const thumbnailsRequestPromise = sendRequest(thumbnailsRequestUri, null, "GET");
+    thumbnailsRequestPromise.then((response: Response) => {
+        if (response.status != 200) {
+            console.error("Failed to load result history thumbnails");
+            return;
+        }
+
+        const responseItems = response.data;
+        for (const item of responseItems) {
+            const historyItem = historyItems.value.find((historyItem) => historyItem.id == item.id);
+            if (historyItem) {
+                historyItem.thumbnailUri = base64ToImageUri(item.thumbnail);
+            }
+        }
+    });
+
+    viewState.isWaitingForResponse = false;
 });
 </script>
 

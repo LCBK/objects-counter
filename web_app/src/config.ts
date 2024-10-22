@@ -20,14 +20,15 @@ export const config = {
 
 export const endpoints = {
     isAlive: "/api/is-alive",
-    uploadImage: "/api/upload",
+    uploadImage: "/api/images/upload",
     getImage: "/api/images/{image_id}",
     sendSelection: "/api/images/{image_id}/background",
     acceptBackground: "/api/images/{image_id}/background/accept",
     userRegister: "/api/users/register",
     userLogin: "/api/users/login",
-    results: "/api/results/",
-    resultThumbnails: "/api/results/thumbnails",
+    getResults: "/api/results/",
+    getResult: "/api/results/{result_id}",
+    getResultsThumbnails: "/api/results/thumbnails",
     compareElements: "/api/images/compare",
     renameClassification: "/api/results/{result_id}/classification/{classification_name}/rename"
 };
@@ -39,4 +40,4 @@ export const boundingBoxColors = [
 export const themeUrls = {
     dark: "https://cdn.jsdelivr.net/npm/primevue@3.50.x/resources/themes/aura-dark-blue/theme.css",
     light: "https://cdn.jsdelivr.net/npm/primevue@3.50.x/resources/themes/aura-light-blue/theme.css"
-}
+};

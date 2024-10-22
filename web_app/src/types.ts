@@ -21,7 +21,7 @@ export interface BackgroundPoint {
 export interface ResultHistoryItem {
     id: number,
     imageId: number,
-    imageUri?: string,
+    thumbnailUri?: string,
     timestamp: number,
     classificationCount: number,
     elementCount: number

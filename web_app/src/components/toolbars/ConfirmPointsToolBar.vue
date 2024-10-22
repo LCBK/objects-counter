@@ -2,8 +2,8 @@
 import VButton from "primevue/button";
 import { useViewStateStore, ViewStates } from "@/stores/viewState";
 import { useImageStateStore } from "@/stores/imageState";
-import { boundingBoxColors, config, endpoints } from "@/config";
-import { sendRequest } from "@/utils";
+import { config, endpoints } from "@/config";
+import { parseClassificationsFromResponse, sendRequest } from "@/utils";
 import { computed } from "vue";
 
 
@@ -23,25 +23,7 @@ function handleConfirmBackground() {
     // Backend returns counted and classified image elements
     responsePromise.then((response) => {
         viewState.isWaitingForResponse = false;
-
-        JSON.parse(response.data).classifications.forEach((element: any, index: number) => {
-            imageState.objectClassifications.push({
-                index: index,
-                classificationName: element.classification,
-                count: element.objects.length,
-                showBoxes: true,
-                boxColor: boundingBoxColors[index % boundingBoxColors.length]
-            });
-            element.objects.forEach((object: any) => {
-                imageState.imageElements.push({
-                    topLeft: object.top_left,
-                    bottomRight: object.bottom_right,
-                    certainty: object.certainty,
-                    classificationIndex: index
-                });
-            });
-        });
-
+        parseClassificationsFromResponse(JSON.parse(response.data).classifications);
         if (JSON.parse(response.data).id) imageState.resultId = JSON.parse(response.data).id;
         viewState.setState(ViewStates.ImageViewResult);
     });

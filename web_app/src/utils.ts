@@ -1,5 +1,6 @@
-import { config, endpoints } from "./config";
+import { boundingBoxColors, config, endpoints } from "./config";
 import { useUserStateStore } from "./stores/userState";
+import { useImageStateStore } from "./stores/imageState";
 
 export interface Response {
     data: any,
@@ -7,7 +8,8 @@ export interface Response {
 }
 
 export async function sendRequest(
-    uri: string, data: FormData | string | null, method: string = "POST", type: string = "application/json"
+    uri: string, data: FormData | string | null, method: string = "POST",
+    requestType: string = "application/json", toJson: boolean = true
 ) : Promise<Response> {
     try {
         const userState = useUserStateStore();
@@ -19,7 +21,7 @@ export async function sendRequest(
 
         const requestHeaders: HeadersInit = new Headers();
         if (!(data instanceof FormData)) {
-            requestHeaders.append("Content-Type", type);
+            requestHeaders.append("Content-Type", requestType);
         }
         if (userState.isLoggedIn) {
             requestHeaders.append("Authorization", userState.userToken);
@@ -27,7 +29,13 @@ export async function sendRequest(
         request.headers = requestHeaders;
 
         const response = await fetch(uri, request);
-        const result = await response.clone().json().catch(() => response.text());
+        let result;
+        if (toJson) {
+            result = await response.clone().json().catch(() => response.text());
+        }
+        else {
+            result = await response;
+        }
 
         if (config.logResponses) {
             console.log(`Request to ${uri} succeeded (${response.status}). Result: `, result);
@@ -60,6 +68,27 @@ export function createMaskImage(mask: Array<Array<boolean>>) : ImageData {
 
     const imageData = new ImageData(buffer, width, height);
     return imageData;
+}
+
+export function parseClassificationsFromResponse(classifications: Array<any>) : void {
+    const imageState = useImageStateStore();
+    classifications.forEach((element: any, index: number) => {
+        imageState.objectClassifications.push({
+            index: index,
+            classificationName: element.classification,
+            count: element.objects.length,
+            showBoxes: true,
+            boxColor: boundingBoxColors[index % boundingBoxColors.length]
+        });
+        element.objects.forEach((object: any) => {
+            imageState.imageElements.push({
+                topLeft: object.top_left,
+                bottomRight: object.bottom_right,
+                certainty: object.certainty,
+                classificationIndex: index
+            });
+        });
+    });
 }
 
 export function checkServerStatus() : Promise<boolean> {

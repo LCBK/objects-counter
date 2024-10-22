@@ -32,7 +32,7 @@ function onCompare() {
 
 
 onMounted(() => {
-    const requestUri = config.serverUri + endpoints.results;
+    const requestUri = config.serverUri + endpoints.getResults;
     const responsePromise = sendRequest(requestUri, null, "GET");
 
     responsePromise.then((response: Response) => {
