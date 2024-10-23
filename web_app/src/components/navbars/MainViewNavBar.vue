@@ -2,6 +2,7 @@
 import VButton from "primevue/button";
 import { useViewStateStore, ViewStates } from "@/stores/viewState";
 import { useUserStateStore } from "@/stores/userState";
+import SettingsWidget from "../SettingsWidget.vue";
 
 const viewState = useViewStateStore();
 const userState = useUserStateStore();
@@ -10,7 +11,7 @@ const userState = useUserStateStore();
 
 <template>
     <div class="main-view-nav-bar nav-bar bar">
-        <VButton text rounded icon="pi pi-cog" />
+        <SettingsWidget />
         <VButton text rounded icon="pi pi-user" icon-pos="right" class="user-navbar-button"
                 :label=userState.username @click="viewState.setState(ViewStates.UserView)" />
     </div>

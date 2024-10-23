@@ -26,6 +26,7 @@ const renameNewLabel = ref<string>("");
 
 const count = computed(() => imageState.objectClassifications[props.index].count);
 const classificationName = computed(() => imageState.objectClassifications[props.index].classificationName);
+const classificationBoxColor = computed(() => imageState.objectClassifications[props.index].boxColor);
 const showBoxes = computed({
     get() {
         return imageState.objectClassifications[props.index].showBoxes;
@@ -34,6 +35,7 @@ const showBoxes = computed({
         imageState.objectClassifications[props.index].showBoxes = value;
     }
 });
+
 
 function showRenameDialog(oldName: string) {
     renameOldLabel.value = oldName;
@@ -46,7 +48,7 @@ function confirmRename() {
             .replace("{result_id}", imageState.resultId.toString())
             .replace("{classification_name}", renameOldLabel.value);
     const requestData = renameNewLabel.value
-    
+
     const responsePromise = sendRequest(requestUri, requestData, "POST");
     responsePromise.then(() => {
         imageState.objectClassifications[props.index].classificationName = renameNewLabel.value;
@@ -65,7 +67,7 @@ function confirmRename() {
         <VInputSwitch class="quantity-switch" v-model="showBoxes" />
         <VDialog v-model:visible="isRenameDialogVisible" modal :dismissable-mask="true" :draggable="false"
                 header="Change label" class="rename-dialog">
-            <VInputText v-model="renameNewLabel" class="rename-input" :placeholder="renameOldLabel" />
+            <VInputText v-model="renameNewLabel" class="rename-input" :placeholder="renameOldLabel" :autofocus="true" />
             <div class="rename-controls">
                 <VButton outlined label="Cancel" class="rename-cancel" @click="isRenameDialogVisible = false" />
                 <VButton label="Rename" class="rename-rename" @click="confirmRename()" />
@@ -102,6 +104,15 @@ function confirmRename() {
     letter-spacing: 0.3px;
     text-indent: 10px;
     cursor: pointer;
+}
+
+.quantity-classification::before {
+    content: "";
+    width: 10px;
+    height: 10px;
+    background-color: v-bind(classificationBoxColor);
+    display: inline-block;
+    margin-right: 6px;
 }
 
 .quantity-switch {

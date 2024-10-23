@@ -133,34 +133,6 @@ onMounted(() => {
     left: 0;
 }
 
-.waiting-overlay {
-    position: absolute;
-    width: 100%;
-    height: 100%;
-    top: 0;
-    left: 0;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 1000;
-    background: rgba(18, 18, 18, 0.65);
-}
-
-.waiting-overlay .loader {
-    width: 64px;
-    height: 64px;
-}
-
-.waiting-overlay-enter-active,
-.waiting-overlay-leave-active {
-    transition: opacity 0.3s ease;
-}
-
-.waiting-overlay-enter-from,
-.waiting-overlay-leave-to {
-    opacity: 0;
-}
-
 #mask-image {
     object-fit: contain;
     width: 100%;

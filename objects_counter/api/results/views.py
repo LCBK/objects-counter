@@ -52,7 +52,7 @@ class GetResult(Resource):
             result = get_result_by_id(result_id)
             if result.user_id != current_user.id:
                 return Response('Unauthorized', 403)
-            return Response(result, 200)
+            return jsonify(result.as_dict())
         except NotFound as e:
             log.exception("Result %s not found: %s", result_id, e)
             return Response(f"Result {result_id} not found", 404)

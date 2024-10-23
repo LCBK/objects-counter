@@ -1,12 +1,11 @@
 <script setup lang="ts">
-import { config } from '@/config';
 import { useImageStateStore } from '@/stores/imageState';
-import { useViewStateStore } from '@/stores/viewState';
+import { useSettingsStateStore } from '@/stores/settingsState';
 import { computed, defineProps } from 'vue';
 
 
 const imageState = useImageStateStore();
-const viewState = useViewStateStore();
+const settingsState = useSettingsStateStore();
 const props = defineProps({
     topLeft: {                          // top-left corner [x, y]
         type: Array<number>,
@@ -44,9 +43,9 @@ const height = computed(() => (props.bottomRight[1] - props.topLeft[1]) * scale.
             v-bind:data-bottomright="props.bottomRight[0] + ',' + props.bottomRight[1]"
             v-bind:data-certainty="props.certainty" v-bind:data-classification="classification"
             v-if="imageState.objectClassifications[classificationIndex].showBoxes">
-        <div v-if="viewState.showBoundingBoxInfo">
-            <div v-if="config.displayCertainty" class="box-certainty">{{ props.certainty }}</div>
-            <div v-if="config.displayClassifications" class="box-classification">{{ classification }}</div>
+        <div>
+            <div v-if="settingsState.showBoxCertainty" class="box-certainty">{{ props.certainty }}</div>
+            <div v-if="settingsState.showBoxLabel" class="box-classification">{{ classification }}</div>
         </div>
     </div>
 </template>
@@ -67,10 +66,10 @@ const height = computed(() => (props.bottomRight[1] - props.topLeft[1]) * scale.
 .bounding-box .box-certainty {
     background-color: v-bind(boxColor);
     position: absolute;
-    line-height: 14px;
-    bottom: -14px;
+    line-height: 12px;
+    bottom: -12px;
     right: -2px;
-    font-size: 10px;
+    font-size: 9px;
     font-weight: 700;
     color: white;
     padding: 0 3px;
@@ -79,10 +78,10 @@ const height = computed(() => (props.bottomRight[1] - props.topLeft[1]) * scale.
 .bounding-box .box-classification {
     background-color: v-bind(boxColor);
     position: absolute;
-    line-height: 14px;
-    bottom: -14px;
+    line-height: 12px;
+    bottom: -12px;
     left: -2px;
-    font-size: 10px;
+    font-size: 9px;
     font-weight: 700;
     color: white;
     padding: 0 3px;
