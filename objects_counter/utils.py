@@ -1,5 +1,7 @@
 import logging
 
+from PIL import Image as PILImage, ImageOps
+
 from objects_counter.consts import LOG_LEVEL
 from objects_counter.db.models import db
 
@@ -19,3 +21,9 @@ def config_logging():
             logging.FileHandler('objects_counter.log')
         ]
     )
+
+
+def create_thumbnail(image_path, thumbnail_path):
+    with PILImage.open(image_path) as img:
+        thumbnail = ImageOps.fit(img, (256, 256))
+        thumbnail.save(thumbnail_path)

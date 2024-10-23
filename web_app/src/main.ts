@@ -1,5 +1,4 @@
 import "./assets/main.css";
-import "primevue/resources/themes/aura-dark-blue/theme.css";
 import "primeicons/primeicons.css";
 
 import { createApp } from "vue";

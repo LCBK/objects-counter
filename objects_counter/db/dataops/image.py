@@ -7,8 +7,8 @@ from objects_counter.db.models import db, Image, ImageElement
 log = logging.getLogger(__name__)
 
 
-def insert_image(filepath: str) -> Image:
-    image = Image(filepath=filepath)
+def insert_image(filepath: str, thumbnail_path: str) -> Image:
+    image = Image(filepath=filepath, thumbnail=thumbnail_path)
     db.session.add(image)
     try:
         db.session.commit()
@@ -111,10 +111,21 @@ def update_background_points(image_id: int, points: dict) -> None:
         raise
 
 
-def update_element_classification(bounding_box: tuple[tuple[int, int], tuple[int, int]],
-                                  classification: str, certainty: float) -> None:
-    ImageElement.query.filter(ImageElement.top_left == bounding_box[0], ImageElement.bottom_right == bounding_box[1]) \
-        .update({'classification': classification, 'certainty': certainty})
+def update_element_classification(bounding_box: tuple[tuple[int, int], tuple[int, int]], classification: str,
+                                  certainty: float) -> None:
+    ImageElement.query.filter(ImageElement.top_left == bounding_box[0],
+                              ImageElement.bottom_right == bounding_box[1]).update(
+        {'classification': classification, 'certainty': certainty})
+    try:
+        db.session.commit()
+    except DatabaseError as e:
+        log.exception('Failed to update element: %s', e)
+        db.session.rollback()
+        raise
+
+
+def update_element_classification_by_id(element_id: int, classification: str, certainty: float) -> None:
+    ImageElement.query.filter_by(id=element_id).update({'classification': classification, 'certainty': certainty})
     try:
         db.session.commit()
     except DatabaseError as e:

@@ -1,126 +1,96 @@
 import logging
-import os
-import sys
-from typing import List, Dict, Tuple
+from typing import List, Dict, Any, Tuple
 
-import numpy as np
-
-from image_segmentation.constants import TEMP_IMAGE_DIR
 from image_segmentation.object_classification.classifier import ObjectClassifier
-from image_segmentation.utils import crop_image
-from objects_counter.db.models import Image
+from image_segmentation.utils import display_element
+from objects_counter.db.models import Image, ImageElement
 
 log = logging.getLogger(__name__)
 
 
-def compare_number_of_elements(image_1: Image, image_2: Image) -> bool:
+def group_elements_by_classification(elements: List[ImageElement]) -> Dict[str, List[ImageElement]]:
     """
-    Compares the number of objects between two images.
-    Returns True if they match, otherwise False.
+    Groups ImageElements by their classification.
     """
-    num_elements_image_1 = len(image_1.elements)
-    num_elements_image_2 = len(image_2.elements)
-
-    log.info("Number of elements in image 1: %s", num_elements_image_1)
-    log.info("Number of elements in image 2: %s", num_elements_image_2)
-
-    return num_elements_image_1 == num_elements_image_2
-
-
-def crop_and_save_images(image_1: Image, image_2: Image) -> Tuple[List[int], List[int]]:
-    """
-    Crops and saves the first object from each category in image_1 and image_2, and returns their indices.
-    """
-    first_objects_1_indices = []
-    first_objects_2_indices = []
-
-    image_data_1 = np.array(Image.open(image_1.filepath))
-    image_data_2 = np.array(Image.open(image_2.filepath))
-
-    for i, cat in enumerate(image_1.categories):
-        if len(cat) > 0:
-            obj = cat[0]
-            cropped_image = crop_image(image_data_1, obj.top_left_coord, obj.bottom_right_coord)
-            filepath = os.path.join(TEMP_IMAGE_DIR, f"image_1_object_{i}.jpg")
-            cropped_image.save(filepath)
-            first_objects_1_indices.append(i)
-
-    for i, cat in enumerate(image_2.categories):
-        if len(cat) > 0:
-            obj = cat[0]
-            cropped_image = crop_image(image_data_2, obj.top_left_coord, obj.bottom_right_coord)
-            filepath = os.path.join(TEMP_IMAGE_DIR, f"image_2_object_{i}.jpg")
-            cropped_image.save(filepath)
-            first_objects_2_indices.append(len(first_objects_1_indices) + i)
-
-    return first_objects_1_indices, first_objects_2_indices
+    grouped_elements = {}
+    for element in elements:
+        classification = element.classification
+        if classification not in grouped_elements:
+            grouped_elements[classification] = []
+        grouped_elements[classification].append(element)
+    return grouped_elements
 
 
-def compute_similarity_and_map(classifier: ObjectClassifier, objects_1_indices: List[int], objects_2_indices: List[int],
-                               threshold: float, color_weight: float) -> Dict[int, int]:
+def compute_similarity_and_map(classifier, elements_1: List[ImageElement], elements_2: List[ImageElement],
+                               threshold: float = 0.7, color_weight: float = 0.8) -> Dict[int, int]:
     """
     Computes the similarity between the first objects from image_1 and image_2, and updates the category mapping.
     """
-    category_mapping = {}
-    used_indices_2 = set()  # To keep track of used indices from image_2
+    similarity_map = {}
 
-    # Compute embeddings for all cropped objects
-    classifier.compute_embeddings()
+    for idx1, elem1 in enumerate(elements_1):
+        max_similarity = float('-inf')
+        best_match_idx = None
 
-    for idx1 in objects_1_indices:
-        best_similarity = -1
-        most_similar_idx = -1
+        for idx2, elem2 in enumerate(elements_2):
+            similarity = classifier.calculate_similarity(elem1[1], elem2[1], color_weight=color_weight)
 
-        for idx2 in objects_2_indices:
-            if idx2 in used_indices_2:
-                continue
+            if similarity > max_similarity and similarity >= threshold:
+                max_similarity = similarity
+                best_match_idx = idx2
 
-            similarity = classifier.calculate_similarity(idx1, idx2, color_weight)
-            if similarity > best_similarity:
-                best_similarity = similarity
-                most_similar_idx = idx2
+        if best_match_idx is not None:
+            similarity_map[idx1] = best_match_idx
 
-        if most_similar_idx != -1 and best_similarity >= threshold:
-            used_indices_2.add(most_similar_idx)
-            category_mapping[idx1] = most_similar_idx
-
-    return category_mapping
+    return similarity_map
 
 
-def find_missing_elements(image_1: Image, image_2: Image, classifier: ObjectClassifier) -> None:
+def find_missing_elements(image_1: Image, image_2: Image, classifier: ObjectClassifier) -> Dict[str, Any]:
     """
-    Identifies and reports missing elements between two images.
-    Exits with an error if the number of categories does not match.
+    Identifies and reports all missing elements between two images.
+    Returns a structured result including all discrepancies found.
     """
-    # Compare the number of categories between the two images
-    if len(image_1.categories) != len(image_2.categories):
+    elements_1 = get_elements_with_certainty_one(image_1.elements)
+    elements_2 = get_elements_with_certainty_one(image_2.elements)
+
+    if not elements_1 or not elements_2:
+        log.error("Failed to retrieve object elements from the images.")
+        return {"status": "error", "message": "Failed to retrieve object elements from images"}
+
+    if len(elements_1) != len(elements_2):
         log.error("Number of categories does not match between the two images.")
-        sys.exit(1)
+        return {"status": "error", "message": "Number of categories mismatch"}
 
-    if not compare_number_of_elements(image_1, image_2):
-        # Get the indices of objects to compare
-        objects_1_indices, objects_2_indices = crop_and_save_images(image_1, image_2)
+    mapping = compute_similarity_and_map(classifier, elements_1, elements_2, threshold=0.7, color_weight=0.8)
 
-        # Compute the similarity and obtain the mapping
-        mapping = compute_similarity_and_map(classifier,
-                                             objects_1_indices,
-                                             objects_2_indices,
-                                             threshold=0.7,
-                                             color_weight=0.8)
+    missing_elements = []
 
-        image_1_mapped_indices = set(mapping.keys())
+    for i, (classification_1, element_1) in enumerate(elements_1):
+        if i in mapping:
+            mapped_index_2 = mapping[i]
 
-        for idx1, category_1 in enumerate(image_1.categories):
-            if idx1 in image_1_mapped_indices:
-                mapped_idx2 = mapping[idx1]
-                category_2 = image_2.categories[mapped_idx2]
+            element_2 = elements_2[mapped_index_2]
+            classification_2 = element_2[0]
 
-                if len(category_1) != len(category_2):
-                    log.warning(
-                        "Category %s in Image 1 has %s objects: "
-                        "Category %s in Image 2 has %s objects.",
-                        idx1, len(category_1), mapped_idx2, len(category_2)
-                    )
+            category_1_size = sum(1 for element in image_1.elements if element.classification == classification_1)
+            category_2_size = sum(1 for element in image_2.elements if element.classification == classification_2)
 
-    else:
-        log.info("All elements are present.")
+            if category_1_size != category_2_size:
+                display_element(element_1)
+                display_element(element_2)
+                missing_elements.append({"category_image_1": classification_1, "count_image_1": category_1_size,
+                                         "category_image_2": classification_2, "count_image_2": category_2_size})
+
+    return {"status": "success", "missing_elements": missing_elements}
+
+
+def get_elements_with_certainty_one(elements: List[ImageElement]) -> [List[Tuple[int, ImageElement]]]:
+    result = []
+    classifications_seen = set()
+
+    for element in elements:
+        if element.certainty == 1.0 and element.classification not in classifications_seen:
+            result.append((element.classification, element))
+            classifications_seen.add(element.classification)
+
+    return result

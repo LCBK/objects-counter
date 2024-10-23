@@ -40,14 +40,14 @@ const left = computed(() => (props.position[0]) * scale.value - 12 + "px");
     height: 24px;
     line-height: 20px;
     border-radius: 50%;
-    background-color: #60a5fa;
-    color: #121212;
+    background-color: var(--primary-color);
+    color: var(--surface-ground);
     text-align: center;
     font-size: 24px;
     user-select: none;
 }
 
 .selection-point.negative {
-    background-color: #ff6259;
+    background-color: var(--red-400);
 }
 </style>

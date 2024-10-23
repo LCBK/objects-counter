@@ -7,29 +7,31 @@ import time
 import typing
 
 import flask
-from flask import request
+from flask import request, send_file
 from flask_restx import Resource, Namespace
 from werkzeug.datastructures import FileStorage
 from werkzeug.exceptions import NotFound
 from werkzeug.utils import secure_filename
 
 from image_segmentation.object_classification.classifier import ObjectClassifier
-from image_segmentation.object_classification.comparison import compare_number_of_elements
-from image_segmentation.object_classification.feature_extraction import CosineSimilarity
+from image_segmentation.object_classification.comparison import find_missing_elements
+from image_segmentation.object_classification.feature_extraction import FeatureSimilarity, ColorSimilarity
 from image_segmentation.object_detection.object_segmentation import ObjectSegmentation
 from objects_counter.api.default.models import points_model
-from objects_counter.api.utils import authentication_optional
+from objects_counter.api.utils import authentication_optional, authentication_required
 from objects_counter.consts import SAM_CHECKPOINT, SAM_MODEL_TYPE
 from objects_counter.db.dataops.image import insert_image, update_background_points, get_image_by_id
 from objects_counter.db.dataops.result import insert_result
 from objects_counter.db.models import User
+from objects_counter.utils import create_thumbnail
 
 api = Namespace('default', description='Default namespace')
 process_parser = api.parser()
 process_parser.add_argument('image', type=FileStorage, location='files')
 sam = ObjectSegmentation(SAM_CHECKPOINT, model_type=SAM_MODEL_TYPE)
-similarity_model = CosineSimilarity()
-object_grouper = ObjectClassifier(sam, similarity_model)
+feature_similarity_model = FeatureSimilarity()
+color_similarity_model = ColorSimilarity()
+object_grouper = ObjectClassifier(sam, feature_similarity_model, color_similarity_model)
 
 log = logging.getLogger(__name__)
 
@@ -71,9 +73,32 @@ class Process(Resource):
         dst = os.path.join(flask.current_app.config["UPLOAD_FOLDER"], unique_safe_filename)
         image.save(dst)
 
+        thumbnail_path = os.path.join(flask.current_app.config["THUMBNAIL_FOLDER"], unique_safe_filename)
+        create_thumbnail(dst, thumbnail_path)
+
         # save file location in the db
-        image_obj = insert_image(dst)
+        image_obj = insert_image(dst, thumbnail_path)
         return image_obj.id, 201
+
+
+@api.route('/images/<int:image_id>')
+class ImageApi(Resource):
+    @api.doc(params={'image_id': 'The image ID'})
+    @api.response(200, "Image found")
+    @api.response(401, "Unauthorized")
+    @api.response(403, "Forbidden")
+    @api.response(404, "Image not found")
+    @authentication_required
+    def get(self, current_user: User, image_id: int) -> typing.Any:
+        try:
+            image = get_image_by_id(image_id)
+            if image.result.user_id != current_user.id:
+                log.error("User %s is not authorized to access image %s", current_user.id, image_id)
+                return 'Forbidden', 403
+        except NotFound as e:
+            log.exception("Image %s not found: %s", image_id, e)
+            return 'Image not found', 404
+        return send_file(image.filepath)
 
 
 @api.route('/images/<int:image_id>/background')
@@ -147,9 +172,11 @@ class AcceptBackgroundPoints(Resource):
 
         if current_user:
             user_id = current_user.id
-            insert_result(user_id, image.id, response)
+            result = insert_result(user_id, image.id, response)
+            response["id"] = result.id
             return json.dumps(response), 201
         return json.dumps(response), 200
+
 
 # Temporary, to change in the future
 @api.route('/images/compare')
@@ -173,7 +200,7 @@ class CompareImageElements(Resource):
             log.exception("Image %s not found: %s", second_image_id, e)
             return 'Image not found', 404
 
-        result = compare_number_of_elements(first_image, second_image)
+        result = find_missing_elements(first_image, second_image, object_grouper)
 
         response = {
             "first_count": len(first_image.elements),

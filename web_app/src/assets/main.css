@@ -17,9 +17,9 @@
     display: flex;
     flex-direction: row;
     flex-wrap: nowrap;
-    -webkit-box-shadow: 0px 0px 6px 0px rgba(9, 9, 11, 1);
-    -moz-box-shadow: 0px 0px 6px 0px rgba(9, 9, 11, 1);
-    box-shadow: 0px 0px 6px 0px rgba(9, 9, 11, 1);
+    -webkit-box-shadow: 0px 0px 6px 0px var(--color-shadow);
+    -moz-box-shadow: 0px 0px 6px 0px var(--color-shadow);
+    box-shadow: 0px 0px 6px 0px var(--color-shadow);
 }
 
 .nav-bar {
@@ -42,11 +42,16 @@
 
 .image-view-tool-bar .p-button.active {
     background: rgba(96, 165, 250, 0.16);
-    color: #60a5fa;
     border-color: transparent;
 }
 
-/***** PrimeVue scoped styles overrides *****/
+.rename-notice {
+    margin-left: 10px;
+    color: var(--text-color-secondary);
+    opacity: 0.7;
+}
+
+/***** PrimeVue styles overrides *****/
 
 .pi {
     margin-right: 6px;
@@ -74,7 +79,7 @@
 
 .p-dialog-header-icons svg path,
 .p-sidebar-close svg path {
-    fill: #60a5fa;
+    fill: var(--primary-color);
 }
 
 .p-dialog .p-dialog-header .p-dialog-header-icon:focus-visible {
@@ -86,15 +91,19 @@
 }
 
 .p-highlight .p-inputswitch-slider::before {
-    background: #18181b;
+    background: var(--surface-section);
 }
 
 .p-inputgroup-addon .pi {
     margin-right: 0;
-    color: #60a5fa;
+    color: var(--primary-color);
 }
 
 .p-password .p-input-icon {
     z-index: 10;
     margin-top: -0.5rem;
+}
+
+.p-dialog-header {
+    user-select: none;
 }

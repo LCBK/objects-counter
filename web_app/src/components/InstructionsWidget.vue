@@ -38,7 +38,7 @@ onMounted(() => animateButton());
     <VButton v-if="labeled" outlined id="instructions-button" icon="pi pi-info-circle" ref="button"
             @click="visible = true" label="Instructions" class="instructions-button-labeled" />
     <VButton v-else text rounded id="instructions-button" icon="pi pi-info-circle" ref="button"
-            @click="visible = true" :class="{ animated: isButtonAnimated }" />
+            @click="visible = true" :class="{ animated: isButtonAnimated, noShadow: viewState.isWaitingForResponse }" />
     <VDialog v-model:visible="visible" modal header="Instructions" id="instructions-popup" :dismissable-mask="true">
         <div v-if="currentViewState == ViewStates.MainView" class="instructions-text">
             <p>First off, take or upload a picture of the objects you want to count.</p>
@@ -109,7 +109,7 @@ onMounted(() => animateButton());
 }
 
 #instructions-popup .instructions-text {
-    font-weight: 300;
+    font-weight: 400;
     letter-spacing: 0.2px;
 }
 
@@ -144,11 +144,15 @@ onMounted(() => animateButton());
 </style>
 
 <style>
-
 #instructions-button .pi {
     margin-right: 0 !important;
     font-size: 1.5rem;
-    text-shadow: 0px 0px 6px var(--color-background);
+    text-shadow: 0px 0px 6px var(--surface-ground);
+}
+
+#instructions-button.noShadow .pi {
+    text-shadow: none;
+    opacity: 0.4;
 }
 
 #main-view #instructions-button .pi {

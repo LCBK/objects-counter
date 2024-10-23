@@ -120,13 +120,27 @@ onMounted(() => {
     left: calc(16.67vw - 45px);     /* Half of a toolbar button's length minus half of type selector width */
     display: flex;
     justify-content: space-around;
+    color: var(--text-color);
+    font-weight: 700;
+    font-size: 1.3rem;
+    line-height: 2rem;
+}
+
+.light #point-types {
     color: white;
-    font-weight: bold;
+}
+
+#point-types > div:not(.checked) {
+    color: var(--text-color-secondary);
+}
+
+.light #point-types > div:not(.checked) {
+    color: white;
 }
 
 #point-types > div {
     width: 45px;
-    height: 25px;
+    height: 35px;
     z-index: 200;
     text-align: center;
     transition: 0.2s;

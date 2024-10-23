@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { config } from '@/config';
 import { useImageStateStore } from '@/stores/imageState';
 import { useViewStateStore } from '@/stores/viewState';
 import { computed, defineProps } from 'vue';
@@ -44,8 +45,8 @@ const height = computed(() => (props.bottomRight[1] - props.topLeft[1]) * scale.
             v-bind:data-certainty="props.certainty" v-bind:data-classification="classification"
             v-if="imageState.objectClassifications[classificationIndex].showBoxes">
         <div v-if="viewState.showBoundingBoxInfo">
-            <div class="box-certainty">{{ props.certainty }}</div>
-            <div class="box-classification">{{ classification }}</div>
+            <div v-if="config.displayCertainty" class="box-certainty">{{ props.certainty }}</div>
+            <div v-if="config.displayClassifications" class="box-classification">{{ classification }}</div>
         </div>
     </div>
 </template>
@@ -66,10 +67,10 @@ const height = computed(() => (props.bottomRight[1] - props.topLeft[1]) * scale.
 .bounding-box .box-certainty {
     background-color: v-bind(boxColor);
     position: absolute;
-    line-height: 16px;
-    bottom: -16px;
+    line-height: 14px;
+    bottom: -14px;
     right: -2px;
-    font-size: 12px;
+    font-size: 10px;
     font-weight: 700;
     color: white;
     padding: 0 3px;
@@ -78,12 +79,16 @@ const height = computed(() => (props.bottomRight[1] - props.topLeft[1]) * scale.
 .bounding-box .box-classification {
     background-color: v-bind(boxColor);
     position: absolute;
-    line-height: 16px;
-    bottom: -16px;
+    line-height: 14px;
+    bottom: -14px;
     left: -2px;
-    font-size: 12px;
+    font-size: 10px;
     font-weight: 700;
     color: white;
     padding: 0 3px;
+    max-width: v-bind(width);
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
 }
 </style>
