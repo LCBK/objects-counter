@@ -48,7 +48,7 @@ class Version(Resource):
         return '0.1'
 
 
-@api.route('/upload')
+@api.route('/images/upload')
 class Process(Resource):
     @api.expect(process_parser)
     @api.response(201, "Image submitted successfully")

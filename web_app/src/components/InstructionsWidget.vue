@@ -5,15 +5,15 @@ import { useViewStateStore, ViewStates } from "../stores/viewState";
 import { computed, onMounted, ref, watch } from "vue";
 
 
-const visible = defineModel<boolean>();
-const viewState = useViewStateStore();
-
-const currentViewState = computed(() => viewState.currentState);
-const isButtonAnimated = ref<Boolean>();
-
 const props = defineProps({
     labeled: Boolean                // labeled with "Instruction" string and styled as a wider button
 });
+
+const viewState = useViewStateStore();
+
+const visible = defineModel<boolean>();
+const currentViewState = computed(() => viewState.currentState);
+const isButtonAnimated = ref<Boolean>();
 
 
 function animateButton() {
@@ -24,6 +24,7 @@ function animateButton() {
         isButtonAnimated.value = false;
     }, 4000);
 }
+
 
 watch(currentViewState, async () => {
     animateButton();
@@ -36,10 +37,10 @@ onMounted(() => animateButton());
 
 <template>
     <VButton v-if="labeled" outlined id="instructions-button" icon="pi pi-info-circle" ref="button"
-            @click="visible = true" label="Instructions" class="instructions-button-labeled" />
+            @click="visible = true" label="Instructions" class="instructions-button-labeled wide-button" />
     <VButton v-else text rounded id="instructions-button" icon="pi pi-info-circle" ref="button"
             @click="visible = true" :class="{ animated: isButtonAnimated, noShadow: viewState.isWaitingForResponse }" />
-    <VDialog v-model:visible="visible" modal header="Instructions" id="instructions-popup" :dismissable-mask="true">
+    <VDialog v-model:visible="visible" modal header="Instructions" class="popup" id="instructions-popup" :dismissable-mask="true">
         <div v-if="currentViewState == ViewStates.MainView" class="instructions-text">
             <p>First off, take or upload a picture of the objects you want to count.</p>
             <p>To get the best results, follow these guidelines:</p>
@@ -49,6 +50,7 @@ onMounted(() => animateButton());
                 <li>Make the background as uniform as possible</li>
             </ul>
             <p>Follow instructions given in the next steps for more help.</p>
+            <p>You can also sign in to compare different results and track your history.</p>
         </div>
         <div v-else-if="currentViewState == ViewStates.ImageEditPoints" class="instructions-text">
             <p>Select the background in your image that separates objects from one another.</p>
@@ -82,7 +84,7 @@ onMounted(() => animateButton());
 
 
 <style scoped>
-#instructions-button {    
+#instructions-button {
     position: absolute;
     top: 65px;
     right: 8px;
@@ -116,6 +118,10 @@ onMounted(() => animateButton());
 #instructions-popup .instructions-text p {
     margin: 12px 0;
     font-size: 0.9rem;
+}
+
+#instructions-popup .instructions-text p:last-child {
+    margin-bottom: 0;
 }
 
 #instructions-popup .instructions-text ul {
@@ -157,14 +163,6 @@ onMounted(() => animateButton());
 
 #main-view #instructions-button .pi {
     font-size: 1.3rem;
-}
-
-#instructions-popup {
-    width: 90vw;
-}
-
-#instructions-popup .p-dialog-header {
-    padding-bottom: 10px;
 }
 
 #instructions-popup .p-dialog-title {

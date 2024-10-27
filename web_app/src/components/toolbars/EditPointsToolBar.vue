@@ -6,6 +6,7 @@ import { useImageStateStore } from "@/stores/imageState";
 import { createMaskImage, sendRequest } from "@/utils";
 import { computed, onMounted, ref } from "vue";
 
+
 const viewState = useViewStateStore();
 const imageState = useImageStateStore();
 
@@ -16,6 +17,7 @@ const displayPointTypes = ref<Boolean>();
 
 const allButtonsDisabled = computed(() => viewState.isWaitingForResponse);
 const confirmButtonDisabled = computed(() => imageState.points.length === 0);
+
 
 function setPositivePointType() {
     viewState.isPointTypePositive = true;
@@ -48,11 +50,11 @@ function handleConfirmPoints() {
 
     viewState.isWaitingForResponse = true;
     displayPointTypes.value = false;
-    
+
     // Backend returns a background mask
     responsePromise.then((response) => {
         viewState.isWaitingForResponse = false;
-        
+
         const maskImageData = createMaskImage(JSON.parse(response.data).mask);
         const canvas = document.createElement("canvas");
         const ctx = canvas.getContext("2d");
@@ -68,10 +70,11 @@ function handleConfirmPoints() {
         maskImage.onload = () => {
             ctx.drawImage(maskImage, 0, 0);
         };
-        
-        document.querySelector<HTMLImageElement>("#mask-image")!.src = canvas.toDataURL();        
+
+        document.querySelector<HTMLImageElement>("#mask-image")!.src = canvas.toDataURL();
     });
 }
+
 
 onMounted(() => {
     setPositivePointType();
