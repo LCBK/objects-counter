@@ -6,6 +6,7 @@ import { useImageStateStore } from "@/stores/imageState";
 import { useViewStateStore, ViewStates } from "@/stores/viewState";
 import { computed } from "vue";
 
+
 const imageState = useImageStateStore();
 const viewState = useViewStateStore();
 

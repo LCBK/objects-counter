@@ -9,6 +9,7 @@ const imageState = useImageStateStore();
 const displayContainer = ref<HTMLDivElement>();
 const displayedImage = ref<HTMLImageElement>();
 
+
 onMounted(() => {
     if (!displayedImage.value || imageState.url === "" ||
         imageState.url === null || imageState.url === undefined) return;
@@ -40,7 +41,7 @@ onMounted(() => {
     displayContainer.value!.addEventListener("panzoomchange", () => {
         imageState.userZoom = panzoom.getScale();
     });
-    
+
     displayContainer.value!.parentElement!.addEventListener('wheel', (event) => {
         if (!event.shiftKey) return;
         panzoom.zoomWithWheel(event);

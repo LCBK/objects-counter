@@ -9,11 +9,13 @@ import { checkServerStatus } from "@/utils";
 import { onMounted, ref } from "vue";
 import { config } from "@/config";
 
+
 const viewState = useViewStateStore();
 
 const isOffline = ref<boolean>(false);
 const isOnline = ref<boolean>(false);
 const isChecking = ref<boolean>(false);
+
 
 function performServerCheck() {
     Promise.race([
@@ -37,6 +39,7 @@ function onRetry() {
     isChecking.value = true;
     performServerCheck();
 }
+
 
 onMounted(async () => {
     window.setTimeout(() => {
@@ -134,14 +137,6 @@ onMounted(async () => {
 </style>
 
 <style>
-#main-view .p-button-label {
-    font-weight: 600;
-}
-
-#main-view .debug-button .pi {
-    font-size: 1.3rem;
-}
-
 #main-view.server-checking .loader {
     width: 80px;
     height: 80px;
