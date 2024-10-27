@@ -58,7 +58,7 @@ class ObjectClassifier:
     def group_objects_by_similarity(self, image: Image, threshold: float = 0.7, color_weight: float = 0.7) -> None:
         """Groups objects by their similarity based on a combination of feature and color similarity."""
         self.process_elements(image)
-        self.assign_categories_based_on_similarity(image, threshold, color_weight)
+        self.assign_categories_based_on_similarity(image, threshold, 0.4)
         delete_temp_images(TEMP_IMAGE_DIR)
 
     def assign_dataset_categories_to_objects(self, image: Image, dataset, representative_ids: List[int]):

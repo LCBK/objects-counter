@@ -3,12 +3,10 @@ import os
 import cv2
 import numpy as np
 import torch
-import torchvision
 from PIL import Image as PILImage
 from scipy.spatial import distance
 from torch import nn
 from torchvision import transforms as tr
-from torchvision.models import vit_h_14
 
 from image_segmentation.constants import TEMP_IMAGE_DIR
 from image_segmentation.utils import crop_element
@@ -46,7 +44,7 @@ class ImageElementProcessor:
     def _calculate_histogram(self, image_path: str) -> np.ndarray:
         """Calculates the histogram for the image at the given path."""
         image = PILImage.open(image_path)
-        return self.color_similarity_model.compute_color_histogram(image, bins=16)
+        return self.color_similarity_model.compute_color_histogram(image, bins=32)
 
 
 class FeatureSimilarity:
@@ -58,9 +56,7 @@ class FeatureSimilarity:
 
     def load_model(self) -> nn.Module:
         """Loads a pretrained Vision Transformer model."""
-        weights = torchvision.models.ViT_H_14_Weights.DEFAULT
-        model = vit_h_14(weights=weights)
-        model.heads = nn.Sequential(*list(model.heads.children())[:-1])
+        model = torch.hub.load('facebookresearch/dinov2', 'dinov2_vitg14_reg_lc')
         model = model.to(self.device)
         return model
 
@@ -68,14 +64,15 @@ class FeatureSimilarity:
         """Preprocesses the image before embedding extraction."""
         img = PILImage.open(image_path)
         transformations = tr.Compose(
-            [tr.ToTensor(), tr.Normalize((0.485, 0.456, 0.406), (0.229, 0.224, 0.225)), tr.Resize((518, 518))])
+            [tr.ToTensor(), tr.Resize((224, 224), tr.InterpolationMode.BICUBIC),
+             tr.Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225))])
         img = transformations(img).float().unsqueeze_(0).to(self.device)
         return img
 
     def get_embedding(self, image_tensor: torch.Tensor) -> torch.Tensor:
         """Generates the embedding vector for the given image tensor."""
         with torch.no_grad():
-            embedding = self.model(image_tensor).cpu()
+            embedding = self.model(image_tensor)
         return embedding
 
 

@@ -61,7 +61,7 @@ def find_missing_elements(image_1: Image, image_2: Image, classifier: ObjectClas
         log.error("Number of categories does not match between the two images.")
         return {"status": "error", "message": "Number of categories mismatch"}
 
-    mapping = compute_similarity_and_map(classifier, elements_1, elements_2, threshold=0.7, color_weight=0.8)
+    mapping = compute_similarity_and_map(classifier, elements_1, elements_2, threshold=0.7, color_weight=0.7)
 
     missing_elements = []
 
