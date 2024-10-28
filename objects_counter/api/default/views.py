@@ -7,7 +7,7 @@ import time
 import typing
 
 import flask
-from flask import request, send_file
+from flask import request, send_file, Response
 from flask_restx import Resource, Namespace
 from werkzeug.datastructures import FileStorage
 from werkzeug.exceptions import NotFound
@@ -18,7 +18,7 @@ from image_segmentation.object_classification.comparison import find_missing_ele
 from image_segmentation.object_classification.feature_extraction import FeatureSimilarity, ColorSimilarity
 from image_segmentation.object_detection.object_segmentation import ObjectSegmentation
 from objects_counter.api.default.models import points_model
-from objects_counter.api.utils import authentication_optional, authentication_required
+from objects_counter.api.utils import authentication_optional, authentication_required, gzip_compress
 from objects_counter.consts import SAM_CHECKPOINT, SAM_MODEL_TYPE
 from objects_counter.db.dataops.image import insert_image, update_background_points, get_image_by_id
 from objects_counter.db.dataops.result import insert_result
@@ -126,7 +126,9 @@ class BackgroundPoints(Resource):
         update_background_points(image_id, points)
         mask = sam.calculate_mask(image).tolist()
         result = {"mask": mask}
-        return json.dumps(result), 200
+        result_bytes = json.dumps(result).encode('utf-8')
+        compressed_result = gzip_compress(result_bytes)
+        return Response(compressed_result, 200, headers={'Content-Encoding': 'gzip'}, content_type='application/json')
 
 
 @api.route('/images/<int:image_id>/background/accept')

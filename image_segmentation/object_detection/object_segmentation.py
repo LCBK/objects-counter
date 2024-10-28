@@ -61,8 +61,7 @@ class ObjectSegmentation:
         assert self.predictor.is_image_set is True
         self.current_image_id = image.id
 
-
-    def calculate_mask(self, image: Image) -> object:
+    def calculate_mask(self, image: Image) -> np.ndarray:
         """Calculates and assigns a mask to the image based on input points."""
         points = get_background_points(image)
         cache_data = self.get_mask_cache(image.id, points)
@@ -97,7 +96,7 @@ class ObjectSegmentation:
 
         return binary_image
 
-    def remove_small_masks(self, image, contours, threshold_fraction = 0.001):
+    def remove_small_masks(self, image, contours, threshold_fraction=0.001):
         new_contours = []
         image_data = cv2.imread(image.filepath)
         image_pixels = image_data.shape[0] * image_data.shape[1]

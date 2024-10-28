@@ -1,3 +1,5 @@
+import gzip
+import io
 import logging
 from functools import wraps
 from http import HTTPStatus
@@ -87,3 +89,10 @@ def get_user_from_input(data):
     if not username.isalnum() or not validate_password(password):
         raise ValueError('Invalid input data')
     return username, password
+
+
+def gzip_compress(data: bytes) -> bytes:
+    buffer = io.BytesIO()
+    with gzip.GzipFile(fileobj=buffer, mode='wb') as f:
+        f.write(data)
+    return buffer.getvalue()
