@@ -78,6 +78,7 @@ class Process(Resource):
 
         # save file location in the db
         image_obj = insert_image(dst, thumbnail_path)
+        _ = sam.calculate_mask(image_obj)
         return image_obj.id, 201
 
 
