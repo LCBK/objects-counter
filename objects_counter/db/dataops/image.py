@@ -9,6 +9,10 @@ log = logging.getLogger(__name__)
 
 def insert_image(filepath: str, thumbnail_path: str) -> Image:
     image = Image(filepath=filepath, thumbnail=thumbnail_path)
+    image.background_points = {"data": [{
+        "position": [0, 0],
+        "positive": False
+    }]}
     db.session.add(image)
     try:
         db.session.commit()

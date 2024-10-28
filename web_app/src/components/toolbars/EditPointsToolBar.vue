@@ -3,7 +3,7 @@ import VButton from "primevue/button";
 import { useViewStateStore, ViewStates } from "@/stores/viewState";
 import { config, endpoints } from "@/config";
 import { useImageStateStore } from "@/stores/imageState";
-import { createMaskImage, sendRequest } from "@/utils";
+import { parseClassificationsFromResponse, sendRequest } from "@/utils";
 import { computed, onMounted, ref } from "vue";
 
 
@@ -41,37 +41,19 @@ function handleRemoveClick() {
     displayPointTypes.value = false;
 }
 
-function handleConfirmPoints() {
-    if (imageState.points.length === 0) return;
-
-    const requestUri = config.serverUri + endpoints.sendSelection.replace("{image_id}", imageState.imageId.toString());
-    const requestData = JSON.stringify({"data": imageState.points});
-    const responsePromise = sendRequest(requestUri, requestData, "PUT");
+function handleConfirmBackground() {
+    const requestUri = config.serverUri + endpoints.acceptBackground.replace("{image_id}", imageState.imageId.toString());
+    const requestData = JSON.stringify({});
+    const responsePromise = sendRequest(requestUri, requestData, "POST");
 
     viewState.isWaitingForResponse = true;
-    displayPointTypes.value = false;
 
-    // Backend returns a background mask
+    // Backend returns counted and classified image elements
     responsePromise.then((response) => {
         viewState.isWaitingForResponse = false;
-
-        const maskImageData = createMaskImage(JSON.parse(response.data).mask);
-        const canvas = document.createElement("canvas");
-        const ctx = canvas.getContext("2d");
-        if (ctx == undefined) return;
-
-        viewState.setState(ViewStates.ImageConfirmBackground);
-
-        ctx.canvas.width = imageState.width;
-        ctx.canvas.height = imageState.height;
-        ctx.putImageData(maskImageData, 0, 0);
-
-        const maskImage = new Image();
-        maskImage.onload = () => {
-            ctx.drawImage(maskImage, 0, 0);
-        };
-
-        document.querySelector<HTMLImageElement>("#mask-image")!.src = canvas.toDataURL();
+        parseClassificationsFromResponse(JSON.parse(response.data).classifications);
+        if (JSON.parse(response.data).id) imageState.resultId = JSON.parse(response.data).id;
+        viewState.setState(ViewStates.ImageViewResult);
     });
 }
 
@@ -90,8 +72,8 @@ onMounted(() => {
         <VButton text label="Remove points" icon="pi pi-minus"
                 :disabled="allButtonsDisabled" @click="handleRemoveClick"
                 :class="viewState.isRemovingPoint ? 'active ' : '' + 'remove-points'" />
-        <VButton text label="Confirm points" class="confirm-points" icon="pi pi-check"
-                :disabled="confirmButtonDisabled || allButtonsDisabled" @click="handleConfirmPoints" />
+        <VButton text label="Confirm selection" class="confirm-points" icon="pi pi-check"
+                :disabled="confirmButtonDisabled || allButtonsDisabled" @click="handleConfirmBackground" />
     </div>
     <div id="point-types" ref="pointTypePanel" v-show="displayPointTypes">
         <div id="positive-point" ref="positivePointButton" @click="setPositivePointType">+</div>

@@ -40,8 +40,11 @@ def get_result_by_id(result_id: int) -> Result:
     return Result.query.filter_by(id=result_id).one_or_404()
 
 
-def delete_result_by_id(result_id: int) -> None:
-    result = Result.query.get(result_id)
+def delete_result_by_id(result_id: int, user: User) -> None:
+    result = Result.query.filter_by(id=result_id).one_or_404()
+    if not user or result.user_id != user.id:
+        log.error('User %s is not authorized to delete result %s', user, result_id)
+        raise Forbidden(f'User {user} is not authorized to delete result {result_id}')
     db.session.delete(result)
     try:
         db.session.commit()
