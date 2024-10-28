@@ -19,7 +19,7 @@ class ImageElementProcessor:
         self.feature_similarity_model = feature_similarity_model
         self.color_similarity_model = color_similarity_model
 
-    def process_image_element(self, element: ImageElement) -> None:
+    def process_image_element(self, element: ImageElement) -> tuple:
         """Crops, saves, computes embedding, computes histogram, and deletes element image."""
         image = get_image_by_id(element.image_id)
         image_data = np.array(PILImage.open(image.filepath[:-4] + "_processed" + image.filepath[-4:]))
