@@ -126,7 +126,14 @@ class ObjectSegmentation:
         contours = self.__remove_small_masks(image, contours)
         object_count = len(contours)
         log.info("Number of objects detected: %s", object_count)
-
+        img = cv2.imread(image.filepath)
+        fill_color = [255, 255, 255]  # any BGR color value to fill with
+        mask_value = 255
+        stencil = np.zeros(img.shape[:-1]).astype(np.uint8)
+        cv2.fillPoly(stencil, contours, mask_value)
+        sel = stencil != mask_value  # select everything that is not mask_value
+        img[sel] = fill_color
+        cv2.imwrite(image.filepath[:-4] + "_processed" + image.filepath[-4:], img)
         bounding_boxes = self.__get_bounding_boxes(contours)
         bulk_set_elements(image, bounding_boxes)
         return object_count

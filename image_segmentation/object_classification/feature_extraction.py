@@ -22,7 +22,7 @@ class ImageElementProcessor:
     def process_image_element(self, element: ImageElement) -> None:
         """Crops, saves, computes embedding, computes histogram, and deletes element image."""
         image = get_image_by_id(element.image_id)
-        image_data = np.array(PILImage.open(image.filepath))
+        image_data = np.array(PILImage.open(image.filepath[:-4] + "_processed" + image.filepath[-4:]))
 
         cropped_image = crop_element(image_data, element.top_left, element.bottom_right)
 
@@ -44,7 +44,7 @@ class ImageElementProcessor:
     def _calculate_histogram(self, image_path: str) -> np.ndarray:
         """Calculates the histogram for the image at the given path."""
         image = PILImage.open(image_path)
-        return self.color_similarity_model.compute_color_histogram(image, bins=32)
+        return self.color_similarity_model.compute_color_histogram(image, bins=8)
 
 
 class FeatureSimilarity:
@@ -83,16 +83,12 @@ class ColorSimilarity:
     def compute_color_histogram(image: PILImage, bins: int = 16) -> np.ndarray:
         """Computes a color histogram for an image."""
         image = image.convert('RGB')
-        histogram = []
+        histogram = cv2.calcHist([np.array(image)], [0, 1, 2], None, [bins, bins, bins], [0, 256, 0, 256, 0, 256])
+        histogram = cv2.normalize(histogram, histogram, 1.0, 0.0, cv2.NORM_L1)
 
-        for channel in range(3):
-            channel_hist = cv2.calcHist([np.array(image)], [channel], None, [bins], [0, 256])
-            channel_hist = cv2.normalize(channel_hist, channel_hist).flatten()
-            histogram.append(channel_hist)
-
-        return np.concatenate(histogram)
+        return histogram
 
     @staticmethod
     def compute_color_similarity(hist1: np.ndarray, hist2: np.ndarray) -> float:
         """Calculates the Bray-Curtis distance between two histograms."""
-        return 1 - distance.braycurtis(hist1, hist2)
+        return cv2.compareHist(hist1, hist2, cv2.HISTCMP_INTERSECT)
