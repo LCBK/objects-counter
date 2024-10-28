@@ -134,7 +134,7 @@ class ObjectSegmentation:
         cv2.fillPoly(stencil, contours, mask_value)
         sel = stencil != mask_value  # select everything that is not mask_value
         img[sel] = fill_color
-        cv2.imwrite(image.filepath[:-4] + "_processed" + image.filepath[-4:], img)
+        cv2.imwrite(image.filepath[:-4] + "_processed.bmp", img)
         bounding_boxes = self._get_bounding_boxes(contours)
         bulk_set_elements(image, bounding_boxes)
         return object_count

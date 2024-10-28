@@ -22,11 +22,11 @@ class ImageElementProcessor:
     def process_image_element(self, element: ImageElement) -> tuple:
         """Crops, saves, computes embedding, computes histogram, and deletes element image."""
         image = get_image_by_id(element.image_id)
-        image_data = np.array(PILImage.open(image.filepath[:-4] + "_processed" + image.filepath[-4:]))
+        image_data = np.array(PILImage.open(image.filepath[:-4] + "_processed.bmp"))
 
         cropped_image = crop_element(image_data, element.top_left, element.bottom_right)
 
-        temp_image_path = os.path.join(TEMP_IMAGE_DIR, f"element_{element.id}.jpg")
+        temp_image_path = os.path.join(TEMP_IMAGE_DIR, f"element_{element.id}.bmp")
         cropped_image.save(temp_image_path)
 
         embedding = self._calculate_embedding(temp_image_path)
@@ -56,6 +56,7 @@ class FeatureSimilarity:
 
     def load_model(self) -> nn.Module:
         """Loads a pretrained Vision Transformer model."""
+        #todo: load from disk
         model = torch.hub.load('facebookresearch/dinov2', 'dinov2_vitg14_reg_lc')
         model = model.to(self.device)
         return model
@@ -83,7 +84,10 @@ class ColorSimilarity:
     def compute_color_histogram(image: PILImage, bins: int = 16) -> np.ndarray:
         """Computes a color histogram for an image."""
         image = image.convert('RGB')
-        histogram = cv2.calcHist([np.array(image)], [0, 1, 2], None, [bins, bins, bins], [0, 256, 0, 256, 0, 256])
+        mask = np.array([not(np.array(image)[x][y] == np.array([255, 255, 255])).all() for x in range(image.height) for y in range(image.width)])
+        mask.resize(image.height, image.width)
+        cv2.imwrite('/home/shairys/test.jpg', np.array(mask, dtype="uint8") * 255)
+        histogram = cv2.calcHist([np.array(image)], [0, 1, 2], np.array(mask, dtype="uint8"), [bins, bins, bins], [0, 256, 0, 256, 0, 256])
         histogram = cv2.normalize(histogram, histogram, 1.0, 0.0, cv2.NORM_L1)
 
         return histogram
@@ -91,4 +95,5 @@ class ColorSimilarity:
     @staticmethod
     def compute_color_similarity(hist1: np.ndarray, hist2: np.ndarray) -> float:
         """Calculates the Bray-Curtis distance between two histograms."""
+        #todo: test different comp methods and bins
         return cv2.compareHist(hist1, hist2, cv2.HISTCMP_INTERSECT)
