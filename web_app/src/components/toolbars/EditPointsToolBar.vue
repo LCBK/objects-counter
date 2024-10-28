@@ -55,7 +55,7 @@ function handleConfirmPoints() {
     responsePromise.then((response) => {
         viewState.isWaitingForResponse = false;
 
-        const maskImageData = createMaskImage(JSON.parse(response.data).mask);
+        const maskImageData = createMaskImage(response.data.mask);
         const canvas = document.createElement("canvas");
         const ctx = canvas.getContext("2d");
         if (ctx == undefined) return;
