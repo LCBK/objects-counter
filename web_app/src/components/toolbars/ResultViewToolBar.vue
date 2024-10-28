@@ -12,6 +12,16 @@ const viewState = useViewStateStore();
 
 const visible = defineModel<boolean>();
 const classifications = computed(() => imageState.objectClassifications);
+
+
+function handleReturnClick() {
+    viewState.setState(ViewStates.ImageEditPoints);
+    viewState.showBackground = true;
+    imageState.clearResult();
+
+    // Request result to be deleted from database
+    // TODO
+}
 </script>
 
 
@@ -22,8 +32,7 @@ const classifications = computed(() => imageState.objectClassifications);
             <span class="element-count-value">{{ imageState.imageElements.length }}</span>
             <span class="element-count-label">Elements</span>
         </div>
-        <VButton text label="Adjust" class="edit-selection" icon="pi pi-pencil"
-                @click="viewState.setState(ViewStates.ImageEditPoints); imageState.clearResult();" />
+        <VButton text label="Adjust" class="edit-selection" icon="pi pi-pencil" @click="handleReturnClick();" />
     </div>
     <VSidebar v-model:visible="visible" position="bottom" style="height: auto" class="quantities" header="Counted elements">
         <div class="quantities-header">

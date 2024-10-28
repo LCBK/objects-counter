@@ -7,8 +7,6 @@ import UserView from "@/components/views/UserView.vue";
 import DebugView from "@/components/views/DebugView.vue";
 import DebugCompareView from "@/components/views/DebugCompareView.vue";
 import ResultHistoryView from "@/components/views/ResultHistoryView.vue";
-
-import ConfirmPointsToolBar from "@/components/toolbars/ConfirmPointsToolBar.vue";
 import EditPointsToolBar from "@/components/toolbars/EditPointsToolBar.vue";
 import ResultViewToolBar from "@/components/toolbars/ResultViewToolBar.vue";
 import { useImageStateStore } from "./imageState";
@@ -24,7 +22,6 @@ export enum ViewStates {
     DebugCompareView,
     Uploading,
     ImageEditPoints,
-    ImageConfirmBackground,
     ImageViewResult,
     ResultHistoryView
 }
@@ -75,14 +72,6 @@ export const useViewStateStore = defineStore("viewState", {
                     this.currentNavBarTitle = "Select background";
                     this.showPoints = true;
                     this.showBackground = false;
-                    break;
-
-                case ViewStates.ImageConfirmBackground:
-                    this.currentView = ImageView;
-                    this.currentImageViewToolBar = ConfirmPointsToolBar;
-                    this.currentNavBarTitle = "Confirm selection";
-                    this.showPoints = true;
-                    this.showBackground = true;
                     break;
 
                 case ViewStates.ImageViewResult:
