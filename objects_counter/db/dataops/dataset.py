@@ -3,16 +3,24 @@ import logging
 from sqlalchemy.exc import DatabaseError
 from werkzeug.exceptions import Forbidden
 
-from objects_counter.db.dataops.image import get_image_by_id
+from objects_counter.db.dataops.image import get_image_by_id, update_element_classification_by_id
 from objects_counter.db.models import User, Dataset, db
 
 log = logging.getLogger(__name__)
 
 
-def insert_dataset(user_id: int, image_id: int, name: str) -> Dataset:
+def insert_dataset(user_id: int, image_id: int, name: str, classifications: list[dict]) -> Dataset:
     dataset = Dataset(user_id=user_id, name=name)
     image = get_image_by_id(image_id)
     image.dataset = dataset
+    for classification in classifications:
+        elements = classification.get('elements', [])
+        class_name = classification.get('name')
+        if not elements or not class_name:
+            log.error('Classification %s is missing required fields: %s %s', classification, class_name, elements)
+            raise ValueError(f'Classification {classification} is missing required fields')
+        for element in elements:
+            update_element_classification_by_id(element, class_name, 1., do_commit=False)
     db.session.add(image)
     db.session.add(dataset)
     try:

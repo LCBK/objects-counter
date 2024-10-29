@@ -30,9 +30,10 @@ class Datasets(Resource):
         try:
             image_id = data.get('image_id')
             name = data.get('name')
+            classifications = data.get('classifications')
             if not image_id or not name:
                 raise ValueError("Missing required fields")
-            dataset = insert_dataset(current_user.id, image_id, name)
+            dataset = insert_dataset(current_user.id, image_id, name, classifications)
             return jsonify(dataset.as_dict())
         except ValueError as e:
             log.exception("Invalid dataset data: %s", e)

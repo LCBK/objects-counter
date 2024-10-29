@@ -128,11 +128,13 @@ def update_element_classification(bounding_box: tuple[tuple[int, int], tuple[int
         raise
 
 
-def update_element_classification_by_id(element_id: int, classification: str, certainty: float) -> None:
+def update_element_classification_by_id(element_id: int, classification: str, certainty: float,
+                                        do_commit: bool = True) -> None:
     ImageElement.query.filter_by(id=element_id).update({'classification': classification, 'certainty': certainty})
-    try:
-        db.session.commit()
-    except DatabaseError as e:
-        log.exception('Failed to update element: %s', e)
-        db.session.rollback()
-        raise
+    if do_commit:
+        try:
+            db.session.commit()
+        except DatabaseError as e:
+            log.exception('Failed to update element: %s', e)
+            db.session.rollback()
+            raise
