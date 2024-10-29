@@ -38,12 +38,19 @@ function handleReturnClick() {
             <div class="quantities-col">Label<span class="rename-notice">(tap to rename)</span></div>
             <div class="quantities-col">Show boxes</div>
         </div>
-        <QuantitiesEntry v-for="(quantity, index) in classifications" :key="index" :index="quantity.index" />
+        <div class="quantities-content">
+            <QuantitiesEntry v-for="(quantity, index) in classifications" :key="index" :index="quantity.index" />
+            <div v-if="classifications.length === 0" class="no-elements-notice">(no elements found)</div>
+        </div>
     </VSidebar>
 </template>
 
 
 <style scoped>
+.quantities {
+    overflow: hidden;
+}
+
 .quantities-header {
     display: flex;
     font-size: 0.75rem;
@@ -52,6 +59,10 @@ function handleReturnClick() {
     margin: 12px 0 6px 0;
     color: var(--primary-color);
     user-select: none;
+}
+
+.quantities-content {
+    max-height: 60vh;
 }
 
 .quantities-col:nth-child(1) {
@@ -109,6 +120,18 @@ function handleReturnClick() {
 .element-count-label {
     display: block;
     font-weight: 500;
+}
+
+.rename-notice,
+.no-elements-notice {
+    margin-left: 10px;
+    color: var(--text-color-secondary);
+    opacity: 0.7;
+}
+
+.no-elements-notice {
+    margin: 20px 0 10px 0;
+    text-align: center;
 }
 </style>
 
