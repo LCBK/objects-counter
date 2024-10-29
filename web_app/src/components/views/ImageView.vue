@@ -16,8 +16,3 @@ const viewState = useViewStateStore();
         <component :is="viewState.currentImageViewToolBar"></component>
     </div>
 </template>
-
-
-<style scoped>
-
-</style>

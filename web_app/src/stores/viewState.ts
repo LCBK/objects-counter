@@ -33,10 +33,12 @@ const defaultState = {
     isRemovingPoint: false,
     isPointTypePositive: true,
     isWaitingForResponse: false,
+    isEditingExistingResult: false,
     showPoints: true,
     showBackground: false,
     currentNavBarTitle: "",
     currentState: ViewStates.MainView,
+    previousState: ViewStates.MainView,
     currentView: MainView,
     currentImageViewToolBar: EditPointsToolBar
 }
@@ -52,6 +54,7 @@ export const useViewStateStore = defineStore("viewState", {
         },
 
         setState(state: ViewStates) {
+            this.previousState = this.currentState;
             this.currentState = state;
             this.isWaitingForResponse = false;
             this.isAddingPoint = false;

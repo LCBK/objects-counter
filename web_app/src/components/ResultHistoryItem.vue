@@ -78,6 +78,7 @@ function onResultClick() {
 
         const resultData = resultResponse.data.data;
         parseClassificationsFromResponse(resultData.classifications);
+        imageState.resultId = props.id;
     });
 
     viewState.isWaitingForResponse = false;

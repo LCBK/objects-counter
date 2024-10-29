@@ -41,18 +41,25 @@ function handleRemoveClick() {
     displayPointTypes.value = false;
 }
 
-function handleConfirmBackground() {
+async function handleConfirmBackground() {
+    viewState.isWaitingForResponse = true;
+
+    if (viewState.isEditingExistingResult) {
+        const deleteRequestUri = config.serverUri + endpoints.deleteResult.replace("{result_id}", imageState.resultId.toString());
+        const deleteRequestData = JSON.stringify({});
+        await sendRequest(deleteRequestUri, deleteRequestData, "DELETE");
+        viewState.isEditingExistingResult = false;
+    }
+
     const requestUri = config.serverUri + endpoints.acceptBackground.replace("{image_id}", imageState.imageId.toString());
     const requestData = JSON.stringify({});
     const responsePromise = sendRequest(requestUri, requestData, "POST");
 
-    viewState.isWaitingForResponse = true;
-
-    // Backend returns counted and classified image elements
     responsePromise.then((response) => {
         viewState.isWaitingForResponse = false;
         parseClassificationsFromResponse(JSON.parse(response.data).classifications);
         if (JSON.parse(response.data).id) imageState.resultId = JSON.parse(response.data).id;
+        if (viewState.currentState !== ViewStates.ImageEditPoints) return;
         viewState.setState(ViewStates.ImageViewResult);
     });
 }
