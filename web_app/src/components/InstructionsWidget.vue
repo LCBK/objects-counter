@@ -63,13 +63,6 @@ onMounted(() => animateButton());
                 To exclude a part of the image from the background, use "negative" points.
             </p>
         </div>
-        <div v-else-if="currentViewState == ViewStates.ImageConfirmBackground" class="instructions-text">
-            <p>Your image has been processed and the background selected by the algorithm is highlighted on the preview.</p>
-            <p>
-                If the selection is correct, confirm your selection. Objects on the image will now get counted. <br>
-                Otherwise, edit your selection by adjusting the points placed in the previous step.
-            </p>
-        </div>
         <div v-else-if="currentViewState == ViewStates.ImageViewResult" class="instructions-text">
             <p>That's it!</p>
             <p>You can see the element count on the bottom.</p>

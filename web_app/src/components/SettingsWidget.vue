@@ -73,6 +73,7 @@ onMounted(() => {
     justify-content: space-between;
     align-items: center;
     margin-bottom: 12px;
+    user-select: none;
 }
 
 .settings-item:last-child {
@@ -83,6 +84,7 @@ onMounted(() => {
     margin-top: 8px;
     margin-bottom: 12px;
     font-weight: 600;
+    user-select: none;
 }
 
 .settings-heading:not(:first-child) {
