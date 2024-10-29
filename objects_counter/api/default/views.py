@@ -179,13 +179,13 @@ class AcceptBackgroundPoints(Resource):
             if not current_user:
                 return Response('You must be logged in', 401)
             return json.dumps(response), 200
-        else:
-            if current_user:
-                user_id = current_user.id
-                result = insert_result(user_id, image.id, response)
-                response["id"] = result.id
-                return json.dumps(response), 201
-            return json.dumps(response), 200
+
+        if current_user:
+            user_id = current_user.id
+            result = insert_result(user_id, image.id, response)
+            response["id"] = result.id
+            return json.dumps(response), 201
+        return json.dumps(response), 200
 
 
 # Temporary, to change in the future
