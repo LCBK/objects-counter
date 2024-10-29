@@ -53,6 +53,7 @@ function handleConfirmBackground() {
         viewState.isWaitingForResponse = false;
         parseClassificationsFromResponse(JSON.parse(response.data).classifications);
         if (JSON.parse(response.data).id) imageState.resultId = JSON.parse(response.data).id;
+        if (viewState.currentState !== ViewStates.ImageEditPoints) return;
         viewState.setState(ViewStates.ImageViewResult);
     });
 }
