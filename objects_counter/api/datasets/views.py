@@ -14,6 +14,8 @@ from objects_counter.db.models import User
 api = Namespace('results', description='Results related operations')
 log = logging.getLogger(__name__)
 
+# pylint: disable=broad-exception-caught
+
 
 @api.route('/')
 class Datasets(Resource):
