@@ -4,7 +4,8 @@ from objects_counter.api.common import api
 
 classification_model = api.model('Classification', {
     'name': fields.String(required=True, description='The classification name'),
-    'elements': fields.List(fields.Integer, required=True, description='List of element IDs'),
+    'leader': fields.Integer(required=True, description='The leader ID'),
+    'elements': fields.List(fields.Integer, required=True, description='List of element IDs (including leader)'),
 })
 
 insert_dataset_model = api.model('NewDataset', {

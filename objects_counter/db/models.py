@@ -28,6 +28,7 @@ class ImageElement(db.Model):
     classification = db.Column(db.String(255), nullable=True)
     certainty = db.Column(db.Float, nullable=True)
     image = db.relationship('Image', backref='elements')
+    is_leader = db.Column(db.Boolean, nullable=False, default=False)
 
     def as_dict(self):
         return {

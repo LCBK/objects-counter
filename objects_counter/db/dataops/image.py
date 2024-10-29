@@ -138,3 +138,7 @@ def update_element_classification_by_id(element_id: int, classification: str, ce
             log.exception('Failed to update element: %s', e)
             db.session.rollback()
             raise
+
+
+def set_element_as_leader(element_id) -> None:
+    ImageElement.query.filter_by(id=element_id).update({'is_leader': True})
