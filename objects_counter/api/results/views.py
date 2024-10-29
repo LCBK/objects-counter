@@ -7,9 +7,7 @@ from flask_restx import Namespace, Resource
 from flask_restx._http import HTTPStatus
 from werkzeug.exceptions import NotFound, Forbidden
 
-from objects_counter.api.results.models import convert_model
 from objects_counter.api.utils import authentication_required
-from objects_counter.db.dataops.dataset import create_dataset_from_result
 from objects_counter.db.dataops.result import (get_result_by_id, get_user_results_serialized, get_user_results,
                                                rename_classification, delete_result_by_id)
 from objects_counter.db.models import User
