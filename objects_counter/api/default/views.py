@@ -17,7 +17,7 @@ from image_segmentation.object_classification.classifier import ObjectClassifier
 from image_segmentation.object_classification.comparison import find_missing_elements
 from image_segmentation.object_classification.feature_extraction import FeatureSimilarity, ColorSimilarity
 from image_segmentation.object_detection.object_segmentation import ObjectSegmentation
-from objects_counter.api.default.models import points_model
+from objects_counter.api.default.models import points_model, accept_model
 from objects_counter.api.utils import authentication_optional, authentication_required, gzip_compress
 from objects_counter.consts import SAM_CHECKPOINT, SAM_MODEL_TYPE
 from objects_counter.db.dataops.image import insert_image, update_background_points, get_image_by_id
@@ -135,12 +135,14 @@ class BackgroundPoints(Resource):
 @api.route('/images/<int:image_id>/background/accept')
 class AcceptBackgroundPoints(Resource):
     @api.doc(params={'image_id': 'The image ID'})
+    @api.expect(accept_model)
     @api.response(200, "Objects counted")
     @api.response(201, "Objects counted and results saved")
     @api.response(404, "Image not found")
     @api.response(500, "Error processing image")
     @authentication_optional
     def post(self, current_user: User, image_id: int) -> typing.Any:
+        as_dataset = request.json.get('as_dataset', False)
         try:
             image = get_image_by_id(image_id)
         except NotFound as e:
@@ -173,12 +175,17 @@ class AcceptBackgroundPoints(Resource):
 
         response["classifications"] = list(classification_dict.values())
 
-        if current_user:
-            user_id = current_user.id
-            result = insert_result(user_id, image.id, response)
-            response["id"] = result.id
-            return json.dumps(response), 201
-        return json.dumps(response), 200
+        if as_dataset:
+            if not current_user:
+                return Response('You must be logged in', 401)
+            return json.dumps(response), 200
+        else:
+            if current_user:
+                user_id = current_user.id
+                result = insert_result(user_id, image.id, response)
+                response["id"] = result.id
+                return json.dumps(response), 201
+            return json.dumps(response), 200
 
 
 # Temporary, to change in the future

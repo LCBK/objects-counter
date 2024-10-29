@@ -41,7 +41,7 @@ class GetThumbnails(Resource):
 
 
 @api.route('/<int:result_id>')
-class GetResult(Resource):
+class Result(Resource):
     @api.doc(params={'result_id': 'The result ID'})
     @authentication_required
     def get(self, current_user: User, result_id: int) -> typing.Any:
