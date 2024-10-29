@@ -48,6 +48,7 @@ async function handleConfirmBackground() {
         const deleteRequestUri = config.serverUri + endpoints.deleteResult.replace("{result_id}", imageState.resultId.toString());
         const deleteRequestData = JSON.stringify({});
         await sendRequest(deleteRequestUri, deleteRequestData, "DELETE");
+        viewState.isEditingExistingResult = false;
     }
 
     const requestUri = config.serverUri + endpoints.acceptBackground.replace("{image_id}", imageState.imageId.toString());
