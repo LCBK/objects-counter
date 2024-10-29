@@ -29,6 +29,7 @@ export const endpoints = {
     getResults: "/api/results/",
     getResult: "/api/results/{result_id}",
     getResultsThumbnails: "/api/results/thumbnails",
+    deleteResult: "/api/results/{result_id}",
     compareElements: "/api/images/compare",
     renameClassification: "/api/results/{result_id}/classification/{classification_name}/rename"
 };

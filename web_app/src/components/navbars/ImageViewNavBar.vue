@@ -2,7 +2,7 @@
 import VButton from "primevue/button";
 import SettingsWidget from "../SettingsWidget.vue";
 import { useImageStateStore } from "@/stores/imageState";
-import { useViewStateStore } from "@/stores/viewState";
+import { useViewStateStore, ViewStates } from "@/stores/viewState";
 
 
 const viewState = useViewStateStore();
@@ -10,7 +10,12 @@ const viewState = useViewStateStore();
 
 function onBack() {
     useImageStateStore().reset();
-    useViewStateStore().reset();
+    if (viewState.previousState === ViewStates.ResultHistoryView) {
+        viewState.setState(ViewStates.ResultHistoryView);
+    }
+    else {
+        viewState.reset();
+    }
 }
 </script>
 

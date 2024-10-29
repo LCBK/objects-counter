@@ -17,10 +17,8 @@ const classifications = computed(() => imageState.objectClassifications);
 function handleReturnClick() {
     viewState.setState(ViewStates.ImageEditPoints);
     viewState.showBackground = true;
+    viewState.isEditingExistingResult = true;
     imageState.clearResult();
-
-    // Request result to be deleted from database
-    // TODO
 }
 </script>
 
