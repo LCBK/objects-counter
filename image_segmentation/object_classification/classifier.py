@@ -4,14 +4,12 @@ from typing import List, Dict
 import numpy as np
 import torch
 
-from image_segmentation.constants import TEMP_IMAGE_DIR
+from image_segmentation.constants import TEMP_IMAGE_DIR, DEFAULT_COLOR_WEIGHT
 from image_segmentation.object_classification.feature_extraction import FeatureSimilarity, ImageElementProcessor, \
     ColorSimilarity
 from image_segmentation.utils import delete_temp_images
 from objects_counter.db.dataops.image import update_element_classification_by_id
 from objects_counter.db.models import Image, ImageElement
-from image_segmentation.constants import DEFAULT_COLOR_WEIGHT
-
 
 class ObjectClassifier:
 
