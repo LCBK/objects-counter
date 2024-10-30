@@ -115,9 +115,3 @@ class RenameClassification(Resource):
             return Response("Failed to rename classification", 500)
 
 
-@api.route('/<int:result_id>/compare/<int:dataset_id>')
-class CompareResults(Resource):
-    def get(self, result_id: int, dataset_id: int) -> typing.Any:
-        result = get_result_by_id(result_id)
-        elements = result.image.elements
-        return Response(f"{len(elements)}", HTTPStatus.NOT_IMPLEMENTED)

@@ -25,6 +25,10 @@ from objects_counter.db.dataops.result import insert_result
 from objects_counter.db.models import User
 from objects_counter.utils import create_thumbnail
 
+from objects_counter.db.dataops.result import get_result_by_id
+from objects_counter.db.dataops.dataset import get_dataset_by_id
+
+
 api = Namespace('default', description='Default namespace')
 process_parser = api.parser()
 process_parser.add_argument('image', type=FileStorage, location='files')
@@ -220,3 +224,13 @@ class CompareImageElements(Resource):
 
         return json.dumps(response), 200
 
+@api.route('/<int:result_id>/compare/<int:dataset_id>')
+class CompareResults(Resource):
+    def get(self, result_id: int, dataset_id: int) -> typing.Any:
+        result = get_result_by_id(result_id)
+        print(result.image)
+        print(result.image_id)
+        image = get_image_by_id(result.image_id)
+        dataset = get_dataset_by_id(dataset_id)
+        object_grouper.assign_dataset_categories_to_objects(image, dataset)
+        return Response(f"LGTM", 200)

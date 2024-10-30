@@ -61,12 +61,10 @@ class ObjectClassifier:
         self.assign_categories_based_on_similarity(image, threshold, 0.4)
         delete_temp_images(TEMP_IMAGE_DIR)
 
-    def assign_dataset_categories_to_objects(self, image: Image, dataset, representative_ids: List[int]):
+    def assign_dataset_categories_to_objects(self, image: Image, dataset):
         self.process_elements(image)
-        categories_representatives = []
-        # todo:
-        # categories_representatives = #get imageElements of representatives_ids
-        # get categories representatives present in dataset and add them to categories_representatives variable
+        dataset_image = dataset.images[0]
+        categories_representatives = [element for element in dataset_image.elements if element.is_leader]
         for element in image.elements:
             best_certainty = 0
             best_category = -1
