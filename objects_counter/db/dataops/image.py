@@ -142,3 +142,26 @@ def update_element_classification_by_id(element_id: int, classification: str, ce
 
 def set_element_as_leader(element_id) -> None:
     ImageElement.query.filter_by(id=element_id).update({'is_leader': True})
+
+
+def serialize_image_resultlike(image: Image) -> dict:
+    classification_dict = {}
+    count = 0
+    for element in image.elements:
+        element_data = element.as_dict()
+
+        element_data["certainty"] = round(element.certainty, 2)
+
+        if element.classification not in classification_dict:
+            classification_dict[element.classification] = {
+                "classification": element.classification,
+                "objects": []
+            }
+
+        classification_dict[element.classification]["objects"].append(element_data)
+        count += 1
+
+    return {
+        "count": count,
+        "classifications": list(classification_dict.values())
+    }

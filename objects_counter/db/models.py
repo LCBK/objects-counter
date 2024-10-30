@@ -18,6 +18,15 @@ class Image(db.Model):
     dataset_id = db.Column(db.Integer, db.ForeignKey('dataset.id'), nullable=True)
     dataset = db.relationship('Dataset', backref='images')
 
+    def as_dict(self):
+        return {
+            'id': self.id,
+            'thumbnail': self.thumbnail,
+            'timestamp': self.timestamp,
+            'background_points': self.background_points,
+            'elements': [element.as_dict() for element in self.elements]
+        }
+
 
 class ImageElement(db.Model):
     __tablename__ = 'image_element'

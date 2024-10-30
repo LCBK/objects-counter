@@ -7,6 +7,7 @@ from flask import request, Response, current_app
 from flask_restx import Namespace, Resource
 
 from objects_counter.api.utils import get_user_from_input
+from objects_counter.api.users.models import user_model
 from objects_counter.db.dataops.user import login, insert_user
 
 api = Namespace('users', description='Users related operations')
@@ -14,8 +15,9 @@ log = logging.getLogger(__name__)
 # pylint: disable=too-few-public-methods, broad-exception-caught
 
 
-@api.route('/login', doc=False)
+@api.route('/login')
 class Login(Resource):
+    @api.expect(user_model)
     def post(self) -> typing.Any:
         data = request.json
         try:
@@ -39,8 +41,9 @@ class Login(Resource):
             return Response("Failed to generate a token", status=500)
 
 
-@api.route('/register', doc=False)
+@api.route('/register')
 class Register(Resource):
+    @api.expect(user_model)
     def post(self) -> typing.Any:
         data = request.json
         try:

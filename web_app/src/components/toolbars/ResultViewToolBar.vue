@@ -65,7 +65,7 @@ function compareToDataset() {
             console.log("Comparison successful");
             imageState.objectClassifications = [];
             imageState.imageElements = [];
-            parseClassificationsFromResponse(JSON.parse(response.data).classifications);
+            parseClassificationsFromResponse(response.data.classifications);
         }
         else {
             console.error("Comparison failed");
