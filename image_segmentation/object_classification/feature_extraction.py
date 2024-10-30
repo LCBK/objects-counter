@@ -87,7 +87,6 @@ class ColorSimilarity:
                          for x in range(image.height)
                          for y in range(image.width)])
         mask.resize(image.height, image.width)
-        cv2.imwrite('/home/shairys/test.jpg', np.array(mask, dtype="uint8") * 255)
         histogram = cv2.calcHist([np.array(image)], [0, 1, 2], np.array(mask, dtype="uint8"),
                                  [bins, bins, bins],[0, 256, 0, 256, 0, 256])
         histogram = cv2.normalize(histogram, histogram, 1.0, 0.0, cv2.NORM_L1)
