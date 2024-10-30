@@ -1,16 +1,84 @@
 <script setup lang="ts">
 import VButton from "primevue/button";
 import VSidebar from "primevue/sidebar";
+import VInputText from "primevue/inputtext";
 import QuantitiesEntry from "../QuantitiesEntry.vue";
 import { useImageStateStore } from "@/stores/imageState";
-import { useViewStateStore, ViewStates } from "@/stores/viewState";
-import { computed } from "vue";
+import { ImageAction, useViewStateStore, ViewStates } from "@/stores/viewState";
+import { computed, ref } from "vue";
+import { config, endpoints } from "@/config";
+import { sendRequest } from "@/utils";
+
 
 const imageState = useImageStateStore();
 const viewState = useViewStateStore();
 
-const visible = defineModel<boolean>();
+const visible = ref<boolean>();
+const leaderIds = ref<string>();                // temporary
+const comparisonDatasetId = ref<string>();      // temporary
 const classifications = computed(() => imageState.objectClassifications);
+
+
+function handleReturnClick() {
+    viewState.setState(ViewStates.ImageEditPoints);
+    viewState.showBackground = true;
+    viewState.isEditingExistingResult = true;
+    imageState.clearResult();
+}
+
+function submitClassificationLeaders() {
+    // TODO: temporary, rework
+    const ids = leaderIds.value?.split(" ").map(id => parseInt(id));
+    const classifications = imageState.objectClassifications.map((classification) => {
+        return {
+            name: classification.classificationName,
+            leader: 0,
+            elements: [] as Array<number>
+        };
+    });
+    imageState.imageElements.forEach((element) => {
+        const id = element.id;
+        const name = imageState.objectClassifications[element.classificationIndex].classificationName;
+        const isLeader = ids?.includes(id);
+        classifications[element.classificationIndex].elements.push(id);
+        if (isLeader) classifications[element.classificationIndex].leader = id;
+    });
+
+    const requestUri = config.serverUri + endpoints.createDataset;
+    const requestData = JSON.stringify({
+        image_id: imageState.imageId,
+        name: "Test dataset " + imageState.imageId,
+        classifications: classifications
+    });
+    const requestPromise = sendRequest(requestUri, requestData, "POST");
+    requestPromise.then((response) => {
+        if (response.status === 200) {
+            console.log("Dataset created successfully");
+            viewState.reset();
+            imageState.reset();
+        }
+        else {
+            console.error("Failed to create dataset");
+        }
+    });
+}
+
+function compareToDataset() {
+    // TODO: temporary, rework
+    const requestUri = config.serverUri + endpoints.compareToDataset
+            .replace("{result_id}", imageState.resultId.toString())
+            .replace("{dataset_id}", comparisonDatasetId.value!.toString());
+    const requestPromise = sendRequest(requestUri, null, "GET");
+    requestPromise.then((response) => {
+        if (response.status === 200) {
+            console.log("Comparison successful");
+            console.log(response.data);             // change, not implemented yet
+        }
+        else {
+            console.error("Comparison failed");
+        }
+    });
+}
 </script>
 
 
@@ -21,21 +89,46 @@ const classifications = computed(() => imageState.objectClassifications);
             <span class="element-count-value">{{ imageState.imageElements.length }}</span>
             <span class="element-count-label">Elements</span>
         </div>
-        <VButton text label="Adjust" class="edit-selection" icon="pi pi-pencil"
-                @click="viewState.setState(ViewStates.ImageEditPoints); imageState.clearResult();" />
+        <VButton text label="Adjust" class="edit-selection" icon="pi pi-pencil" @click="handleReturnClick();" />
     </div>
+    <!-- TEMPORARY SOLUTION -->
+    <!-- TODO: implement as clicking on bounding boxes of leaders -->
+    <div class="leader-input" v-if="viewState.currentAction === ImageAction.CreateDataset"
+            style="position: absolute; bottom: 120px; left: 50%; transform: translateX(-50%);">
+        <p style="text-align: center; margin-bottom: 10px; color: var(--primary-color);">Leader IDs separated with spaces</p>
+        <VInputText v-model="leaderIds" />
+        <VButton text label="Submit" @click="submitClassificationLeaders"
+                style="left: 50%; transform: translateX(-50%);" />
+    </div>
+    <div class="compare-results" v-if="viewState.currentAction === ImageAction.Compare"
+            style="position: absolute; bottom: 120px; left: 50%; transform: translateX(-50%);">
+        <p style="text-align: center; margin-bottom: 10px; font-size: 13px; color: var(--primary-color);">
+            Enter dataset ID to compare to (read from earlier console.log, turn on persistent logs if troublesome)
+        </p>
+        <VInputText v-model="comparisonDatasetId" />
+        <VButton text label="Submit" @click="compareToDataset"
+                style="left: 50%; transform: translateX(-50%);" />
+    </div>
+    <!-- ================== -->
     <VSidebar v-model:visible="visible" position="bottom" style="height: auto" class="quantities" header="Counted elements">
         <div class="quantities-header">
             <div class="quantities-col">Count</div>
             <div class="quantities-col">Label<span class="rename-notice">(tap to rename)</span></div>
             <div class="quantities-col">Show boxes</div>
         </div>
-        <QuantitiesEntry v-for="(quantity, index) in classifications" :key="index" :index="quantity.index" />
+        <div class="quantities-content">
+            <QuantitiesEntry v-for="(quantity, index) in classifications" :key="index" :index="quantity.index" />
+            <div v-if="classifications.length === 0" class="no-elements-notice">(no elements found)</div>
+        </div>
     </VSidebar>
 </template>
 
 
 <style scoped>
+.quantities {
+    overflow: hidden;
+}
+
 .quantities-header {
     display: flex;
     font-size: 0.75rem;
@@ -44,6 +137,10 @@ const classifications = computed(() => imageState.objectClassifications);
     margin: 12px 0 6px 0;
     color: var(--primary-color);
     user-select: none;
+}
+
+.quantities-content {
+    max-height: 60vh;
 }
 
 .quantities-col:nth-child(1) {
@@ -101,6 +198,18 @@ const classifications = computed(() => imageState.objectClassifications);
 .element-count-label {
     display: block;
     font-weight: 500;
+}
+
+.rename-notice,
+.no-elements-notice {
+    margin-left: 10px;
+    color: var(--text-color-secondary);
+    opacity: 0.7;
+}
+
+.no-elements-notice {
+    margin: 20px 0 10px 0;
+    text-align: center;
 }
 </style>
 

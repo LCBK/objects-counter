@@ -2,7 +2,7 @@
 import { ref } from "vue";
 import VButton from "primevue/button";
 import { useImageStateStore } from "@/stores/imageState";
-import { useViewStateStore, ViewStates } from "@/stores/viewState";
+import { ImageAction, useViewStateStore, ViewStates } from "@/stores/viewState";
 import { sendRequest } from "@/utils";
 import { config, endpoints } from "@/config";
 
@@ -11,16 +11,32 @@ const imageState = useImageStateStore();
 const viewState = useViewStateStore();
 const captureInput = ref<HTMLInputElement>();
 const uploadInput = ref<HTMLInputElement>();
+const datasetInput = ref<HTMLInputElement>();
+const compareInput = ref<HTMLInputElement>();
 
 
 function onCaptureClick() : void {
     if (!captureInput.value) return;
     captureInput.value.click();
+    viewState.currentAction = ImageAction.Simple;
 }
 
 function onUploadClick() : void {
     if (!uploadInput.value) return;
     uploadInput.value.click();
+    viewState.currentAction = ImageAction.Simple;
+}
+
+function onCreateDatasetClick() : void {
+    if (!uploadInput.value) return;
+    uploadInput.value.click();
+    viewState.currentAction = ImageAction.CreateDataset;
+}
+
+function onCompareClick() : void {
+    if (!uploadInput.value) return;
+    uploadInput.value.click();
+    viewState.currentAction = ImageAction.Compare;
 }
 
 function onImageUpload(event: Event) : void {
@@ -60,13 +76,20 @@ function onImageUpload(event: Event) : void {
 
 <template>
     <div class="image-select">
-        <VButton class="wide-button" label="Capture image" icon="pi pi-camera" @click="onCaptureClick()"></VButton>
-        <VButton class="wide-button" label="Upload image" icon="pi pi-upload" @click="onUploadClick()"></VButton>
+        <VButton class="wide-button" label="Capture image" icon="pi pi-camera" @click="onCaptureClick()" />
+        <VButton class="wide-button" label="Upload image" icon="pi pi-upload" @click="onUploadClick()" />
+        <VButton class="wide-button" label="Create dataset" icon="pi pi-upload" @click="onCreateDatasetClick()" />
+        <VButton class="wide-button" label="Compare" icon="pi pi-upload" @click="onCompareClick()" />
     </div>
     <div class="image-select-inputs">
         <input type="file" name="image-capture" ref="captureInput"
             accept="image/*" capture="environment" @change.stop.prevent="onImageUpload($event)" />
         <input type="file" name="image-upload" ref="uploadInput"
+            accept="image/*" @change.stop.prevent="onImageUpload($event)" />
+        <!-- TODO: Cleanup -->
+        <input type="file" name="image-dataset" ref="datasetInput"
+            accept="image/*" @change.stop.prevent="onImageUpload($event)" />
+        <input type="file" name="image-compare" ref="compareInput"
             accept="image/*" @change.stop.prevent="onImageUpload($event)" />
     </div>
 </template>

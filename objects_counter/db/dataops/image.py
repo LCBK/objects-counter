@@ -7,8 +7,12 @@ from objects_counter.db.models import db, Image, ImageElement
 log = logging.getLogger(__name__)
 
 
-def insert_image(filepath: str) -> Image:
-    image = Image(filepath=filepath)
+def insert_image(filepath: str, thumbnail_path: str) -> Image:
+    image = Image(filepath=filepath, thumbnail=thumbnail_path)
+    image.background_points = {"data": [{
+        "position": [0, 0],
+        "positive": False
+    }]}
     db.session.add(image)
     try:
         db.session.commit()
@@ -124,11 +128,17 @@ def update_element_classification(bounding_box: tuple[tuple[int, int], tuple[int
         raise
 
 
-def update_element_classification_by_id(element_id: int, classification: str, certainty: float) -> None:
+def update_element_classification_by_id(element_id: int, classification: str, certainty: float,
+                                        do_commit: bool = True) -> None:
     ImageElement.query.filter_by(id=element_id).update({'classification': classification, 'certainty': certainty})
-    try:
-        db.session.commit()
-    except DatabaseError as e:
-        log.exception('Failed to update element: %s', e)
-        db.session.rollback()
-        raise
+    if do_commit:
+        try:
+            db.session.commit()
+        except DatabaseError as e:
+            log.exception('Failed to update element: %s', e)
+            db.session.rollback()
+            raise
+
+
+def set_element_as_leader(element_id) -> None:
+    ImageElement.query.filter_by(id=element_id).update({'is_leader': True})

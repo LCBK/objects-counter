@@ -7,6 +7,7 @@ import { useUserStateStore } from '@/stores/userState';
 import { config, endpoints } from '@/config';
 import { type Response, sendRequest } from '@/utils';
 
+
 const userState = useUserStateStore();
 const viewState = useViewStateStore();
 
@@ -14,6 +15,7 @@ const firstImageId = ref<string>();
 const secondImageId = ref<string>();
 const userResults = ref<string>();
 const comparisonResult = ref<string>();
+
 
 function onCompare() {
     const requestUri = config.serverUri + endpoints.compareElements;
@@ -28,8 +30,9 @@ function onCompare() {
     });
 }
 
+
 onMounted(() => {
-    const requestUri = config.serverUri + endpoints.results;
+    const requestUri = config.serverUri + endpoints.getResults;
     const responsePromise = sendRequest(requestUri, null, "GET");
 
     responsePromise.then((response: Response) => {
@@ -50,7 +53,7 @@ onMounted(() => {
         <VInputText v-model="secondImageId" />
         <p style="margin-top: 15px;">Comparison result:</p>
         <pre class="comparepre">{{ comparisonResult }}</pre>
-        <VButton class="compare-button wide-button" label="Compare results" 
+        <VButton class="compare-button wide-button" label="Compare results"
                 @click="onCompare()" />
         <VButton class="return-button wide-button" icon="pi pi-chevron-left" outlined
                 label="Return" @click="viewState.setState(ViewStates.DebugView)" />

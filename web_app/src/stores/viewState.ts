@@ -6,12 +6,10 @@ import ImageView from "@/components/views/ImageView.vue";
 import UserView from "@/components/views/UserView.vue";
 import DebugView from "@/components/views/DebugView.vue";
 import DebugCompareView from "@/components/views/DebugCompareView.vue";
-
-import ConfirmPointsToolBar from "@/components/toolbars/ConfirmPointsToolBar.vue";
+import ResultHistoryView from "@/components/views/ResultHistoryView.vue";
 import EditPointsToolBar from "@/components/toolbars/EditPointsToolBar.vue";
 import ResultViewToolBar from "@/components/toolbars/ResultViewToolBar.vue";
 import { useImageStateStore } from "./imageState";
-import { themeUrls } from "@/config";
 
 
 // Stores data about current application states and views
@@ -24,8 +22,15 @@ export enum ViewStates {
     DebugCompareView,
     Uploading,
     ImageEditPoints,
-    ImageConfirmBackground,
-    ImageViewResult
+    ImageViewResult,
+    ResultHistoryView
+}
+
+// TODO: refine, rename? what about capture/upload?
+export enum ImageAction {
+    Simple,
+    CreateDataset,
+    Compare
 }
 
 const defaultState = {
@@ -35,11 +40,13 @@ const defaultState = {
     isRemovingPoint: false,
     isPointTypePositive: true,
     isWaitingForResponse: false,
+    isEditingExistingResult: false,
     showPoints: true,
     showBackground: false,
-    showBoundingBoxInfo: true,
     currentNavBarTitle: "",
     currentState: ViewStates.MainView,
+    previousState: ViewStates.MainView,
+    currentAction: ImageAction.Simple,
     currentView: MainView,
     currentImageViewToolBar: EditPointsToolBar
 }
@@ -55,6 +62,7 @@ export const useViewStateStore = defineStore("viewState", {
         },
 
         setState(state: ViewStates) {
+            this.previousState = this.currentState;
             this.currentState = state;
             this.isWaitingForResponse = false;
             this.isAddingPoint = false;
@@ -77,14 +85,6 @@ export const useViewStateStore = defineStore("viewState", {
                     this.showBackground = false;
                     break;
 
-                case ViewStates.ImageConfirmBackground:
-                    this.currentView = ImageView;
-                    this.currentImageViewToolBar = ConfirmPointsToolBar;
-                    this.currentNavBarTitle = "Confirm selection";
-                    this.showPoints = true;
-                    this.showBackground = true;
-                    break;
-
                 case ViewStates.ImageViewResult:
                     this.currentView = ImageView;
                     this.currentImageViewToolBar = ResultViewToolBar;
@@ -104,6 +104,10 @@ export const useViewStateStore = defineStore("viewState", {
                 case ViewStates.DebugCompareView:
                     this.currentView = DebugCompareView;
                     break;
+
+                case ViewStates.ResultHistoryView:
+                    this.currentView = ResultHistoryView;
+                    break;
             }
         },
 
@@ -115,27 +119,6 @@ export const useViewStateStore = defineStore("viewState", {
         toggleRemovePoint() {
             this.isRemovingPoint = !this.isRemovingPoint;
             if (this.isRemovingPoint) this.isAddingPoint = false;
-        },
-
-        setDarkTheme() {
-            (document.getElementById("theme-link") as HTMLLinkElement).href = themeUrls.dark;
-            document.documentElement.classList.add("dark");
-            document.documentElement.classList.remove("light");
-        },
-
-        setLightTheme() {
-            (document.getElementById("theme-link") as HTMLLinkElement).href = themeUrls.light;
-            document.documentElement.classList.add("light");
-            document.documentElement.classList.remove("dark");
-        },
-
-        setThemeToPreferred() {
-            if (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches) {
-                this.setDarkTheme();
-            }
-            else {
-                this.setLightTheme();
-            }
         }
     }
 });

@@ -1,4 +1,5 @@
 export interface ImageElement {
+    id: number,
     topLeft: [number, number],
     bottomRight: [number, number],
     certainty: number,
@@ -16,4 +17,13 @@ export interface ObjectClassification {
 export interface BackgroundPoint {
     position: [number, number]
     positive: boolean,                    // true - positive, false - negative
+}
+
+export interface ResultHistoryItem {
+    id: number,
+    imageId: number,
+    thumbnailUri?: string,
+    timestamp: number,
+    classificationCount: number,
+    elementCount: number
 }

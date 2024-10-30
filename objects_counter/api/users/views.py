@@ -9,7 +9,7 @@ from flask_restx import Namespace, Resource
 from objects_counter.api.utils import get_user_from_input
 from objects_counter.db.dataops.user import login, insert_user
 
-api = Namespace('results', description='Results related operations')
+api = Namespace('users', description='Users related operations')
 log = logging.getLogger(__name__)
 # pylint: disable=too-few-public-methods, broad-exception-caught
 

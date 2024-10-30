@@ -11,6 +11,7 @@ import { computed, ref } from "vue";
 import { config, endpoints } from "@/config";
 import { type Response, sendRequest } from "@/utils";
 
+
 const viewState = useViewStateStore();
 const userState = useUserStateStore();
 
@@ -37,6 +38,7 @@ const isRegisterValid = computed(() => {
         password.value == confirmPassword.value
     );
 })
+
 
 function validateUsername(username: string) {
     if (username === undefined) return false;
@@ -76,7 +78,7 @@ function submitLoginForm() {
         "username": username.value,
         "password": password.value
     });
-    
+
     const responsePromise = sendRequest(requestUri, requestData, "POST");
     responsePromise.then((response: Response) => {
         if (response.status === 200) {
@@ -139,8 +141,15 @@ function showErrorDialog(text: string) {
     <div id="user-view" class="view">
         <Transition name="user-fade" mode="out-in">
             <div v-if="userState.isLoggedIn" class="user-container user-details">
-                <p style="color: var(--text-color)">Currently logged in as: <span>{{ userState.username }}</span></p>
-                <p style="color: var(--text-color)">TODO: more details</p>
+                <div class="user-details-header">
+                    <i class="pi pi-user"></i>
+                    <p class="user-details-name">{{ userState.username }}</p>
+                </div>
+                <div class="user-details-actions">
+                    <VButton class="results-button wide-button" icon="pi pi-calendar" label="Result history" @click="viewState.setState(ViewStates.ResultHistoryView)" />
+                    <VButton class="results-button wide-button" icon="pi pi-calendar" label="Comparison history" />
+                    <VButton class="datasets-button wide-button" icon="pi pi-images" label="Datasets" />
+                </div>
                 <VButton class="logout-button wide-button" icon="pi pi-sign-out" label="Logout" @click="onLogout()" />
             </div>
             <div v-else-if="!isRegistering" class="user-container user-login">
@@ -271,11 +280,7 @@ function showErrorDialog(text: string) {
     height: 38px;
     width: 100%;
     max-width: 100%;
-    margin-top: 24px;
-}
-
-#user-view .logout-button {
-    margin-top: 20px;
+    margin-top: 16px;
 }
 
 #user-view .register-notice {
@@ -298,6 +303,47 @@ function showErrorDialog(text: string) {
     position: absolute;
     bottom: 40px;
 }
+
+#user-view .user-details .logout-button {
+    position: absolute;
+    bottom: 110px;
+}
+
+#user-view .user-details {
+    height: 100%;
+    justify-content: flex-start;
+    margin-bottom: 120px;
+    margin-top: 20px;
+}
+
+#user-view .user-details-header {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    color: var(--primary-color);
+    width: 100%;
+    padding: 40px;
+}
+
+#user-view .user-details-header i {
+    font-size: 3.5rem;
+    margin: 0 0 20px 0;
+}
+
+#user-view .user-details-name {
+    font-size: 1.35rem;
+    font-weight: 700;
+    letter-spacing: 0.4px;
+}
+
+#user-view .user-details-actions {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+    margin-top: 20px;
+    width: 100%;
+}
 </style>
 
 <style>
@@ -316,5 +362,10 @@ function showErrorDialog(text: string) {
 .user-dialog .p-dialog-header > span {
     width: 100%;
     text-align: center;
+}
+
+#user-view .login-button .pi,
+#user-view .register-button .pi {
+    font-size: 1.1rem;
 }
 </style>
