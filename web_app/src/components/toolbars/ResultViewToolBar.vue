@@ -29,19 +29,26 @@ function handleReturnClick() {
 function submitClassificationLeaders() {
     // TODO: temporary, rework
     const ids = leaderIds.value?.split(" ").map(id => parseInt(id));
-    const classifications = imageState.objectClassifications.map((classification) => {
+    // const classifications = imageState.objectClassifications.map((classification) => {
+    //     return {
+    //         name: classification.classificationName,
+    //         leader: 0,
+    //         elements: [] as Array<number>
+    //     };
+    // });
+    // imageState.imageElements.forEach((element) => {
+    //     const id = element.id;
+    //     const name = imageState.objectClassifications[element.classificationIndex].classificationName;
+    //     const isLeader = ids?.includes(id);
+    //     classifications[element.classificationIndex].elements.push(id);
+    //     if (isLeader) classifications[element.classificationIndex].leader = id;
+    // });
+    const classifications = ids!.map((id) => {
         return {
-            name: classification.classificationName,
-            leader: 0,
-            elements: [] as Array<number>
+            name: "Leader " + id,
+            leader: id,
+            elements: [id]
         };
-    });
-    imageState.imageElements.forEach((element) => {
-        const id = element.id;
-        const name = imageState.objectClassifications[element.classificationIndex].classificationName;
-        const isLeader = ids?.includes(id);
-        classifications[element.classificationIndex].elements.push(id);
-        if (isLeader) classifications[element.classificationIndex].leader = id;
     });
 
     const requestUri = config.serverUri + endpoints.createDataset;
