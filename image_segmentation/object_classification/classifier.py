@@ -64,7 +64,8 @@ class ObjectClassifier:
     def assign_dataset_categories_to_objects(self, image: Image, dataset):
         self.process_elements(image)
         dataset_image = dataset.images[0]
-        categories_representatives = [element for element in dataset_image.elements if element.is_leader]
+        self.process_elements(dataset_image)
+        categories_representatives = [[element, element.classification] for element in dataset_image.elements if element.is_leader]
         for element in image.elements:
             best_certainty = 0
             best_category = -1
