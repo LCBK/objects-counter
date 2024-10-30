@@ -36,6 +36,7 @@ class ImageElement(db.Model):
             'top_left': self.top_left,
             'bottom_right': self.bottom_right,
             'certainty': self.certainty,
+            'classification': self.classification,
         }
 
 

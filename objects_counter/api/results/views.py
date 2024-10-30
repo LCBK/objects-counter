@@ -119,6 +119,7 @@ class RenameClassification(Resource):
             log.exception("Failed to rename classification %s in result %s: %s", classification, result_id, e)
             return Response("Failed to rename classification", 500)
 
+
 @api.route('/<int:result_id>/compare/<int:dataset_id>')
 class CompareResults(Resource):
     def get(self, result_id: int, dataset_id: int) -> typing.Any:
@@ -128,4 +129,4 @@ class CompareResults(Resource):
         image = get_image_by_id(result.image_id)
         dataset = get_dataset_by_id(dataset_id)
         object_grouper.assign_dataset_categories_to_objects(image, dataset)
-        return Response(f"LGTM", 200)
+        return jsonify(image.as_dict())
