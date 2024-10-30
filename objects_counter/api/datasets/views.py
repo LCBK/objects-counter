@@ -11,7 +11,7 @@ from objects_counter.db.dataops.dataset import get_user_datasets_serialized, get
     insert_dataset, add_image_to_dataset, rename_dataset
 from objects_counter.db.models import User
 
-api = Namespace('results', description='Results related operations')
+api = Namespace('datasets', description='Datasets related operations')
 log = logging.getLogger(__name__)
 
 # pylint: disable=broad-exception-caught

@@ -37,6 +37,15 @@ const showBoxCertainty = computed({
     }
 });
 
+const showElementIds = computed({
+    get() {
+        return settingsState.showElementIds;
+    },
+    set(value) {
+        settingsState.updateElementIdsVisibility(value);
+    }
+});
+
 
 onMounted(() => {
     isDarkTheme.value = settingsState.isDarkTheme;
@@ -61,6 +70,10 @@ onMounted(() => {
             <div class="settings-item">
                 <div class="settings-item-label">Show certainties</div>
                 <VInputSwitch class="settings-item-switch" v-model="showBoxCertainty" />
+            </div>
+            <div class="settings-item">
+                <div class="settings-item-label">Show element IDs</div>
+                <VInputSwitch class="settings-item-switch" v-model="showElementIds" />
             </div>
         </VDialog>
     </div>

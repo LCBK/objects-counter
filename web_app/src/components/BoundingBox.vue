@@ -7,6 +7,10 @@ import { computed, defineProps } from 'vue';
 const imageState = useImageStateStore();
 const settingsState = useSettingsStateStore();
 const props = defineProps({
+    id: {
+        type: Number,
+        required: true
+    },
     topLeft: {                          // top-left corner [x, y]
         type: Array<number>,
         required: true
@@ -46,6 +50,7 @@ const height = computed(() => (props.bottomRight[1] - props.topLeft[1]) * scale.
         <div>
             <div v-if="settingsState.showBoxCertainty" class="box-certainty">{{ props.certainty }}</div>
             <div v-if="settingsState.showBoxLabel" class="box-classification">{{ classification }}</div>
+            <div v-if="settingsState.showElementIds" class="box-ids">{{ props.id }}</div>
         </div>
     </div>
 </template>
@@ -63,7 +68,8 @@ const height = computed(() => (props.bottomRight[1] - props.topLeft[1]) * scale.
     height: v-bind(height);
 }
 
-.bounding-box .box-certainty {
+.bounding-box .box-certainty,
+.bounding-box .box-ids {
     background-color: v-bind(boxColor);
     position: absolute;
     line-height: 12px;

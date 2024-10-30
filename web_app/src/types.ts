@@ -1,4 +1,5 @@
 export interface ImageElement {
+    id: number,
     topLeft: [number, number],
     bottomRight: [number, number],
     certainty: number,

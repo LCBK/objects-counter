@@ -26,6 +26,13 @@ export enum ViewStates {
     ResultHistoryView
 }
 
+// TODO: refine, rename? what about capture/upload?
+export enum ImageAction {
+    Simple,
+    CreateDataset,
+    Compare
+}
+
 const defaultState = {
     isImageUploading: false,
     isImageUploaded: false,
@@ -39,6 +46,7 @@ const defaultState = {
     currentNavBarTitle: "",
     currentState: ViewStates.MainView,
     previousState: ViewStates.MainView,
+    currentAction: ImageAction.Simple,
     currentView: MainView,
     currentImageViewToolBar: EditPointsToolBar
 }
