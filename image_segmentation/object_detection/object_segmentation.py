@@ -116,6 +116,16 @@ class ObjectSegmentation:
             objects_bounding_boxes.append(((x, y), (x + w, y + h)))
         return objects_bounding_boxes
 
+    def _remove_background_from_image(self, image: Image, contours) -> None:
+        img = cv2.imread(image.filepath)
+        fill_color = [255, 255, 255]
+        mask_value = 255
+        stencil = np.zeros(img.shape[:-1]).astype(np.uint8)
+        cv2.fillPoly(stencil, contours, mask_value)
+        sel = stencil != mask_value
+        img[sel] = fill_color
+        cv2.imwrite(image.filepath[:-4] + "_processed.bmp", img)
+
     def count_objects(self, image: Image) -> int:
         result_mask = self.calculate_mask(image)
         if result_mask is None:
@@ -124,17 +134,9 @@ class ObjectSegmentation:
         binary_image = self._process_mask(result_mask)
         contours, _ = cv2.findContours(binary_image, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
         contours = self._remove_small_masks(image, contours)
+        self._remove_background_from_image(image, contours)
         object_count = len(contours)
         log.info("Number of objects detected: %s", object_count)
-        # todo: refactor
-        img = cv2.imread(image.filepath)
-        fill_color = [255, 255, 255]  # any BGR color value to fill with
-        mask_value = 255
-        stencil = np.zeros(img.shape[:-1]).astype(np.uint8)
-        cv2.fillPoly(stencil, contours, mask_value)
-        sel = stencil != mask_value  # select everything that is not mask_value
-        img[sel] = fill_color
-        cv2.imwrite(image.filepath[:-4] + "_processed.bmp", img)
         bounding_boxes = self._get_bounding_boxes(contours)
         bulk_set_elements(image, bounding_boxes)
         return object_count
