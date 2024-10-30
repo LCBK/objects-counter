@@ -64,6 +64,16 @@ function handleBoundingBoxClick() {
         }
         isSelected.value = !isSelected.value;
     }
+
+    // Synchronize animations of all other boxes
+    const allSelectedBoxes = document.querySelectorAll('.selected-box-overlay');
+    allSelectedBoxes.forEach((box) => {
+        const animations = box.getAnimations();
+        animations.forEach((animation) => {
+            animation.cancel();
+            animation.play();
+        });
+    });
 }
 </script>
 
