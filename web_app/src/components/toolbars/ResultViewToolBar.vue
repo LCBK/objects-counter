@@ -8,14 +8,12 @@ import { ImageAction, useViewStateStore, ViewStates } from "@/stores/viewState";
 import { computed, ref } from "vue";
 import { config, endpoints } from "@/config";
 import { parseClassificationsFromResponse, sendRequest } from "@/utils";
-import { parse } from "path";
 
 
 const imageState = useImageStateStore();
 const viewState = useViewStateStore();
 
 const visible = ref<boolean>();
-const leaderIds = ref<string>();                // temporary
 const comparisonDatasetId = ref<string>();      // temporary
 const classifications = computed(() => imageState.objectClassifications);
 
@@ -28,23 +26,8 @@ function handleReturnClick() {
 }
 
 function submitClassificationLeaders() {
-    // TODO: temporary, rework
-    const ids = leaderIds.value?.split(" ").map(id => parseInt(id));
-    // const classifications = imageState.objectClassifications.map((classification) => {
-    //     return {
-    //         name: classification.classificationName,
-    //         leader: 0,
-    //         elements: [] as Array<number>
-    //     };
-    // });
-    // imageState.imageElements.forEach((element) => {
-    //     const id = element.id;
-    //     const name = imageState.objectClassifications[element.classificationIndex].classificationName;
-    //     const isLeader = ids?.includes(id);
-    //     classifications[element.classificationIndex].elements.push(id);
-    //     if (isLeader) classifications[element.classificationIndex].leader = id;
-    // });
-    const classifications = ids!.map((id) => {
+    const classifications = imageState.selectedLeaderIds.map((id) => {
+        // TODO: temporary data
         return {
             name: "Leader " + id,
             leader: id,
@@ -94,22 +77,25 @@ function compareToDataset() {
 
 <template>
     <div class="image-view-tool-bar bar">
-        <VButton text label="Details" class="quant" icon="pi pi-list" @click="visible = true" />
+        <VButton text label="Adjust" class="edit-selection" icon="pi pi-pencil" @click="handleReturnClick();" />
         <div class="element-count">
             <span class="element-count-value">{{ imageState.imageElements.length }}</span>
             <span class="element-count-label">Elements</span>
         </div>
-        <VButton text label="Adjust" class="edit-selection" icon="pi pi-pencil" @click="handleReturnClick();" />
+        <VButton v-if="viewState.currentAction !== ImageAction.CreateDataset" text label="Details"
+                class="quant" icon="pi pi-list" @click="visible = true" />
+        <VButton v-else text label="Submit dataset" class="submit-dataset-button"
+                icon="pi pi-check"  @click="submitClassificationLeaders" />
     </div>
     <!-- TEMPORARY SOLUTION -->
     <!-- TODO: implement as clicking on bounding boxes of leaders -->
-    <div class="leader-input" v-if="viewState.currentAction === ImageAction.CreateDataset"
+    <!-- <div class="leader-input" v-if="viewState.currentAction === ImageAction.CreateDataset"
             style="position: absolute; bottom: 120px; left: 50%; transform: translateX(-50%);">
         <p style="text-align: center; margin-bottom: 10px; color: var(--primary-color);">Leader IDs separated with spaces</p>
         <VInputText v-model="leaderIds" />
         <VButton text label="Submit" @click="submitClassificationLeaders"
                 style="left: 50%; transform: translateX(-50%);" />
-    </div>
+    </div> -->
     <div class="compare-results" v-if="viewState.currentAction === ImageAction.Compare"
             style="position: absolute; bottom: 120px; left: 50%; transform: translateX(-50%);">
         <p style="text-align: center; margin-bottom: 10px; font-size: 13px; color: var(--primary-color);">

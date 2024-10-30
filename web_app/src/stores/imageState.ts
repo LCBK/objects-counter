@@ -21,7 +21,8 @@ const defaultState = {
     userZoom: 1,
     imageElements: [] as Array<ImageElement>,
     points: [] as Array<BackgroundPoint>,
-    objectClassifications: [] as Array<ObjectClassification>
+    objectClassifications: [] as Array<ObjectClassification>,
+    selectedLeaderIds: [] as Array<number>,
 }
 
 export const useImageStateStore = defineStore("imageState", {
@@ -32,6 +33,7 @@ export const useImageStateStore = defineStore("imageState", {
             this.imageElements = [];
             this.points = [];
             this.objectClassifications = [];
+            this.selectedLeaderIds = [];
         },
 
         addPoint(isPositive: boolean, x: number, y: number) {

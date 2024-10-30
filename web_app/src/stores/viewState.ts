@@ -88,13 +88,16 @@ export const useViewStateStore = defineStore("viewState", {
                 case ViewStates.ImageViewResult:
                     this.currentView = ImageView;
                     this.currentImageViewToolBar = ResultViewToolBar;
-                    this.currentNavBarTitle = "Result";
+                    if (this.currentAction === ImageAction.Compare) this.currentNavBarTitle = "Comparison result";
+                    else if (this.currentAction === ImageAction.CreateDataset) this.currentNavBarTitle = "Create dataset";
+                    else this.currentNavBarTitle = "Result";
                     this.showPoints = false;
                     this.showBackground = false;
                     break;
 
                 case ViewStates.UserView:
                     this.currentView = UserView;
+                    this.currentAction = ImageAction.Simple;
                     break;
 
                 case ViewStates.DebugView:

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { config, endpoints } from "@/config";
 import { useImageStateStore } from "@/stores/imageState";
-import { useViewStateStore, ViewStates } from "@/stores/viewState";
+import { ImageAction, useViewStateStore, ViewStates } from "@/stores/viewState";
 import { parseClassificationsFromResponse, sendRequest } from "@/utils";
 import { type Response } from "@/utils";
 import { defineProps } from "vue";
