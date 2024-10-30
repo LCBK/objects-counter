@@ -6,14 +6,14 @@ from flask import Response, jsonify, request
 from flask_restx import Namespace, Resource
 from werkzeug.exceptions import NotFound, Forbidden
 
-from objects_counter.api.utils import authentication_required
-from objects_counter.db.dataops.result import (get_user_results_serialized, get_user_results,
-                                               rename_classification, delete_result_by_id, get_result_by_id)
-from objects_counter.db.models import User
-
 from objects_counter.api.default.views import object_grouper
+from objects_counter.api.utils import authentication_required
 from objects_counter.db.dataops.dataset import get_dataset_by_id
 from objects_counter.db.dataops.image import get_image_by_id
+from objects_counter.db.dataops.result import get_result_by_id
+from objects_counter.db.dataops.result import (get_user_results_serialized, get_user_results,
+                                               rename_classification, delete_result_by_id)
+from objects_counter.db.models import User
 
 api = Namespace('results', description='Results related operations')
 log = logging.getLogger(__name__)
@@ -127,4 +127,4 @@ class CompareResults(Resource):
         image = get_image_by_id(result.image_id)
         dataset = get_dataset_by_id(dataset_id)
         object_grouper.assign_dataset_categories_to_objects(image, dataset)
-        return Response("LGTM", 200)
+        return jsonify(image.as_dict())
