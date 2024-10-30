@@ -10,6 +10,7 @@ from image_segmentation.object_classification.feature_extraction import FeatureS
 from image_segmentation.utils import delete_temp_images
 from objects_counter.db.dataops.image import update_element_classification_by_id
 from objects_counter.db.models import Image, ImageElement
+from image_segmentation.constants import DEFAULT_COLOR_WEIGHT
 
 
 class ObjectClassifier:
@@ -37,7 +38,8 @@ class ObjectClassifier:
         processor = ImageElementProcessor(self.feature_similarity_model, self.color_similarity_model)
         return processor.process_image_element(element)
 
-    def calculate_similarity(self, obj_i: ImageElement, obj_j: ImageElement, color_weight: float = 0.7) -> float:
+    def calculate_similarity(self, obj_i: ImageElement, obj_j: ImageElement,
+                             color_weight: float = DEFAULT_COLOR_WEIGHT) -> float:
         """Calculates combined feature and color similarity between two objects."""
         if self.histograms and self.embeddings:
             hist_i = self.histograms[obj_i.id]
@@ -55,29 +57,28 @@ class ObjectClassifier:
 
         return (color_weight * color_sim) + ((1 - color_weight) * feature_sim)
 
-    def group_objects_by_similarity(self, image: Image, threshold: float = 0.7, color_weight: float = 0.7) -> None:
+    def group_objects_by_similarity(self, image: Image, threshold: float = 0.7,
+                                    color_weight: float = DEFAULT_COLOR_WEIGHT) -> None:
         """Groups objects by their similarity based on a combination of feature and color similarity."""
         self.process_elements(image)
-        self.assign_categories_based_on_similarity(image, threshold, 0.4)
+        self.assign_categories_based_on_similarity(image, threshold, color_weight)
         delete_temp_images(TEMP_IMAGE_DIR)
 
     def assign_dataset_categories_to_objects(self, image: Image, dataset):
         self.process_elements(image)
         dataset_image = dataset.images[0]
         self.process_elements(dataset_image)
-        categories_representatives = [[element, element.classification] for element in dataset_image.elements if element.is_leader]
+        representatives = [[element, element.classification] for element in dataset_image.elements if element.is_leader]
         for element in image.elements:
             best_certainty = 0
             best_category = -1
-            for representative, category_id in categories_representatives:
+            for representative, category_id in representatives:
                 current_certainty = self.calculate_similarity(element, representative)
                 if current_certainty > best_certainty:
                     best_category = category_id
                     best_certainty = current_certainty
-                assert (best_category != -1)
+                assert best_category != -1
                 self.update_element_category(element.id, best_category, best_certainty)
-
-
 
     def assign_categories_based_on_similarity(self, image: Image, threshold: float, color_weight: float) -> None:
         """Assigns elements to categories based on their similarity scores."""

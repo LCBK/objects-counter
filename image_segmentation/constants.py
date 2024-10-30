@@ -1,1 +1,2 @@
 TEMP_IMAGE_DIR = "images/temp"
+DEFAULT_COLOR_WEIGHT = 0.4

@@ -4,7 +4,6 @@ import cv2
 import numpy as np
 import torch
 from PIL import Image as PILImage
-from scipy.spatial import distance
 from torch import nn
 from torchvision import transforms as tr
 
@@ -84,16 +83,19 @@ class ColorSimilarity:
     def compute_color_histogram(image: PILImage, bins: int = 16) -> np.ndarray:
         """Computes a color histogram for an image."""
         image = image.convert('RGB')
-        mask = np.array([not(np.array(image)[x][y] == np.array([255, 255, 255])).all() for x in range(image.height) for y in range(image.width)])
+        mask = np.array([not (np.array(image)[x][y] == np.array([255, 255, 255])).all()
+                         for x in range(image.height)
+                         for y in range(image.width)])
         mask.resize(image.height, image.width)
         cv2.imwrite('/home/shairys/test.jpg', np.array(mask, dtype="uint8") * 255)
-        histogram = cv2.calcHist([np.array(image)], [0, 1, 2], np.array(mask, dtype="uint8"), [bins, bins, bins], [0, 256, 0, 256, 0, 256])
+        histogram = cv2.calcHist([np.array(image)], [0, 1, 2], np.array(mask, dtype="uint8"),
+                                 [bins, bins, bins],[0, 256, 0, 256, 0, 256])
         histogram = cv2.normalize(histogram, histogram, 1.0, 0.0, cv2.NORM_L1)
 
         return histogram
 
     @staticmethod
     def compute_color_similarity(hist1: np.ndarray, hist2: np.ndarray) -> float:
-        """Calculates the Bray-Curtis distance between two histograms."""
+        """Calculates the intersection percentage (where 0 means 0% and 1 means 100%) between two histograms."""
         #todo: test different comp methods and bins
         return cv2.compareHist(hist1, hist2, cv2.HISTCMP_INTERSECT)

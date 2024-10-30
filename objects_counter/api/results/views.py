@@ -4,16 +4,14 @@ import typing
 
 from flask import Response, jsonify, request
 from flask_restx import Namespace, Resource
-from flask_restx._http import HTTPStatus
 from werkzeug.exceptions import NotFound, Forbidden
 
 from objects_counter.api.utils import authentication_required
-from objects_counter.db.dataops.result import (get_result_by_id, get_user_results_serialized, get_user_results,
-                                               rename_classification, delete_result_by_id)
+from objects_counter.db.dataops.result import (get_user_results_serialized, get_user_results,
+                                               rename_classification, delete_result_by_id, get_result_by_id)
 from objects_counter.db.models import User
 
 from objects_counter.api.default.views import object_grouper
-from objects_counter.db.dataops.result import get_result_by_id
 from objects_counter.db.dataops.dataset import get_dataset_by_id
 from objects_counter.db.dataops.image import get_image_by_id
 
@@ -119,6 +117,7 @@ class RenameClassification(Resource):
             log.exception("Failed to rename classification %s in result %s: %s", classification, result_id, e)
             return Response("Failed to rename classification", 500)
 
+
 @api.route('/<int:result_id>/compare/<int:dataset_id>')
 class CompareResults(Resource):
     def get(self, result_id: int, dataset_id: int) -> typing.Any:
@@ -128,4 +127,4 @@ class CompareResults(Resource):
         image = get_image_by_id(result.image_id)
         dataset = get_dataset_by_id(dataset_id)
         object_grouper.assign_dataset_categories_to_objects(image, dataset)
-        return Response(f"LGTM", 200)
+        return Response("LGTM", 200)
