@@ -7,7 +7,8 @@ import { useImageStateStore } from "@/stores/imageState";
 import { ImageAction, useViewStateStore, ViewStates } from "@/stores/viewState";
 import { computed, ref } from "vue";
 import { config, endpoints } from "@/config";
-import { sendRequest } from "@/utils";
+import { parseClassificationsFromResponse, sendRequest } from "@/utils";
+import { parse } from "path";
 
 
 const imageState = useImageStateStore();
@@ -79,7 +80,9 @@ function compareToDataset() {
     requestPromise.then((response) => {
         if (response.status === 200) {
             console.log("Comparison successful");
-            console.log(response.data);             // change, not implemented yet
+            imageState.objectClassifications = [];
+            imageState.imageElements = [];
+            parseClassificationsFromResponse(JSON.parse(response.data).classifications);
         }
         else {
             console.error("Comparison failed");
