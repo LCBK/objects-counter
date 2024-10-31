@@ -6,8 +6,12 @@ from flask import Response, jsonify, request
 from flask_restx import Namespace, Resource
 from werkzeug.exceptions import NotFound, Forbidden
 
+from objects_counter.api.default.views import object_grouper
 from objects_counter.api.utils import authentication_required
-from objects_counter.db.dataops.result import (get_result_by_id, get_user_results_serialized, get_user_results,
+from objects_counter.db.dataops.dataset import get_dataset_by_id
+from objects_counter.db.dataops.image import get_image_by_id, serialize_image_as_result
+from objects_counter.db.dataops.result import get_result_by_id
+from objects_counter.db.dataops.result import (get_user_results_serialized, get_user_results,
                                                rename_classification, delete_result_by_id)
 from objects_counter.db.models import User
 
@@ -41,7 +45,7 @@ class GetThumbnails(Resource):
 
 
 @api.route('/<int:result_id>')
-class GetResult(Resource):
+class Result(Resource):
     @api.doc(params={'result_id': 'The result ID'})
     @authentication_required
     def get(self, current_user: User, result_id: int) -> typing.Any:
@@ -112,3 +116,28 @@ class RenameClassification(Resource):
         except Exception as e:
             log.exception("Failed to rename classification %s in result %s: %s", classification, result_id, e)
             return Response("Failed to rename classification", 500)
+
+
+@api.route('/<int:result_id>/compare/<int:dataset_id>')
+class CompareResults(Resource):
+    @authentication_required
+    def get(self, current_user: User, result_id: int, dataset_id: int) -> typing.Any:
+        try:
+            result = get_result_by_id(int(result_id))
+            image = get_image_by_id(result.image_id)
+            dataset = get_dataset_by_id(int(dataset_id))
+            if result.user_id != dataset.user_id or dataset.user_id != current_user.id:
+                log.error("User %s is not authorized to compare result %s with dataset %s",
+                          current_user, result_id, dataset_id)
+                return Response('Unauthorized', 403)
+            object_grouper.assign_dataset_categories_to_objects(image, dataset)
+            return jsonify(serialize_image_as_result(image))
+        except ValueError as e:
+            log.exception("Failed to compare results: %s", e)
+            return Response("Invalid result or dataset ID", 400)
+        except NotFound as e:
+            log.exception("Failed to compare results: %s", e)
+            return Response("Result or dataset not found", 404)
+        except Exception as e:
+            log.exception("Failed to compare results: %s", e)
+            return Response("Failed to compare results", 500)

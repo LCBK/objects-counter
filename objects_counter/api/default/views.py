@@ -17,13 +17,15 @@ from image_segmentation.object_classification.classifier import ObjectClassifier
 from image_segmentation.object_classification.comparison import find_missing_elements
 from image_segmentation.object_classification.feature_extraction import FeatureSimilarity, ColorSimilarity
 from image_segmentation.object_detection.object_segmentation import ObjectSegmentation
-from objects_counter.api.default.models import points_model
+from objects_counter.api.default.models import points_model, accept_model
 from objects_counter.api.utils import authentication_optional, authentication_required, gzip_compress
 from objects_counter.consts import SAM_CHECKPOINT, SAM_MODEL_TYPE
-from objects_counter.db.dataops.image import insert_image, update_background_points, get_image_by_id
+from objects_counter.db.dataops.image import insert_image, update_background_points, get_image_by_id, \
+    serialize_image_as_result
 from objects_counter.db.dataops.result import insert_result
 from objects_counter.db.models import User
 from objects_counter.utils import create_thumbnail
+
 
 api = Namespace('default', description='Default namespace')
 process_parser = api.parser()
@@ -135,12 +137,14 @@ class BackgroundPoints(Resource):
 @api.route('/images/<int:image_id>/background/accept')
 class AcceptBackgroundPoints(Resource):
     @api.doc(params={'image_id': 'The image ID'})
+    @api.expect(accept_model)
     @api.response(200, "Objects counted")
     @api.response(201, "Objects counted and results saved")
     @api.response(404, "Image not found")
     @api.response(500, "Error processing image")
     @authentication_optional
     def post(self, current_user: User, image_id: int) -> typing.Any:
+        as_dataset = request.json.get('as_dataset', False)
         try:
             image = get_image_by_id(image_id)
         except NotFound as e:
@@ -151,27 +155,12 @@ class AcceptBackgroundPoints(Resource):
 
         object_grouper.group_objects_by_similarity(image)
 
-        response = {
-            "count": len(image.elements),
-            "classifications": []
-        }
+        response = serialize_image_as_result(image)
 
-        classification_dict = {}
-
-        for element in image.elements:
-            element_data = element.as_dict()
-
-            element_data["certainty"] = round(element.certainty, 2)
-
-            if element.classification not in classification_dict:
-                classification_dict[element.classification] = {
-                    "classification": element.classification,
-                    "objects": []
-                }
-
-            classification_dict[element.classification]["objects"].append(element_data)
-
-        response["classifications"] = list(classification_dict.values())
+        if as_dataset:
+            if not current_user:
+                return Response('You must be logged in', 401)
+            return json.dumps(response), 200
 
         if current_user:
             user_id = current_user.id

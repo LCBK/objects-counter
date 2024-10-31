@@ -176,6 +176,7 @@ onMounted(() => {
     height: 100%;
     top: 0;
     left: 0;
+    cursor: default;
 }
 
 #mask-image {

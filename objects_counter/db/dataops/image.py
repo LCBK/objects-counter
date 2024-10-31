@@ -128,11 +128,39 @@ def update_element_classification(bounding_box: tuple[tuple[int, int], tuple[int
         raise
 
 
-def update_element_classification_by_id(element_id: int, classification: str, certainty: float) -> None:
+def update_element_classification_by_id(element_id: int, classification: str, certainty: float,
+                                        do_commit: bool = True) -> None:
     ImageElement.query.filter_by(id=element_id).update({'classification': classification, 'certainty': certainty})
-    try:
-        db.session.commit()
-    except DatabaseError as e:
-        log.exception('Failed to update element: %s', e)
-        db.session.rollback()
-        raise
+    if do_commit:
+        try:
+            db.session.commit()
+        except DatabaseError as e:
+            log.exception('Failed to update element: %s', e)
+            db.session.rollback()
+            raise
+
+
+def set_element_as_leader(element_id) -> None:
+    ImageElement.query.filter_by(id=element_id).update({'is_leader': True})
+
+
+def serialize_image_as_result(image: Image) -> dict:
+    classification_dict = {}
+
+    for element in image.elements:
+        element_data = element.as_dict()
+
+        element_data["certainty"] = round(element.certainty, 2)
+
+        if element.classification not in classification_dict:
+            classification_dict[element.classification] = {
+                "classification": element.classification,
+                "objects": []
+            }
+
+        classification_dict[element.classification]["objects"].append(element_data)
+
+    return {
+        "count": len(image.elements),
+        "classifications": list(classification_dict.values())
+    }

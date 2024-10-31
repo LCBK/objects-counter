@@ -52,7 +52,6 @@ def authentication_optional(f):
             try:
                 data = jwt.decode(token, current_app.config['SECRET_KEY'], algorithms=['HS256'])
                 current_user = get_user_by_id(data['user_id'])
-                log.debug('User %s authenticated', current_user.username)
                 if current_user is None:
                     log.error('Invalid token')
                     return Response('Invalid token', HTTPStatus.UNAUTHORIZED)

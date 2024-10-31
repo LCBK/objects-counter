@@ -1,12 +1,20 @@
 <script setup lang="ts">
+import { boundingBoxColors } from '@/config';
 import { useImageStateStore } from '@/stores/imageState';
 import { useSettingsStateStore } from '@/stores/settingsState';
-import { computed, defineProps } from 'vue';
+import { ImageAction, useViewStateStore } from '@/stores/viewState';
+import { computed, defineProps, ref } from 'vue';
 
 
+const viewState = useViewStateStore();
 const imageState = useImageStateStore();
 const settingsState = useSettingsStateStore();
+
 const props = defineProps({
+    id: {
+        type: Number,
+        required: true
+    },
     topLeft: {                          // top-left corner [x, y]
         type: Array<number>,
         required: true
@@ -25,7 +33,16 @@ const props = defineProps({
     }
 });
 
-const boxColor = computed(() => imageState.objectClassifications[props.classificationIndex].boxColor);
+const isSelected = ref<boolean>(false);
+
+const boxColor = computed(() => {
+    if (viewState.currentAction === ImageAction.CreateDataset) {
+        return boundingBoxColors[0];
+    }
+    else {
+        return imageState.objectClassifications[props.classificationIndex].boxColor;
+    }
+});
 const classification = computed(() => imageState.objectClassifications[props.classificationIndex].classificationName);
 const scale = computed(() => imageState.boundingBoxScale);
 
@@ -34,19 +51,46 @@ const top = computed(() => props.topLeft[1] * scale.value + "px");
 const left = computed(() => props.topLeft[0] * scale.value + "px");
 const width = computed(() => (props.bottomRight[0] - props.topLeft[0]) * scale.value + "px");
 const height = computed(() => (props.bottomRight[1] - props.topLeft[1]) * scale.value + "px");
+
+
+function handleBoundingBoxClick() {
+    // If creating dataset, enable leader selection
+    if (viewState.currentAction === ImageAction.CreateDataset) {
+        if (imageState.selectedLeaderIds.includes(props.id)) {
+            imageState.selectedLeaderIds = imageState.selectedLeaderIds.filter(id => id !== props.id);
+        }
+        else {
+            imageState.selectedLeaderIds.push(props.id);
+        }
+        isSelected.value = !isSelected.value;
+    }
+
+    // Synchronize animations of all other boxes
+    const allSelectedBoxes = document.querySelectorAll('.selected-box-overlay');
+    allSelectedBoxes.forEach((box) => {
+        const animations = box.getAnimations();
+        animations.forEach((animation) => {
+            animation.cancel();
+            animation.play();
+        });
+    });
+}
 </script>
 
 
 <template>
-    <div class="bounding-box"
+    <div :class="(isSelected ? 'selected-box ' : '') + 'bounding-box'"
             v-bind:data-topleft="props.topLeft[0] + ',' + props.topLeft[1]"
             v-bind:data-bottomright="props.bottomRight[0] + ',' + props.bottomRight[1]"
             v-bind:data-certainty="props.certainty" v-bind:data-classification="classification"
-            v-if="imageState.objectClassifications[classificationIndex].showBoxes">
+            v-if="imageState.objectClassifications[classificationIndex].showBoxes"
+            @click="handleBoundingBoxClick">
         <div>
             <div v-if="settingsState.showBoxCertainty" class="box-certainty">{{ props.certainty }}</div>
             <div v-if="settingsState.showBoxLabel" class="box-classification">{{ classification }}</div>
+            <div v-if="settingsState.showElementIds" class="box-ids">{{ props.id }}</div>
         </div>
+        <div v-if="isSelected" class="selected-box-overlay"></div>
     </div>
 </template>
 
@@ -63,7 +107,12 @@ const height = computed(() => (props.bottomRight[1] - props.topLeft[1]) * scale.
     height: v-bind(height);
 }
 
-.bounding-box .box-certainty {
+.bounding-box.selected-box {
+    border-width: 3px;
+}
+
+.bounding-box .box-certainty,
+.bounding-box .box-ids {
     background-color: v-bind(boxColor);
     position: absolute;
     line-height: 12px;
@@ -89,5 +138,27 @@ const height = computed(() => (props.bottomRight[1] - props.topLeft[1]) * scale.
     overflow: hidden;
     white-space: nowrap;
     text-overflow: ellipsis;
+}
+
+.selected-box-overlay {
+    width: 100%;
+    height: 100%;
+    background-color: v-bind(boxColor);
+    animation: blink-animation 3s infinite ease-in-out;
+}
+
+@keyframes blink-animation {
+    0% {
+        opacity: 0;
+    }
+    30% {
+        opacity: 0.5;
+    }
+    70% {
+        opacity: 0.5;
+    }
+    100% {
+        opacity: 0;
+    }
 }
 </style>

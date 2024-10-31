@@ -7,7 +7,8 @@ import { defineStore } from "pinia";
 const defaultState = {
     isDarkTheme: false,
     showBoxCertainty: false,
-    showBoxLabel: false
+    showBoxLabel: false,
+    showElementIds: false
 }
 
 export const useSettingsStateStore = defineStore("settingsState", {
@@ -43,6 +44,11 @@ export const useSettingsStateStore = defineStore("settingsState", {
             localStorage.setItem("showBoxLabel", value.toString());
         },
 
+        updateElementIdsVisibility(value: boolean) {
+            this.showElementIds = value;
+            localStorage.setItem("showElementIds", value.toString());
+        },
+
         setThemeToPreferred() {
             if (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches) {
                 this.setDarkTheme();
@@ -67,6 +73,11 @@ export const useSettingsStateStore = defineStore("settingsState", {
             if (showBoxLabel === null) this.updateBoxLabelVisibility(defaultState.showBoxLabel);
             else if (showBoxLabel === "true") this.showBoxLabel = true;
             else this.showBoxLabel = false;
+
+            const showElementIds = localStorage.getItem("showElementIds");
+            if (showElementIds === null) this.updateElementIdsVisibility(defaultState.showElementIds);
+            else if (showElementIds === "true") this.showElementIds = true;
+            else this.showElementIds = false;
         }
     }
 });

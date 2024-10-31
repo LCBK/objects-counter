@@ -1,10 +1,9 @@
 <script setup lang="ts">
 import { config, endpoints } from "@/config";
 import { useImageStateStore } from "@/stores/imageState";
-import { useViewStateStore, ViewStates } from "@/stores/viewState";
+import { ImageAction, useViewStateStore, ViewStates } from "@/stores/viewState";
 import { parseClassificationsFromResponse, sendRequest } from "@/utils";
 import { type Response } from "@/utils";
-import { parse } from "path";
 import { defineProps } from "vue";
 
 
@@ -79,10 +78,10 @@ function onResultClick() {
         const resultData = resultResponse.data.data;
         parseClassificationsFromResponse(resultData.classifications);
         imageState.resultId = props.id;
-    });
 
-    viewState.isWaitingForResponse = false;
-    viewState.setState(ViewStates.ImageViewResult);
+        viewState.isWaitingForResponse = false;
+        viewState.setState(ViewStates.ImageViewResult);
+    });
 }
 </script>
 

@@ -1,16 +1,20 @@
 <script setup lang="ts">
 import VButton from "primevue/button";
 import VSidebar from "primevue/sidebar";
+import VInputText from "primevue/inputtext";
 import QuantitiesEntry from "../QuantitiesEntry.vue";
 import { useImageStateStore } from "@/stores/imageState";
-import { useViewStateStore, ViewStates } from "@/stores/viewState";
-import { computed } from "vue";
+import { ImageAction, useViewStateStore, ViewStates } from "@/stores/viewState";
+import { computed, ref } from "vue";
+import { config, endpoints } from "@/config";
+import { parseClassificationsFromResponse, sendRequest } from "@/utils";
 
 
 const imageState = useImageStateStore();
 const viewState = useViewStateStore();
 
-const visible = defineModel<boolean>();
+const visible = ref<boolean>();
+const comparisonDatasetId = ref<string>();      // temporary
 const classifications = computed(() => imageState.objectClassifications);
 
 
@@ -20,18 +24,88 @@ function handleReturnClick() {
     viewState.isEditingExistingResult = true;
     imageState.clearResult();
 }
+
+function submitClassificationLeaders() {
+    const classifications = imageState.selectedLeaderIds.map((id) => {
+        // TODO: temporary data
+        return {
+            name: "Leader " + id,
+            leader: id,
+            elements: [id]
+        };
+    });
+
+    const requestUri = config.serverUri + endpoints.createDataset;
+    const requestData = JSON.stringify({
+        image_id: imageState.imageId,
+        name: "Test dataset " + imageState.imageId,
+        classifications: classifications
+    });
+    const requestPromise = sendRequest(requestUri, requestData, "POST");
+    requestPromise.then((response) => {
+        if (response.status === 200) {
+            console.log("Dataset created successfully");
+            viewState.reset();
+            imageState.reset();
+        }
+        else {
+            console.error("Failed to create dataset");
+        }
+    });
+}
+
+function compareToDataset() {
+    // TODO: temporary, rework
+    const requestUri = config.serverUri + endpoints.compareToDataset
+            .replace("{result_id}", imageState.resultId.toString())
+            .replace("{dataset_id}", comparisonDatasetId.value!.toString());
+    const requestPromise = sendRequest(requestUri, null, "GET");
+    requestPromise.then((response) => {
+        if (response.status === 200) {
+            console.log("Comparison successful");
+            imageState.objectClassifications = [];
+            imageState.imageElements = [];
+            parseClassificationsFromResponse(response.data.classifications);
+        }
+        else {
+            console.error("Comparison failed");
+        }
+    });
+}
 </script>
 
 
 <template>
     <div class="image-view-tool-bar bar">
-        <VButton text label="Details" class="quant" icon="pi pi-list" @click="visible = true" />
+        <VButton text label="Adjust" class="edit-selection" icon="pi pi-pencil" @click="handleReturnClick();" />
         <div class="element-count">
             <span class="element-count-value">{{ imageState.imageElements.length }}</span>
             <span class="element-count-label">Elements</span>
         </div>
-        <VButton text label="Adjust" class="edit-selection" icon="pi pi-pencil" @click="handleReturnClick();" />
+        <VButton v-if="viewState.currentAction !== ImageAction.CreateDataset" text label="Details"
+                class="quant" icon="pi pi-list" @click="visible = true" />
+        <VButton v-else text label="Submit dataset" class="submit-dataset-button"
+                icon="pi pi-check"  @click="submitClassificationLeaders" />
     </div>
+    <!-- TEMPORARY SOLUTION -->
+    <!-- TODO: implement as clicking on bounding boxes of leaders -->
+    <!-- <div class="leader-input" v-if="viewState.currentAction === ImageAction.CreateDataset"
+            style="position: absolute; bottom: 120px; left: 50%; transform: translateX(-50%);">
+        <p style="text-align: center; margin-bottom: 10px; color: var(--primary-color);">Leader IDs separated with spaces</p>
+        <VInputText v-model="leaderIds" />
+        <VButton text label="Submit" @click="submitClassificationLeaders"
+                style="left: 50%; transform: translateX(-50%);" />
+    </div> -->
+    <div class="compare-results" v-if="viewState.currentAction === ImageAction.Compare"
+            style="position: absolute; bottom: 120px; left: 50%; transform: translateX(-50%);">
+        <p style="text-align: center; margin-bottom: 10px; font-size: 13px; color: var(--primary-color);">
+            Enter dataset ID to compare to (read from earlier console.log, turn on persistent logs if troublesome)
+        </p>
+        <VInputText v-model="comparisonDatasetId" />
+        <VButton text label="Submit" @click="compareToDataset"
+                style="left: 50%; transform: translateX(-50%);" />
+    </div>
+    <!-- ================== -->
     <VSidebar v-model:visible="visible" position="bottom" style="height: auto" class="quantities" header="Counted elements">
         <div class="quantities-header">
             <div class="quantities-col">Count</div>
