@@ -12,48 +12,55 @@ import { config } from "@/config";
 
 const viewState = useViewStateStore();
 
-const isOffline = ref<boolean>(false);
-const isOnline = ref<boolean>(false);
-const isChecking = ref<boolean>(false);
+// These are both used and initially set to false, because we want to show the main screen
+// immediately after launching the app, as we are not sure if the server is online yet.
+const isOnline = ref<boolean>(false);           // means that we are sure the server is online
+const isOffline = ref<boolean>(false);          // means that we are sure the server is offline
+
+const isCheckingStatus = ref<boolean>(false);
+const receivedStatusResponse = ref<boolean>(false);
 
 
 function performServerCheck() {
     Promise.race([
         checkServerStatus(),
-        new Promise((resolve) => setTimeout(() => resolve(false), config.serverIsAliveTimeout))
+        new Promise((resolve) => setTimeout(() => {
+            resolve(false);
+            receivedStatusResponse.value = true;
+        }, config.serverIsAliveTimeout))
     ]).then((status) => {
         if (status) {
-            isChecking.value = false;
             isOffline.value = false;
             isOnline.value = true;
         }
         else {
-            isChecking.value = false;
             isOffline.value = true;
             isOnline.value = false;
         }
+        receivedStatusResponse.value = true;
+        isCheckingStatus.value = false;
     });
 }
 
 function onRetry() {
-    isChecking.value = true;
+    isCheckingStatus.value = true;
     performServerCheck();
 }
 
 
 onMounted(async () => {
-    window.setTimeout(() => {
-        if (isOnline.value) return;
-        isChecking.value = true;
-    }, config.serverIsAliveDelay);
     performServerCheck();
+    window.setTimeout(() => {
+        if (isOnline.value || receivedStatusResponse.value) return;
+        isCheckingStatus.value = true;
+    }, config.serverIsAliveDelay);
 });
 </script>
 
 
 <template>
     <Transition name="status-fade" mode="out-in">
-        <div v-if="isChecking" id="main-view" class="view server-checking">
+        <div v-if="isCheckingStatus" id="main-view" class="view server-checking">
             <h2>Checking server availability...</h2>
             <LoadingSpinner />
         </div>
