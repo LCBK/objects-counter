@@ -20,7 +20,8 @@ from image_segmentation.object_detection.object_segmentation import ObjectSegmen
 from objects_counter.api.default.models import points_model, accept_model
 from objects_counter.api.utils import authentication_optional, authentication_required, gzip_compress
 from objects_counter.consts import SAM_CHECKPOINT, SAM_MODEL_TYPE
-from objects_counter.db.dataops.image import insert_image, update_background_points, get_image_by_id
+from objects_counter.db.dataops.image import insert_image, update_background_points, get_image_by_id, \
+    serialize_image_as_result
 from objects_counter.db.dataops.result import insert_result
 from objects_counter.db.models import User
 from objects_counter.utils import create_thumbnail
@@ -154,27 +155,7 @@ class AcceptBackgroundPoints(Resource):
 
         object_grouper.group_objects_by_similarity(image)
 
-        response = {
-            "count": len(image.elements),
-            "classifications": []
-        }
-
-        classification_dict = {}
-
-        for element in image.elements:
-            element_data = element.as_dict()
-
-            element_data["certainty"] = round(element.certainty, 2)
-
-            if element.classification not in classification_dict:
-                classification_dict[element.classification] = {
-                    "classification": element.classification,
-                    "objects": []
-                }
-
-            classification_dict[element.classification]["objects"].append(element_data)
-
-        response["classifications"] = list(classification_dict.values())
+        response = serialize_image_as_result(image)
 
         if as_dataset:
             if not current_user:
