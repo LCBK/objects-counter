@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import VButton from "primevue/button";
+import VDialog from "primevue/dialog";
 import VSidebar from "primevue/sidebar";
 import VInputText from "primevue/inputtext";
 import QuantitiesEntry from "../QuantitiesEntry.vue";
@@ -13,7 +14,9 @@ import { parseClassificationsFromResponse, sendRequest } from "@/utils";
 const imageState = useImageStateStore();
 const viewState = useViewStateStore();
 
-const visible = ref<boolean>();
+const quantitiesVisible = ref<boolean>(false);
+const datasetDialogVisible = ref<boolean>(false);
+const datasetName = ref<string>("Dataset #" + imageState.imageId);
 const comparisonDatasetId = ref<string>();      // temporary
 const classifications = computed(() => imageState.objectClassifications);
 
@@ -24,6 +27,12 @@ function handleReturnClick() {
     viewState.isEditingExistingResult = true;
     imageState.clearResult();
 }
+
+
+function handleSubmitClick() {
+    datasetDialogVisible.value = true;
+}
+
 
 function submitClassificationLeaders() {
     const classifications = imageState.selectedLeaderIds.map((id) => {
@@ -38,12 +47,13 @@ function submitClassificationLeaders() {
     const requestUri = config.serverUri + endpoints.createDataset;
     const requestData = JSON.stringify({
         image_id: imageState.imageId,
-        name: "Test dataset " + imageState.imageId,
+        name: datasetName.value,
         classifications: classifications
     });
     const requestPromise = sendRequest(requestUri, requestData, "POST");
     requestPromise.then((response) => {
         if (response.status === 200) {
+            // TODO: redirect to user dataset history
             console.log("Dataset created successfully");
             viewState.reset();
             imageState.reset();
@@ -53,6 +63,7 @@ function submitClassificationLeaders() {
         }
     });
 }
+
 
 function compareToDataset() {
     // TODO: temporary, rework
@@ -83,30 +94,21 @@ function compareToDataset() {
             <span class="element-count-label">Elements</span>
         </div>
         <VButton v-if="viewState.currentAction !== ImageAction.CreateDataset" text label="Details"
-                class="quant" icon="pi pi-list" @click="visible = true" />
+                class="quant" icon="pi pi-list" @click="quantitiesVisible = true" />
         <VButton v-else text label="Submit dataset" class="submit-dataset-button"
-                icon="pi pi-check"  @click="submitClassificationLeaders" />
+                icon="pi pi-check"  @click="handleSubmitClick" />
     </div>
-    <!-- TEMPORARY SOLUTION -->
-    <!-- TODO: implement as clicking on bounding boxes of leaders -->
-    <!-- <div class="leader-input" v-if="viewState.currentAction === ImageAction.CreateDataset"
-            style="position: absolute; bottom: 120px; left: 50%; transform: translateX(-50%);">
-        <p style="text-align: center; margin-bottom: 10px; color: var(--primary-color);">Leader IDs separated with spaces</p>
-        <VInputText v-model="leaderIds" />
-        <VButton text label="Submit" @click="submitClassificationLeaders"
-                style="left: 50%; transform: translateX(-50%);" />
-    </div> -->
+    <!-- TEMPORARY COMPARISON SOLUTION -->
     <div class="compare-results" v-if="viewState.currentAction === ImageAction.Compare"
             style="position: absolute; bottom: 120px; left: 50%; transform: translateX(-50%);">
         <p style="text-align: center; margin-bottom: 10px; font-size: 13px; color: var(--primary-color);">
             Enter dataset ID to compare to (read from earlier console.log, turn on persistent logs if troublesome)
         </p>
         <VInputText v-model="comparisonDatasetId" />
-        <VButton text label="Submit" @click="compareToDataset"
-                style="left: 50%; transform: translateX(-50%);" />
+        <VButton text label="Submit" @click="compareToDataset" style="left: 50%; transform: translateX(-50%);" />
     </div>
-    <!-- ================== -->
-    <VSidebar v-model:visible="visible" position="bottom" style="height: auto" class="quantities" header="Counted elements">
+    <!-- ============================= -->
+    <VSidebar v-model:visible="quantitiesVisible" position="bottom" style="height: auto" class="quantities" header="Counted elements">
         <div class="quantities-header">
             <div class="quantities-col">Count</div>
             <div class="quantities-col">Label<span class="rename-notice">(tap to rename)</span></div>
@@ -117,6 +119,16 @@ function compareToDataset() {
             <div v-if="classifications.length === 0" class="no-elements-notice">(no elements found)</div>
         </div>
     </VSidebar>
+    <VDialog v-model:visible="datasetDialogVisible" modal header="Submit dataset" class="dataset-dialog"
+            :dismissable-mask="true" :draggable="false">
+        <p><span>{{ imageState.selectedLeaderIds.length }}</span> categories selected</p>
+        <label for="dataset-name" class="dataset-label">Dataset name</label>
+        <VInputText v-model="datasetName" class="dataset-name" :autofocus="true" :inputId="'dataset-name'" />
+        <div class="dataset-controls">
+            <VButton outlined label="Cancel" class="dataset-cancel" @click="datasetDialogVisible = false" />
+            <VButton label="Submit" class="dataset-submit" @click="submitClassificationLeaders" />
+        </div>
+    </VDialog>
 </template>
 
 
@@ -206,6 +218,36 @@ function compareToDataset() {
 .no-elements-notice {
     margin: 20px 0 10px 0;
     text-align: center;
+}
+
+.dataset-dialog input {
+    margin-bottom: 30px;
+    width: 100%;
+}
+
+.dataset-dialog p {
+    user-select: none;
+    line-height: 1.8rem;
+}
+
+.dataset-dialog span {
+    font-weight: 600;
+    font-size: 1.4rem;
+    margin-right: 2px;
+}
+
+.dataset-dialog label {
+    display: inline-block;
+    margin-bottom: 4px;
+    margin-top: 10px;
+    color: var(--text-color-secondary);
+    user-select: none;
+}
+
+.dataset-dialog .dataset-controls {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
 }
 </style>
 

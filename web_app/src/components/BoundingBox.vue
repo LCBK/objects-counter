@@ -43,6 +43,7 @@ const boxColor = computed(() => {
         return imageState.objectClassifications[props.classificationIndex].boxColor;
     }
 });
+const selectedBoxColor = computed(() => boundingBoxColors[2]);
 const classification = computed(() => imageState.objectClassifications[props.classificationIndex].classificationName);
 const scale = computed(() => imageState.boundingBoxScale);
 
@@ -64,16 +65,6 @@ function handleBoundingBoxClick() {
         }
         isSelected.value = !isSelected.value;
     }
-
-    // Synchronize animations of all other boxes
-    const allSelectedBoxes = document.querySelectorAll('.selected-box-overlay');
-    allSelectedBoxes.forEach((box) => {
-        const animations = box.getAnimations();
-        animations.forEach((animation) => {
-            animation.cancel();
-            animation.play();
-        });
-    });
 }
 </script>
 
@@ -90,7 +81,7 @@ function handleBoundingBoxClick() {
             <div v-if="settingsState.showBoxLabel" class="box-classification">{{ classification }}</div>
             <div v-if="settingsState.showElementIds" class="box-ids">{{ props.id }}</div>
         </div>
-        <div v-if="isSelected" class="selected-box-overlay"></div>
+        <div class="selected-box-overlay"></div>
     </div>
 </template>
 
@@ -105,10 +96,11 @@ function handleBoundingBoxClick() {
     top: v-bind(top);
     width: v-bind(width);
     height: v-bind(height);
+    transition: 0.3s border-color;
 }
 
 .bounding-box.selected-box {
-    border-width: 3px;
+    border-color: v-bind(selectedBoxColor);
 }
 
 .bounding-box .box-certainty,
@@ -143,22 +135,12 @@ function handleBoundingBoxClick() {
 .selected-box-overlay {
     width: 100%;
     height: 100%;
-    background-color: v-bind(boxColor);
-    animation: blink-animation 3s infinite ease-in-out;
+    opacity: 0;
+    background-color: v-bind(selectedBoxColor);
+    transition: 0.2s opacity;
 }
 
-@keyframes blink-animation {
-    0% {
-        opacity: 0;
-    }
-    30% {
-        opacity: 0.5;
-    }
-    70% {
-        opacity: 0.5;
-    }
-    100% {
-        opacity: 0;
-    }
+.selected-box .selected-box-overlay {
+    opacity: 0.4;
 }
 </style>

@@ -64,7 +64,6 @@ function onResultClick() {
                     imageState.height = img.height;
                 };
             });
-
     });
 
     const resultRequestUri = config.serverUri + endpoints.getResult.replace("{result_id}", props.id.toString());

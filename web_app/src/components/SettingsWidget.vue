@@ -109,3 +109,9 @@ onMounted(() => {
     font-weight: 300;
 }
 </style>
+
+<style>
+.main-view-nav-bar #settings-widget {
+    margin-left: 4px;
+}
+</style>
