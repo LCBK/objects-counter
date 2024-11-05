@@ -146,7 +146,7 @@ function showErrorDialog(text: string) {
                     <p class="user-details-name">{{ userState.username }}</p>
                 </div>
                 <div class="user-details-actions">
-                    <VButton class="results-button wide-button" icon="pi pi-calendar" label="Result history" @click="viewState.setState(ViewStates.ResultHistoryView)" />
+                    <VButton class="results-button wide-button" icon="pi pi-calendar" label="Counting history" @click="viewState.setState(ViewStates.ResultHistoryView)" />
                     <VButton class="results-button wide-button" icon="pi pi-calendar" label="Comparison history" />
                     <VButton class="datasets-button wide-button" icon="pi pi-images" label="Datasets" />
                 </div>

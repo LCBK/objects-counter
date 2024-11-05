@@ -10,6 +10,7 @@ import ResultHistoryView from "@/components/views/ResultHistoryView.vue";
 import EditPointsToolBar from "@/components/toolbars/EditPointsToolBar.vue";
 import ResultViewToolBar from "@/components/toolbars/ResultViewToolBar.vue";
 import { useImageStateStore } from "./imageState";
+import { shallowRef, type Component } from "vue";
 
 
 // Stores data about current application states and views
@@ -47,8 +48,8 @@ const defaultState = {
     currentState: ViewStates.MainView,
     previousState: ViewStates.MainView,
     currentAction: ImageAction.Simple,
-    currentView: MainView,
-    currentImageViewToolBar: EditPointsToolBar
+    currentView: shallowRef<Component>(MainView),
+    currentImageViewToolBar: shallowRef<Component>(EditPointsToolBar)
 }
 
 export const useViewStateStore = defineStore("viewState", {
@@ -74,20 +75,20 @@ export const useViewStateStore = defineStore("viewState", {
                     break;
 
                 case ViewStates.Uploading:
-                    this.currentView = LoadingView;
+                    this.currentView = shallowRef(LoadingView);
                     break;
 
                 case ViewStates.ImageEditPoints:
-                    this.currentView = ImageView;
-                    this.currentImageViewToolBar = EditPointsToolBar;
+                    this.currentView = shallowRef(ImageView);
+                    this.currentImageViewToolBar = shallowRef(EditPointsToolBar);
                     this.currentNavBarTitle = "Select background";
                     this.showPoints = true;
                     this.showBackground = false;
                     break;
 
                 case ViewStates.ImageViewResult:
-                    this.currentView = ImageView;
-                    this.currentImageViewToolBar = ResultViewToolBar;
+                    this.currentView = shallowRef(ImageView);
+                    this.currentImageViewToolBar = shallowRef(ResultViewToolBar);
                     if (this.currentAction === ImageAction.Compare) this.currentNavBarTitle = "Comparison result";
                     else if (this.currentAction === ImageAction.CreateDataset) this.currentNavBarTitle = "Create dataset";
                     else this.currentNavBarTitle = "Result";
@@ -96,20 +97,20 @@ export const useViewStateStore = defineStore("viewState", {
                     break;
 
                 case ViewStates.UserView:
-                    this.currentView = UserView;
+                    this.currentView = shallowRef(UserView);
                     this.currentAction = ImageAction.Simple;
                     break;
 
                 case ViewStates.DebugView:
-                    this.currentView = DebugView;
+                    this.currentView = shallowRef(DebugView);
                     break;
 
                 case ViewStates.DebugCompareView:
-                    this.currentView = DebugCompareView;
+                    this.currentView = shallowRef(DebugCompareView);
                     break;
 
                 case ViewStates.ResultHistoryView:
-                    this.currentView = ResultHistoryView;
+                    this.currentView = shallowRef(ResultHistoryView);
                     break;
             }
         },
