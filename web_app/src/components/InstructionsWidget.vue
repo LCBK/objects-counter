@@ -63,7 +63,7 @@ onMounted(() => animateButton());
                 To exclude a part of the image from the background, use "negative" points.
             </p>
         </div>
-        <div v-else-if="currentViewState == ViewStates.ImageViewResult && viewState.currentAction === ImageAction.Simple"
+        <div v-else-if="currentViewState == ViewStates.ImageViewResult && viewState.currentAction === ImageAction.SimpleCounting"
                 class="instructions-text">
             <p>That's it!</p>
             <p>You can see the element count on the bottom.</p>

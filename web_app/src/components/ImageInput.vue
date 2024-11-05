@@ -18,13 +18,13 @@ const compareInput = ref<HTMLInputElement>();
 function onCaptureClick() : void {
     if (!captureInput.value) return;
     captureInput.value.click();
-    viewState.currentAction = ImageAction.Simple;
+    viewState.currentAction = ImageAction.SimpleCounting;
 }
 
 function onUploadClick() : void {
     if (!uploadInput.value) return;
     uploadInput.value.click();
-    viewState.currentAction = ImageAction.Simple;
+    viewState.currentAction = ImageAction.SimpleCounting;
 }
 
 function onCreateDatasetClick() : void {
@@ -36,7 +36,7 @@ function onCreateDatasetClick() : void {
 function onCompareClick() : void {
     if (!uploadInput.value) return;
     uploadInput.value.click();
-    viewState.currentAction = ImageAction.Compare;
+    viewState.currentAction = ImageAction.CompareWithDataset;
 }
 
 function onImageUpload(event: Event) : void {

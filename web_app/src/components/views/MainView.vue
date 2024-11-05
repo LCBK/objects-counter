@@ -4,13 +4,10 @@ import ImageInput from "../ImageInput.vue";
 import InstructionsWidget from "../InstructionsWidget.vue";
 import LoadingSpinner from "../LoadingSpinner.vue";
 import MainViewNavBar from "../navbars/MainViewNavBar.vue";
-import { useViewStateStore, ViewStates } from "@/stores/viewState";
 import { checkServerStatus } from "@/utils";
 import { onMounted, ref } from "vue";
 import { config } from "@/config";
 
-
-const viewState = useViewStateStore();
 
 // These are both used and initially set to false, because we want to show the main screen
 // immediately after launching the app, as we are not sure if the server is online yet.
@@ -67,14 +64,12 @@ onMounted(async () => {
         <div v-else-if="isOffline" id="main-view" class="view server-offline">
             <h2>Server Offline</h2>
             <p>The server is currently offline.<br>Please try again later.</p>
-            <VButton class="debug-button wide-button" label="Retry" icon="pi pi-refresh" @click="onRetry()" />
+            <VButton class="wide-button" label="Retry" icon="pi pi-refresh" @click="onRetry()" />
         </div>
         <div v-else id="main-view" class="view">
             <MainViewNavBar />
             <ImageInput />
             <InstructionsWidget labeled />
-            <VButton class="debug-button wide-button" outlined label="Debug functions" icon="pi pi-cog"
-                    @click="viewState.setState(ViewStates.DebugView)" />
         </div>
     </Transition>
 </template>
@@ -103,11 +98,6 @@ onMounted(async () => {
     justify-content: center;
     margin: auto 0;
     text-align: center;
-}
-
-.debug-button {
-    margin-top: 30px;
-    align-self: center;
 }
 
 #main-view.server-checking {

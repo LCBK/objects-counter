@@ -36,5 +36,6 @@ function onBack() {
     line-height: 38px;
     letter-spacing: 0.4px;
     font-weight: 600;
+    white-space: nowrap;
 }
 </style>

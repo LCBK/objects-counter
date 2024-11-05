@@ -27,3 +27,10 @@ export interface ResultHistoryItem {
     classificationCount: number,
     elementCount: number
 }
+
+export interface DatasetListItem {
+    id: number,
+    name: string,
+    timestamp: number
+    // TODO: Add images
+}
