@@ -129,7 +129,7 @@ onMounted(async () => {
 }
 
 #main-view.server-offline .p-button {
-    margin-top: 48px;
+    margin: 48px auto 0 auto;
 }
 </style>
 
