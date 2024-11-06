@@ -4,70 +4,72 @@ import ImageInput from "../ImageInput.vue";
 import InstructionsWidget from "../InstructionsWidget.vue";
 import LoadingSpinner from "../LoadingSpinner.vue";
 import MainViewNavBar from "../navbars/MainViewNavBar.vue";
-import { useViewStateStore, ViewStates } from "@/stores/viewState";
 import { checkServerStatus } from "@/utils";
 import { onMounted, ref } from "vue";
 import { config } from "@/config";
 
 
-const viewState = useViewStateStore();
+// These are both used and initially set to false, because we want to show the main screen
+// immediately after launching the app, as we are not sure if the server is online yet.
+const isOnline = ref<boolean>(false);           // means that we are sure the server is online
+const isOffline = ref<boolean>(false);          // means that we are sure the server is offline
 
-const isOffline = ref<boolean>(false);
-const isOnline = ref<boolean>(false);
-const isChecking = ref<boolean>(false);
+const isCheckingStatus = ref<boolean>(false);
+const receivedStatusResponse = ref<boolean>(false);
 
 
 function performServerCheck() {
     Promise.race([
         checkServerStatus(),
-        new Promise((resolve) => setTimeout(() => resolve(false), config.serverIsAliveTimeout))
+        new Promise((resolve) => setTimeout(() => {
+            resolve(false);
+            receivedStatusResponse.value = true;
+        }, config.serverIsAliveTimeout))
     ]).then((status) => {
         if (status) {
-            isChecking.value = false;
             isOffline.value = false;
             isOnline.value = true;
         }
         else {
-            isChecking.value = false;
             isOffline.value = true;
             isOnline.value = false;
         }
+        receivedStatusResponse.value = true;
+        isCheckingStatus.value = false;
     });
 }
 
 function onRetry() {
-    isChecking.value = true;
+    isCheckingStatus.value = true;
     performServerCheck();
 }
 
 
 onMounted(async () => {
-    window.setTimeout(() => {
-        if (isOnline.value) return;
-        isChecking.value = true;
-    }, config.serverIsAliveDelay);
     performServerCheck();
+    window.setTimeout(() => {
+        if (isOnline.value || receivedStatusResponse.value) return;
+        isCheckingStatus.value = true;
+    }, config.serverIsAliveDelay);
 });
 </script>
 
 
 <template>
     <Transition name="status-fade" mode="out-in">
-        <div v-if="isChecking" id="main-view" class="view server-checking">
+        <div v-if="isCheckingStatus" id="main-view" class="view server-checking">
             <h2>Checking server availability...</h2>
             <LoadingSpinner />
         </div>
         <div v-else-if="isOffline" id="main-view" class="view server-offline">
             <h2>Server Offline</h2>
             <p>The server is currently offline.<br>Please try again later.</p>
-            <VButton class="debug-button wide-button" label="Retry" icon="pi pi-refresh" @click="onRetry()" />
+            <VButton class="wide-button" label="Retry" icon="pi pi-refresh" @click="onRetry()" />
         </div>
         <div v-else id="main-view" class="view">
             <MainViewNavBar />
             <ImageInput />
             <InstructionsWidget labeled />
-            <VButton class="debug-button wide-button" outlined label="Debug functions" icon="pi pi-cog"
-                    @click="viewState.setState(ViewStates.DebugView)" />
         </div>
     </Transition>
 </template>
@@ -96,11 +98,6 @@ onMounted(async () => {
     justify-content: center;
     margin: auto 0;
     text-align: center;
-}
-
-.debug-button {
-    margin-top: 30px;
-    align-self: center;
 }
 
 #main-view.server-checking {
@@ -132,7 +129,7 @@ onMounted(async () => {
 }
 
 #main-view.server-offline .p-button {
-    margin-top: 48px;
+    margin: 48px auto 0 auto;
 }
 </style>
 

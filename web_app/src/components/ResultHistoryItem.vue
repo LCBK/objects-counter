@@ -44,6 +44,7 @@ const time = new Date(props.timestamp).toLocaleTimeString();
 function onResultClick() {
     const imageRequestUri = config.serverUri + endpoints.getImage.replace("{image_id}", props.imageId.toString());
     const imageRequestPromise = sendRequest(imageRequestUri, null, "GET", "application/json", false);
+
     viewState.isWaitingForResponse = true;
     imageRequestPromise.then((imageResponse: Response) => {
         if (imageResponse.status != 200) {
@@ -64,11 +65,11 @@ function onResultClick() {
                     imageState.height = img.height;
                 };
             });
-
     });
 
     const resultRequestUri = config.serverUri + endpoints.getResult.replace("{result_id}", props.id.toString());
     const resultRequestPromise = sendRequest(resultRequestUri, null, "GET");
+
     resultRequestPromise.then((resultResponse: Response) => {
         if (resultResponse.status != 200) {
             console.error("Failed to load result for result history item");
@@ -78,7 +79,6 @@ function onResultClick() {
         const resultData = resultResponse.data.data;
         parseClassificationsFromResponse(resultData.classifications);
         imageState.resultId = props.id;
-
         viewState.isWaitingForResponse = false;
         viewState.setState(ViewStates.ImageViewResult);
     });

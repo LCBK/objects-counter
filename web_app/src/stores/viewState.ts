@@ -4,12 +4,11 @@ import MainView from "@/components/views/MainView.vue";
 import LoadingView from "@/components/views/LoadingView.vue";
 import ImageView from "@/components/views/ImageView.vue";
 import UserView from "@/components/views/UserView.vue";
-import DebugView from "@/components/views/DebugView.vue";
-import DebugCompareView from "@/components/views/DebugCompareView.vue";
 import ResultHistoryView from "@/components/views/ResultHistoryView.vue";
 import EditPointsToolBar from "@/components/toolbars/EditPointsToolBar.vue";
 import ResultViewToolBar from "@/components/toolbars/ResultViewToolBar.vue";
 import { useImageStateStore } from "./imageState";
+import { shallowRef, type Component } from "vue";
 
 
 // Stores data about current application states and views
@@ -18,8 +17,6 @@ import { useImageStateStore } from "./imageState";
 export enum ViewStates {
     MainView,
     UserView,
-    DebugView,
-    DebugCompareView,
     Uploading,
     ImageEditPoints,
     ImageViewResult,
@@ -28,9 +25,9 @@ export enum ViewStates {
 
 // TODO: refine, rename? what about capture/upload?
 export enum ImageAction {
-    Simple,
+    SimpleCounting,
     CreateDataset,
-    Compare
+    CompareWithDataset
 }
 
 const defaultState = {
@@ -46,9 +43,9 @@ const defaultState = {
     currentNavBarTitle: "",
     currentState: ViewStates.MainView,
     previousState: ViewStates.MainView,
-    currentAction: ImageAction.Simple,
-    currentView: MainView,
-    currentImageViewToolBar: EditPointsToolBar
+    currentAction: ImageAction.SimpleCounting,
+    currentView: shallowRef<Component>(MainView),
+    currentImageViewToolBar: shallowRef<Component>(EditPointsToolBar)
 }
 
 export const useViewStateStore = defineStore("viewState", {
@@ -74,21 +71,21 @@ export const useViewStateStore = defineStore("viewState", {
                     break;
 
                 case ViewStates.Uploading:
-                    this.currentView = LoadingView;
+                    this.currentView = shallowRef(LoadingView);
                     break;
 
                 case ViewStates.ImageEditPoints:
-                    this.currentView = ImageView;
-                    this.currentImageViewToolBar = EditPointsToolBar;
+                    this.currentView = shallowRef(ImageView);
+                    this.currentImageViewToolBar = shallowRef(EditPointsToolBar);
                     this.currentNavBarTitle = "Select background";
                     this.showPoints = true;
                     this.showBackground = false;
                     break;
 
                 case ViewStates.ImageViewResult:
-                    this.currentView = ImageView;
-                    this.currentImageViewToolBar = ResultViewToolBar;
-                    if (this.currentAction === ImageAction.Compare) this.currentNavBarTitle = "Comparison result";
+                    this.currentView = shallowRef(ImageView);
+                    this.currentImageViewToolBar = shallowRef(ResultViewToolBar);
+                    if (this.currentAction === ImageAction.CompareWithDataset) this.currentNavBarTitle = "Comparison";
                     else if (this.currentAction === ImageAction.CreateDataset) this.currentNavBarTitle = "Create dataset";
                     else this.currentNavBarTitle = "Result";
                     this.showPoints = false;
@@ -96,20 +93,12 @@ export const useViewStateStore = defineStore("viewState", {
                     break;
 
                 case ViewStates.UserView:
-                    this.currentView = UserView;
-                    this.currentAction = ImageAction.Simple;
-                    break;
-
-                case ViewStates.DebugView:
-                    this.currentView = DebugView;
-                    break;
-
-                case ViewStates.DebugCompareView:
-                    this.currentView = DebugCompareView;
+                    this.currentView = shallowRef(UserView);
+                    this.currentAction = ImageAction.SimpleCounting;
                     break;
 
                 case ViewStates.ResultHistoryView:
-                    this.currentView = ResultHistoryView;
+                    this.currentView = shallowRef(ResultHistoryView);
                     break;
             }
         },
