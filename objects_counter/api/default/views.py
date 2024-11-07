@@ -21,7 +21,7 @@ from objects_counter.api.default.models import points_model, accept_model
 from objects_counter.api.utils import authentication_optional, authentication_required, gzip_compress
 from objects_counter.consts import SAM_CHECKPOINT, SAM_MODEL_TYPE
 from objects_counter.db.dataops.image import insert_image, update_background_points, get_image_by_id, \
-    serialize_image_as_result
+    serialize_image_as_result, set_element_as_leader
 from objects_counter.db.dataops.result import insert_result
 from objects_counter.db.models import User
 from objects_counter.utils import create_thumbnail
@@ -177,14 +177,21 @@ class ClassifyByLeaders(Resource):
     @api.response(404, "Image not found")
     @api.response(500, "Error processing image")
     def post(self, image_id: int) -> typing.Any:
+        data = request.json
+        leaders = data.get("leaders", [])
         try:
             image = get_image_by_id(image_id)
+            for leader in leaders:
+                set_element_as_leader(leader, image)
         except NotFound as e:
             log.exception("Image %s not found: %s", image_id, e)
-            return 'Image not found', 404
+            return Response('Image not found', 404)
+        except ValueError as e:
+            log.exception("Invalid leader ID: %s", e)
+            return Response(f'One or more leaders do not belong to the image {image_id}', 400)
 
         object_grouper.assign_categories_by_representatives(image)
-        return json.dumps(serialize_image_as_result(image)), 200
+        return Response(json.dumps(serialize_image_as_result(image)), 200)
 
 
 # Temporary, to change in the future

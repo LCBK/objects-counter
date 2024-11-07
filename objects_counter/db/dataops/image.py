@@ -140,7 +140,11 @@ def update_element_classification_by_id(element_id: int, classification: str, ce
             raise
 
 
-def set_element_as_leader(element_id) -> None:
+def set_element_as_leader(element_id: int, image: Image) -> None:
+    element_ids = [element.id for element in image.elements]
+    if element_id not in element_ids:
+        log.error('Element %s does not belong to image %s', element_id, image.id)
+        raise ValueError(f'Element {element_id} does not belong to image {image.id}')
     ImageElement.query.filter_by(id=element_id).update({'is_leader': True})
 
 
