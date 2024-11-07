@@ -7,7 +7,7 @@ import time
 import typing
 
 import flask
-from flask import request, send_file, Response
+from flask import request, send_file, Response, jsonify
 from flask_restx import Resource, Namespace
 from werkzeug.datastructures import FileStorage
 from werkzeug.exceptions import NotFound
@@ -155,13 +155,12 @@ class AcceptBackgroundPoints(Resource):
 
         if not as_dataset:
             object_grouper.group_objects_by_similarity(image)
-
-        response = serialize_image_as_result(image)
-
-        if as_dataset:
+            response = serialize_image_as_result(image)
+        else:
             if not current_user:
+                log.error("User must be logged in")
                 return Response('You must be logged in', 401)
-            return json.dumps(response), 200
+            return jsonify(image.as_dict()), 200
 
         if current_user:
             user_id = current_user.id
