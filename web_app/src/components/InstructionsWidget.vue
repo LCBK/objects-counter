@@ -95,7 +95,7 @@ onMounted(() => animateButton());
     position: relative;
     top: 0;
     right: 0;
-    margin-top: 40px;
+    margin-top: 50px;
     width: 90%;
     max-width: 240px;
     height: 50px;

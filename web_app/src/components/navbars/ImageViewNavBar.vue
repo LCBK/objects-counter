@@ -10,8 +10,8 @@ const viewState = useViewStateStore();
 
 function onBack() {
     useImageStateStore().reset();
-    if (viewState.previousState === ViewStates.ResultHistoryView) {
-        viewState.setState(ViewStates.ResultHistoryView);
+    if (viewState.previousState === ViewStates.BrowseResultHistory) {
+        viewState.setState(ViewStates.BrowseResultHistory);
     }
     else {
         viewState.reset();

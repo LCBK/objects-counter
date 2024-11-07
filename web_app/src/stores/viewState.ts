@@ -7,6 +7,7 @@ import UserView from "@/components/views/UserView.vue";
 import ResultHistoryView from "@/components/views/ResultHistoryView.vue";
 import EditPointsToolBar from "@/components/toolbars/EditPointsToolBar.vue";
 import ResultViewToolBar from "@/components/toolbars/ResultViewToolBar.vue";
+import BrowseDatasetsView from "@/components/views/BrowseDatasetsView.vue";
 import { useImageStateStore } from "./imageState";
 import { shallowRef, type Component } from "vue";
 
@@ -20,7 +21,8 @@ export enum ViewStates {
     Uploading,
     ImageEditPoints,
     ImageViewResult,
-    ResultHistoryView
+    BrowseResultHistory,
+    BrowseDatasets
 }
 
 // TODO: refine, rename? what about capture/upload?
@@ -97,8 +99,12 @@ export const useViewStateStore = defineStore("viewState", {
                     this.currentAction = ImageAction.SimpleCounting;
                     break;
 
-                case ViewStates.ResultHistoryView:
+                case ViewStates.BrowseResultHistory:
                     this.currentView = shallowRef(ResultHistoryView);
+                    break;
+
+                case ViewStates.BrowseDatasets:
+                    this.currentView = shallowRef(BrowseDatasetsView);
                     break;
             }
         },

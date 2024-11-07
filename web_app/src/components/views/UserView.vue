@@ -146,11 +146,11 @@ function showErrorDialog(text: string) {
                     <p class="user-details-name">{{ userState.username }}</p>
                 </div>
                 <div class="user-details-actions">
-                    <VButton class="results-button wide-button" icon="pi pi-calendar" label="Counting history" @click="viewState.setState(ViewStates.ResultHistoryView)" />
+                    <VButton class="results-button wide-button" icon="pi pi-calendar" label="Counting history" @click="viewState.setState(ViewStates.BrowseResultHistory)" />
                     <VButton class="results-button wide-button" icon="pi pi-calendar" label="Comparison history" />
-                    <VButton class="datasets-button wide-button" icon="pi pi-images" label="Datasets" />
+                    <VButton class="datasets-button wide-button" icon="pi pi-images" label="Datasets" @click="viewState.setState(ViewStates.BrowseDatasets)" />
                 </div>
-                <VButton class="logout-button wide-button" icon="pi pi-sign-out" label="Logout" @click="onLogout()" />
+                <VButton outlined class="logout-button wide-button" icon="pi pi-sign-out" label="Logout" @click="onLogout()" />
             </div>
             <div v-else-if="!isRegistering" class="user-container user-login">
                 <p class="login-label">Login</p>
@@ -301,8 +301,7 @@ function showErrorDialog(text: string) {
 }
 
 #user-view .user-details .logout-button {
-    position: absolute;
-    bottom: 110px;
+    margin-top: 60px;
 }
 
 #user-view .user-details {
@@ -318,7 +317,7 @@ function showErrorDialog(text: string) {
     align-items: center;
     color: var(--primary-color);
     width: 100%;
-    padding: 40px;
+    padding: 60px 40px 40px 40px;
 }
 
 #user-view .user-details-header i {
@@ -336,7 +335,7 @@ function showErrorDialog(text: string) {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 20px;
+    gap: 30px;
     margin-top: 20px;
     width: 100%;
 }

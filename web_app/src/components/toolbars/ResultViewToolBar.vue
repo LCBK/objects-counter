@@ -10,6 +10,7 @@ import { computed, ref } from "vue";
 import { config, endpoints } from "@/config";
 import { parseClassificationsFromResponse, sendRequest } from "@/utils";
 import { type DatasetListItem } from "@/types";
+import DatasetListItemComponent from "../DatasetListItem.vue";
 
 
 const imageState = useImageStateStore();
@@ -18,7 +19,7 @@ const viewState = useViewStateStore();
 const quantitiesVisible = ref<boolean>(false);
 const datasetDialogVisible = ref<boolean>(false);
 const compareDialogVisible = ref<boolean>(false);
-const datasetName = ref<string>("Dataset #" + imageState.imageId);
+const datasetName = ref<string>("");
 const userDatasets = ref<DatasetListItem[]>([]);
 const classifications = computed(() => imageState.objectClassifications);
 
@@ -48,7 +49,7 @@ function handleCompareClick() {
                 userDatasets.value.push({
                     id: dataset.id,
                     name: dataset.name,
-                    timestamp: dataset.timestamp
+                    timestamp: Date.parse(dataset.timestamp)
                 } as DatasetListItem);
             }
             compareDialogVisible.value = true;
@@ -125,7 +126,7 @@ function compareWithDataset(datasetId: number) {
         <VButton v-if="viewState.currentAction !== ImageAction.CreateDataset" text label="Details"
                 class="quant" icon="pi pi-list" @click="quantitiesVisible = true" />
         <VButton v-else text label="Submit dataset" class="submit-dataset-button"
-                icon="pi pi-check"  @click="handleSubmitClick" />
+                icon="pi pi-check" @click="handleSubmitClick" :disabled="imageState.selectedLeaderIds.length === 0" />
     </div>
     <VButton v-if="viewState.currentAction === ImageAction.CompareWithDataset" label="Compare with dataset"
             :class="(viewState.isWaitingForResponse ? 'inactive-button ' : '') + 'compare-button'" @click="handleCompareClick" />
@@ -145,7 +146,8 @@ function compareWithDataset(datasetId: number) {
             :dismissable-mask="true" :draggable="false">
         <p><span>{{ imageState.selectedLeaderIds.length }}</span> categories selected</p>
         <label for="dataset-name" class="dataset-label">Dataset name</label>
-        <VInputText v-model="datasetName" class="dataset-name" :autofocus="true" :inputId="'dataset-name'" />
+        <VInputText v-model="datasetName" class="dataset-name" :autofocus="true" :inputId="'dataset-name'"
+                placeholder="My board game" />
         <div class="dialog-controls">
             <VButton outlined label="Cancel" @click="datasetDialogVisible = false" />
             <VButton label="Submit" @click="submitClassificationLeaders" />
@@ -154,12 +156,8 @@ function compareWithDataset(datasetId: number) {
     <VDialog v-model:visible="compareDialogVisible" modal header="Select dataset" class="compare-dialog"
             :dismissable-mask="true" :draggable="false">
         <div class="compare-dataset-list">
-            <div v-for="(dataset, index) in userDatasets" :key="index" class="dataset-entry">
-                <div class="dataset-entry-contents">
-                    <div class="dataset-entry-name">{{ dataset.name }}</div>
-                    <div class="dataset-entry-date">{{ new Date(dataset.timestamp).toISOString().split("T")[0] }}</div>
-                    <div class="dataset-entry-time">{{ new Date(dataset.timestamp).toLocaleTimeString() }}</div>
-                </div>
+            <div v-for="(dataset, index) in userDatasets.sort((a, b) => b.timestamp - a.timestamp)" :key="index">
+                <DatasetListItemComponent v-bind="dataset" />
                 <VButton text label="Select" class="compare-select" @click="compareWithDataset(dataset.id)" />
             </div>
         </div>
@@ -287,8 +285,8 @@ function compareWithDataset(datasetId: number) {
 
 .dataset-dialog label {
     display: inline-block;
-    margin-bottom: 4px;
-    margin-top: 10px;
+    margin-bottom: 8px;
+    margin-top: 16px;
     color: var(--text-color-secondary);
     user-select: none;
 }
@@ -300,19 +298,6 @@ function compareWithDataset(datasetId: number) {
     gap: 12px;
 }
 
-.dataset-entry-name {
-    font-weight: 500;
-    font-size: 1rem;
-    color: var(--text-color);
-}
-
-.dataset-entry-date,
-.dataset-entry-time {
-    font-weight: 500;
-    font-size: 0.8rem;
-    color: var(--text-color-secondary);
-}
-
 .compare-button {
     position: fixed;
     bottom: 130px;
@@ -322,23 +307,30 @@ function compareWithDataset(datasetId: number) {
     width: 100%;
 }
 
-.dataset-entry {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 12px 0;
-    border-bottom: 1px solid var(--surface-border);
-}
-
 .compare-dialog .compare-dataset-list {
     max-height: 65vh;
     overflow-y: auto;
     margin-bottom: 18px;
 }
 
+.compare-dialog .compare-dataset-list > div {
+    position: relative;
+}
+
+.compare-dialog .compare-dataset-list > div:not(:last-child) {
+    border-bottom: 1px solid var(--surface-border);
+}
+
 .inactive-button {
     pointer-events: none;
     opacity: 0.5;
+}
+
+.compare-select {
+    position: absolute;
+    top: 50%;
+    right: 6px;
+    transform: translateY(-50%);
 }
 </style>
 
