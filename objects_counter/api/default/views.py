@@ -170,6 +170,23 @@ class AcceptBackgroundPoints(Resource):
         return json.dumps(response), 200
 
 
+@api.route('/images/<int:image_id>/classify-by-leaders')
+class ClassifyByLeaders(Resource):
+    @api.doc(params={'image_id': 'The image ID'})
+    @api.response(200, "Objects classified")
+    @api.response(404, "Image not found")
+    @api.response(500, "Error processing image")
+    def post(self, image_id: int) -> typing.Any:
+        try:
+            image = get_image_by_id(image_id)
+        except NotFound as e:
+            log.exception("Image %s not found: %s", image_id, e)
+            return 'Image not found', 404
+
+        object_grouper.assign_categories_by_representatives(image)
+        return json.dumps(serialize_image_as_result(image)), 200
+
+
 # Temporary, to change in the future
 @api.route('/images/compare')
 class CompareImageElements(Resource):
