@@ -1,4 +1,5 @@
 export interface ImageElement {
+    id: number,
     topLeft: [number, number],
     bottomRight: [number, number],
     certainty: number,
@@ -25,4 +26,11 @@ export interface ResultHistoryItem {
     timestamp: number,
     classificationCount: number,
     elementCount: number
+}
+
+export interface DatasetListItem {
+    id: number,
+    name: string,
+    timestamp: number
+    // TODO: Add images
 }

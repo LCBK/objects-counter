@@ -146,7 +146,7 @@ function showErrorDialog(text: string) {
                     <p class="user-details-name">{{ userState.username }}</p>
                 </div>
                 <div class="user-details-actions">
-                    <VButton class="results-button wide-button" icon="pi pi-calendar" label="Result history" @click="viewState.setState(ViewStates.ResultHistoryView)" />
+                    <VButton class="results-button wide-button" icon="pi pi-calendar" label="Counting history" @click="viewState.setState(ViewStates.ResultHistoryView)" />
                     <VButton class="results-button wide-button" icon="pi pi-calendar" label="Comparison history" />
                     <VButton class="datasets-button wide-button" icon="pi pi-images" label="Datasets" />
                 </div>
@@ -180,8 +180,7 @@ function showErrorDialog(text: string) {
             </div>
             <div v-else-if="isRegistering" class="user-container user-register">
                 <p class="login-label">Register</p>
-                <p class="login-label-small-first">Create a new account.</p>
-                <p class="login-label-small">TBD data collection statement/details.</p>
+                <p class="login-label-small">Create a new account.</p>
                 <form name="register" ref="registerForm" action="javascript:void(0);">
                     <VInputGroup class="user-input">
                         <VInputGroupAddon>
@@ -247,6 +246,8 @@ function showErrorDialog(text: string) {
     flex-direction: column;
     align-items: center;
     width: 100%;
+    position: relative;
+    bottom: 40px;
 }
 
 #user-view .login-label {
@@ -258,18 +259,13 @@ function showErrorDialog(text: string) {
     margin-bottom: 10px;
 }
 
-#user-view .login-label-small,
-#user-view .login-label-small-first {
+#user-view .login-label-small {
     text-align: center;
     color: var(--text-color-secondary);
     font-size: 0.85rem;
     font-weight: 400;
     letter-spacing: 0.3px;
     margin-bottom: 40px;
-}
-
-#user-view .login-label-small-first {
-    margin-bottom: 0px;
 }
 
 #user-view .user-input {

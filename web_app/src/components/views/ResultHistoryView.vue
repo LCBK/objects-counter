@@ -79,7 +79,7 @@ onMounted(async () => {
             <SettingsWidget />
         </div>
         <div class="result-history-items">
-            <ResultHistoryItemComponent v-for="(item, index) in historyItems.sort((a, b) => a.timestamp - b.timestamp)"
+            <ResultHistoryItemComponent v-for="(item, index) in historyItems.sort((a, b) => b.timestamp - a.timestamp)"
                     :key="index" v-bind="item" />
         </div>
         <Transition name="waiting-overlay">

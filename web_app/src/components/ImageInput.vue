@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import { ref } from "vue";
 import VButton from "primevue/button";
+import VSelectButton from "primevue/selectbutton";
 import { useImageStateStore } from "@/stores/imageState";
-import { useViewStateStore, ViewStates } from "@/stores/viewState";
+import { ImageAction, useViewStateStore, ViewStates } from "@/stores/viewState";
 import { sendRequest } from "@/utils";
 import { config, endpoints } from "@/config";
 
@@ -11,16 +12,28 @@ const imageState = useImageStateStore();
 const viewState = useViewStateStore();
 const captureInput = ref<HTMLInputElement>();
 const uploadInput = ref<HTMLInputElement>();
+const currentMode = ref<string>("Capture");
 
 
-function onCaptureClick() : void {
-    if (!captureInput.value) return;
-    captureInput.value.click();
+function onCountingClick() : void {
+    if (!uploadInput.value || !captureInput.value) return;
+    if (currentMode.value === "Capture") captureInput.value.click();
+    else uploadInput.value.click();
+    viewState.currentAction = ImageAction.SimpleCounting;
 }
 
-function onUploadClick() : void {
-    if (!uploadInput.value) return;
-    uploadInput.value.click();
+function onCreateDatasetClick() : void {
+    if (!uploadInput.value || !captureInput.value) return;
+    if (currentMode.value === "Capture") captureInput.value.click();
+    else uploadInput.value.click();
+    viewState.currentAction = ImageAction.CreateDataset;
+}
+
+function onCompareClick() : void {
+    if (!uploadInput.value || !captureInput.value) return;
+    if (currentMode.value === "Capture") captureInput.value.click();
+    else uploadInput.value.click();
+    viewState.currentAction = ImageAction.CompareWithDataset;
 }
 
 function onImageUpload(event: Event) : void {
@@ -60,8 +73,10 @@ function onImageUpload(event: Event) : void {
 
 <template>
     <div class="image-select">
-        <VButton class="wide-button" label="Capture image" icon="pi pi-camera" @click="onCaptureClick()"></VButton>
-        <VButton class="wide-button" label="Upload image" icon="pi pi-upload" @click="onUploadClick()"></VButton>
+        <VButton class="wide-button" label="Count elements" icon="pi pi-box" @click="onCountingClick()" />
+        <VButton class="wide-button" label="Create dataset" icon="pi pi-images" @click="onCreateDatasetClick()" />
+        <VButton class="wide-button" label="Compare quantity" icon="pi pi-arrow-right-arrow-left" @click="onCompareClick()" />
+        <VSelectButton class="mode-select" v-model="currentMode" :options="['Capture', 'Upload']" :allow-empty="false" />
     </div>
     <div class="image-select-inputs">
         <input type="file" name="image-capture" ref="captureInput"
@@ -90,6 +105,30 @@ function onImageUpload(event: Event) : void {
 <style>
 .image-select .p-button-icon {
     font-size: 1.25rem;
+}
+
+.mode-select .p-button {
+    border: none;
+}
+
+.mode-select .p-button span {
     font-weight: 600;
+}
+
+.mode-select .p-button:active {
+    background-color: unset;
+    color: unset;
+}
+
+.mode-select .p-button.p-highlight::before {
+    background-color: var(--primary-color);
+}
+
+.mode-select .p-button.p-highlight {
+    color: var(--primary-color-text);
+}
+
+.dark .mode-select .p-button {
+    background-color: #0a0a0a;
 }
 </style>

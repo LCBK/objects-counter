@@ -37,6 +37,15 @@ const showBoxCertainty = computed({
     }
 });
 
+const showElementIds = computed({
+    get() {
+        return settingsState.showElementIds;
+    },
+    set(value) {
+        settingsState.updateElementIdsVisibility(value);
+    }
+});
+
 
 onMounted(() => {
     isDarkTheme.value = settingsState.isDarkTheme;
@@ -62,6 +71,10 @@ onMounted(() => {
                 <div class="settings-item-label">Show certainties</div>
                 <VInputSwitch class="settings-item-switch" v-model="showBoxCertainty" />
             </div>
+            <div class="settings-item">
+                <div class="settings-item-label">Show element IDs</div>
+                <VInputSwitch class="settings-item-switch" v-model="showElementIds" />
+            </div>
         </VDialog>
     </div>
 </template>
@@ -73,6 +86,7 @@ onMounted(() => {
     justify-content: space-between;
     align-items: center;
     margin-bottom: 12px;
+    user-select: none;
 }
 
 .settings-item:last-child {
@@ -83,6 +97,7 @@ onMounted(() => {
     margin-top: 8px;
     margin-bottom: 12px;
     font-weight: 600;
+    user-select: none;
 }
 
 .settings-heading:not(:first-child) {
@@ -92,5 +107,11 @@ onMounted(() => {
 .settings-item-label {
     font-size: 1rem;
     font-weight: 300;
+}
+</style>
+
+<style>
+.main-view-nav-bar #settings-widget {
+    margin-left: 4px;
 }
 </style>

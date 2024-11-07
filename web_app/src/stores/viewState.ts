@@ -4,14 +4,11 @@ import MainView from "@/components/views/MainView.vue";
 import LoadingView from "@/components/views/LoadingView.vue";
 import ImageView from "@/components/views/ImageView.vue";
 import UserView from "@/components/views/UserView.vue";
-import DebugView from "@/components/views/DebugView.vue";
-import DebugCompareView from "@/components/views/DebugCompareView.vue";
 import ResultHistoryView from "@/components/views/ResultHistoryView.vue";
-
-import ConfirmPointsToolBar from "@/components/toolbars/ConfirmPointsToolBar.vue";
 import EditPointsToolBar from "@/components/toolbars/EditPointsToolBar.vue";
 import ResultViewToolBar from "@/components/toolbars/ResultViewToolBar.vue";
 import { useImageStateStore } from "./imageState";
+import { shallowRef, type Component } from "vue";
 
 
 // Stores data about current application states and views
@@ -20,13 +17,17 @@ import { useImageStateStore } from "./imageState";
 export enum ViewStates {
     MainView,
     UserView,
-    DebugView,
-    DebugCompareView,
     Uploading,
     ImageEditPoints,
-    ImageConfirmBackground,
     ImageViewResult,
     ResultHistoryView
+}
+
+// TODO: refine, rename? what about capture/upload?
+export enum ImageAction {
+    SimpleCounting,
+    CreateDataset,
+    CompareWithDataset
 }
 
 const defaultState = {
@@ -36,12 +37,15 @@ const defaultState = {
     isRemovingPoint: false,
     isPointTypePositive: true,
     isWaitingForResponse: false,
+    isEditingExistingResult: false,
     showPoints: true,
     showBackground: false,
     currentNavBarTitle: "",
     currentState: ViewStates.MainView,
-    currentView: MainView,
-    currentImageViewToolBar: EditPointsToolBar
+    previousState: ViewStates.MainView,
+    currentAction: ImageAction.SimpleCounting,
+    currentView: shallowRef<Component>(MainView),
+    currentImageViewToolBar: shallowRef<Component>(EditPointsToolBar)
 }
 
 export const useViewStateStore = defineStore("viewState", {
@@ -55,6 +59,7 @@ export const useViewStateStore = defineStore("viewState", {
         },
 
         setState(state: ViewStates) {
+            this.previousState = this.currentState;
             this.currentState = state;
             this.isWaitingForResponse = false;
             this.isAddingPoint = false;
@@ -66,47 +71,34 @@ export const useViewStateStore = defineStore("viewState", {
                     break;
 
                 case ViewStates.Uploading:
-                    this.currentView = LoadingView;
+                    this.currentView = shallowRef(LoadingView);
                     break;
 
                 case ViewStates.ImageEditPoints:
-                    this.currentView = ImageView;
-                    this.currentImageViewToolBar = EditPointsToolBar;
+                    this.currentView = shallowRef(ImageView);
+                    this.currentImageViewToolBar = shallowRef(EditPointsToolBar);
                     this.currentNavBarTitle = "Select background";
                     this.showPoints = true;
                     this.showBackground = false;
                     break;
 
-                case ViewStates.ImageConfirmBackground:
-                    this.currentView = ImageView;
-                    this.currentImageViewToolBar = ConfirmPointsToolBar;
-                    this.currentNavBarTitle = "Confirm selection";
-                    this.showPoints = true;
-                    this.showBackground = true;
-                    break;
-
                 case ViewStates.ImageViewResult:
-                    this.currentView = ImageView;
-                    this.currentImageViewToolBar = ResultViewToolBar;
-                    this.currentNavBarTitle = "Result";
+                    this.currentView = shallowRef(ImageView);
+                    this.currentImageViewToolBar = shallowRef(ResultViewToolBar);
+                    if (this.currentAction === ImageAction.CompareWithDataset) this.currentNavBarTitle = "Comparison";
+                    else if (this.currentAction === ImageAction.CreateDataset) this.currentNavBarTitle = "Create dataset";
+                    else this.currentNavBarTitle = "Result";
                     this.showPoints = false;
                     this.showBackground = false;
                     break;
 
                 case ViewStates.UserView:
-                    this.currentView = UserView;
-                    break;
-
-                case ViewStates.DebugView:
-                    this.currentView = DebugView;
-                    break;
-
-                case ViewStates.DebugCompareView:
-                    this.currentView = DebugCompareView;
+                    this.currentView = shallowRef(UserView);
+                    this.currentAction = ImageAction.SimpleCounting;
                     break;
 
                 case ViewStates.ResultHistoryView:
-                    this.currentView = ResultHistoryView;
+                    this.currentView = shallowRef(ResultHistoryView);
                     break;
             }
         },

@@ -72,19 +72,20 @@ export function createMaskImage(mask: Array<Array<boolean>>) : ImageData {
 
 export function parseClassificationsFromResponse(classifications: Array<any>) : void {
     const imageState = useImageStateStore();
-    classifications.forEach((element: any, index: number) => {
+    classifications.forEach((classification: any, index: number) => {
         imageState.objectClassifications.push({
             index: index,
-            classificationName: element.classification,
-            count: element.objects.length,
+            classificationName: classification.classification,
+            count: classification.objects.length,
             showBoxes: true,
             boxColor: boundingBoxColors[index % boundingBoxColors.length]
         });
-        element.objects.forEach((object: any) => {
+        classification.objects.forEach((element: any) => {
             imageState.imageElements.push({
-                topLeft: object.top_left,
-                bottomRight: object.bottom_right,
-                certainty: object.certainty,
+                id: element.id,
+                topLeft: element.top_left,
+                bottomRight: element.bottom_right,
+                certainty: element.certainty,
                 classificationIndex: index
             });
         });

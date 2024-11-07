@@ -15,6 +15,17 @@ class Image(db.Model):
     timestamp = db.Column(db.DateTime, nullable=False, default=db.func.now())
     background_points = db.Column(db.JSON, nullable=True)
     result = db.relationship('Result', backref='image', uselist=False)
+    dataset_id = db.Column(db.Integer, db.ForeignKey('dataset.id'), nullable=True)
+    dataset = db.relationship('Dataset', backref='images')
+
+    def as_dict(self):
+        return {
+            'id': self.id,
+            'thumbnail': self.thumbnail,
+            'timestamp': self.timestamp,
+            'background_points': self.background_points,
+            'elements': [element.as_dict() for element in self.elements]
+        }
 
 
 class ImageElement(db.Model):
@@ -26,12 +37,15 @@ class ImageElement(db.Model):
     classification = db.Column(db.String(255), nullable=True)
     certainty = db.Column(db.Float, nullable=True)
     image = db.relationship('Image', backref='elements')
+    is_leader = db.Column(db.Boolean, nullable=False, default=False)
 
     def as_dict(self):
         return {
+            'id': self.id,
             'top_left': self.top_left,
             'bottom_right': self.bottom_right,
             'certainty': self.certainty,
+            'classification': self.classification,
         }
 
 
@@ -58,4 +72,22 @@ class Result(db.Model):
             'image_id': self.image_id,
             'data': self.data,
             'timestamp': self.timestamp
+        }
+
+
+class Dataset(db.Model):
+    __tablename__ = 'dataset'
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    name = db.Column(db.String(255), nullable=False)
+    timestamp = db.Column(db.DateTime, nullable=False, default=db.func.now())
+    user_id = db.Column(db.Integer, db.ForeignKey(User.id), nullable=False)
+    user = db.relationship('User', backref='datasets')
+
+    def as_dict(self):
+        return {
+            'id': self.id,
+            'name': self.name,
+            'user': self.user.username,
+            'timestamp': self.timestamp,
+            'images': [image.id for image in self.images]
         }

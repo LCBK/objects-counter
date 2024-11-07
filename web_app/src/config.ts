@@ -29,8 +29,11 @@ export const endpoints = {
     getResults: "/api/results/",
     getResult: "/api/results/{result_id}",
     getResultsThumbnails: "/api/results/thumbnails",
-    compareElements: "/api/images/compare",
-    renameClassification: "/api/results/{result_id}/classification/{classification_name}/rename"
+    deleteResult: "/api/results/{result_id}",
+    renameClassification: "/api/results/{result_id}/classification/{classification_name}/rename",
+    getDatasets: "/api/datasets/",
+    createDataset: "/api/datasets/",
+    compareToDataset: "/api/results/{result_id}/compare/{dataset_id}"
 };
 
 export const boundingBoxColors = [
