@@ -153,7 +153,8 @@ class AcceptBackgroundPoints(Resource):
 
         sam.count_objects(image)
 
-        object_grouper.group_objects_by_similarity(image)
+        if not as_dataset:
+            object_grouper.group_objects_by_similarity(image)
 
         response = serialize_image_as_result(image)
 

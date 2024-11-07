@@ -150,6 +150,9 @@ def serialize_image_as_result(image: Image) -> dict:
     for element in image.elements:
         element_data = element.as_dict()
 
+        if element_data["classification"] is None:
+            continue
+
         element_data["certainty"] = round(element.certainty, 2)
 
         if element.classification not in classification_dict:

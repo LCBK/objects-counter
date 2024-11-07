@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import VButton from "primevue/button";
-import { useViewStateStore, ViewStates } from "@/stores/viewState";
+import { ImageAction, useViewStateStore, ViewStates } from "@/stores/viewState";
 import { config, endpoints } from "@/config";
 import { useImageStateStore } from "@/stores/imageState";
 import { parseClassificationsFromResponse, sendRequest } from "@/utils";
@@ -52,7 +52,9 @@ async function handleConfirmBackground() {
     }
 
     const requestUri = config.serverUri + endpoints.acceptBackground.replace("{image_id}", imageState.imageId.toString());
-    const requestData = JSON.stringify({});
+    const requestData = JSON.stringify({
+        as_dataset: viewState.currentAction === ImageAction.CreateDataset
+    });
     const responsePromise = sendRequest(requestUri, requestData, "POST");
 
     responsePromise.then((response) => {
