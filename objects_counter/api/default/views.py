@@ -23,7 +23,7 @@ from objects_counter.consts import SAM_CHECKPOINT, SAM_MODEL_TYPE
 from objects_counter.db.dataops.image import insert_image, update_background_points, get_image_by_id, \
     serialize_image_as_result, set_element_as_leader
 from objects_counter.db.dataops.result import insert_result
-from objects_counter.db.models import User
+from objects_counter.db.models import User, ImageElement
 from objects_counter.utils import create_thumbnail
 
 
@@ -181,7 +181,8 @@ class ClassifyByLeaders(Resource):
         leaders = data.get("leaders", [])
         try:
             image = get_image_by_id(image_id)
-            for leader in leaders:
+            for idx, leader in enumerate(leaders):
+                ImageElement.query.filter_by(id=leader).update({'classification': f'{idx}'})
                 set_element_as_leader(leader, image)
         except NotFound as e:
             log.exception("Image %s not found: %s", image_id, e)
