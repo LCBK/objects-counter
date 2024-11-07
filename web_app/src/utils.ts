@@ -92,6 +92,17 @@ export function parseClassificationsFromResponse(classifications: Array<any>) : 
     });
 }
 
+export function parseElementsFromResponse(elements: Array<any>) : void {
+    const imageState = useImageStateStore();
+    for (const element of elements) {
+        imageState.imageElements.push({
+            id: element.id,
+            topLeft: element.top_left,
+            bottomRight: element.bottom_right
+        });
+    }
+}
+
 export function checkServerStatus() : Promise<boolean> {
     return new Promise((resolve) => {
         sendRequest(config.serverUri + endpoints.isAlive, null, "GET")

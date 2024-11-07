@@ -3,7 +3,7 @@ import VButton from "primevue/button";
 import { ImageAction, useViewStateStore, ViewStates } from "@/stores/viewState";
 import { config, endpoints } from "@/config";
 import { useImageStateStore } from "@/stores/imageState";
-import { parseClassificationsFromResponse, sendRequest } from "@/utils";
+import { parseClassificationsFromResponse, parseElementsFromResponse, sendRequest } from "@/utils";
 import { computed, onMounted, ref } from "vue";
 
 
@@ -59,9 +59,17 @@ async function handleConfirmBackground() {
 
     responsePromise.then((response) => {
         viewState.isWaitingForResponse = false;
-        parseClassificationsFromResponse(JSON.parse(response.data).classifications);
-        if (JSON.parse(response.data).id) imageState.resultId = JSON.parse(response.data).id;
         if (viewState.currentState !== ViewStates.ImageEditPoints) return;
+
+        if (viewState.currentAction === ImageAction.CreateDataset) {
+            parseElementsFromResponse(response.data.elements);
+            if (response.data.id) imageState.resultId = response.data.id;
+        }
+        else {
+            parseClassificationsFromResponse(JSON.parse(response.data).classifications);
+            if (JSON.parse(response.data).id) imageState.resultId = JSON.parse(response.data).id;
+        }
+
         viewState.setState(ViewStates.ImageViewResult);
     });
 }

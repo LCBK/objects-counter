@@ -2,8 +2,8 @@ export interface ImageElement {
     id: number,
     topLeft: [number, number],
     bottomRight: [number, number],
-    certainty: number,
-    classificationIndex: number
+    certainty?: number,
+    classificationIndex?: number
 }
 
 export interface ObjectClassification {

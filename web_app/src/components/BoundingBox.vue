@@ -25,18 +25,18 @@ const props = defineProps({
     },
     certainty: {
         type: Number,
-        required: true
+        required: false
     },
     classificationIndex: {
         type: Number,
-        required: true
+        required: false
     }
 });
 
 const isSelected = ref<boolean>(false);
 
 const boxColor = computed(() => {
-    if (viewState.currentAction === ImageAction.CreateDataset) {
+    if (viewState.currentAction === ImageAction.CreateDataset || props.classificationIndex === undefined) {
         return boundingBoxColors[0];
     }
     else {
@@ -44,7 +44,12 @@ const boxColor = computed(() => {
     }
 });
 const selectedBoxColor = computed(() => boundingBoxColors[2]);
-const classification = computed(() => imageState.objectClassifications[props.classificationIndex].classificationName);
+const classification = computed(() => {
+    if (props.classificationIndex === undefined) {
+        return "Unknown";
+    }
+    else return imageState.objectClassifications[props.classificationIndex].classificationName
+});
 const scale = computed(() => imageState.boundingBoxScale);
 
 // CSS properties
@@ -52,7 +57,6 @@ const top = computed(() => props.topLeft[1] * scale.value + "px");
 const left = computed(() => props.topLeft[0] * scale.value + "px");
 const width = computed(() => (props.bottomRight[0] - props.topLeft[0]) * scale.value + "px");
 const height = computed(() => (props.bottomRight[1] - props.topLeft[1]) * scale.value + "px");
-
 
 function handleBoundingBoxClick() {
     // If creating dataset, enable leader selection
@@ -74,7 +78,7 @@ function handleBoundingBoxClick() {
             v-bind:data-topleft="props.topLeft[0] + ',' + props.topLeft[1]"
             v-bind:data-bottomright="props.bottomRight[0] + ',' + props.bottomRight[1]"
             v-bind:data-certainty="props.certainty" v-bind:data-classification="classification"
-            v-if="imageState.objectClassifications[classificationIndex].showBoxes"
+            v-if="classificationIndex === undefined || imageState.objectClassifications[classificationIndex].showBoxes"
             @click="handleBoundingBoxClick">
         <div>
             <div v-if="settingsState.showBoxCertainty" class="box-certainty">{{ props.certainty }}</div>

@@ -89,7 +89,7 @@ export const useViewStateStore = defineStore("viewState", {
                     this.currentImageViewToolBar = shallowRef(ResultViewToolBar);
                     if (this.currentAction === ImageAction.CompareWithDataset) this.currentNavBarTitle = "Comparison";
                     else if (this.currentAction === ImageAction.CreateDataset) this.currentNavBarTitle = "Create dataset";
-                    else this.currentNavBarTitle = "Result";
+                    else this.currentNavBarTitle = "Counted elements";
                     this.showPoints = false;
                     this.showBackground = false;
                     break;
