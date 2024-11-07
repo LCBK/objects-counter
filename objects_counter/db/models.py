@@ -21,7 +21,6 @@ class Image(db.Model):
     def as_dict(self):
         return {
             'id': self.id,
-            'thumbnail': self.thumbnail,
             'timestamp': self.timestamp,
             'background_points': self.background_points,
             'elements': [element.as_dict() for element in self.elements]
