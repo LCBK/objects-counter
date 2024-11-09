@@ -21,7 +21,7 @@ from objects_counter.api.default.models import points_model, accept_model
 from objects_counter.api.utils import authentication_optional, authentication_required, gzip_compress
 from objects_counter.consts import SAM_CHECKPOINT, SAM_MODEL_TYPE
 from objects_counter.db.dataops.image import insert_image, update_background_points, get_image_by_id, \
-    serialize_image_as_result, set_element_as_leader
+    serialize_image_as_result, set_element_as_leader, mark_leaders_in_image
 from objects_counter.db.dataops.result import insert_result
 from objects_counter.db.models import User, ImageElement
 from objects_counter.utils import create_thumbnail
@@ -173,26 +173,31 @@ class AcceptBackgroundPoints(Resource):
 @api.route('/images/<int:image_id>/classify-by-leaders')
 class ClassifyByLeaders(Resource):
     @api.doc(params={'image_id': 'The image ID'})
+    @api.expect({'leaders': [int]})
     @api.response(200, "Objects classified")
+    @api.response(400, "Invalid leader ID")
     @api.response(404, "Image not found")
     @api.response(500, "Error processing image")
     def post(self, image_id: int) -> typing.Any:
         data = request.json
         leaders = data.get("leaders", [])
+        if not leaders:
+            log.error("No leaders provided")
+            return Response('No leaders provided', 400)
         try:
             image = get_image_by_id(image_id)
-            for idx, leader in enumerate(leaders):
-                ImageElement.query.filter_by(id=leader).update({'classification': f'{idx}'})
-                set_element_as_leader(leader, image)
+            mark_leaders_in_image(image, leaders)
+            object_grouper.assign_categories_by_representatives(image)
+            return Response(json.dumps(serialize_image_as_result(image)), 200)
         except NotFound as e:
             log.exception("Image %s not found: %s", image_id, e)
             return Response('Image not found', 404)
-        except ValueError as e:
+        except (ValueError, TypeError) as e:
             log.exception("Invalid leader ID: %s", e)
-            return Response(f'One or more leaders do not belong to the image {image_id}', 400)
-
-        object_grouper.assign_categories_by_representatives(image)
-        return Response(json.dumps(serialize_image_as_result(image)), 200)
+            return Response(f'One or more leaders do not belong to the image {image_id} or are invalid', 400)
+        except Exception as e:
+            log.exception("Error processing image: %s", e)
+            return Response('Error processing image', 500)
 
 
 # Temporary, to change in the future

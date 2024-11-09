@@ -171,3 +171,9 @@ def serialize_image_as_result(image: Image) -> dict:
         "count": len(image.elements),
         "classifications": list(classification_dict.values())
     }
+
+
+def mark_leaders_in_image(image: Image, leader_ids: list[int]) -> None:
+    for idx, leader in enumerate(leader_ids):
+        set_element_as_leader(leader, image)
+        ImageElement.query.filter_by(id=int(leader)).update({'classification': f'{idx}'})
