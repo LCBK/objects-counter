@@ -10,7 +10,6 @@ import LoadingSpinner from "../LoadingSpinner.vue";
 import { onMounted, ref } from "vue";
 
 
-// todo: refetch images only when number of results changes
 // todo: pagination
 
 

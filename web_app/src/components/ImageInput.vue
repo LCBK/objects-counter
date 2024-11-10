@@ -15,28 +15,32 @@ const uploadInput = ref<HTMLInputElement>();
 const currentMode = ref<string>("Capture");
 
 
-function onCountingClick() : void {
+function triggerImageInput() : void {
     if (!uploadInput.value || !captureInput.value) return;
     if (currentMode.value === "Capture") captureInput.value.click();
     else uploadInput.value.click();
+}
+
+
+function handleCountingClick() : void {
+    triggerImageInput();
     viewState.currentAction = ImageAction.SimpleCounting;
 }
 
-function onCreateDatasetClick() : void {
-    if (!uploadInput.value || !captureInput.value) return;
-    if (currentMode.value === "Capture") captureInput.value.click();
-    else uploadInput.value.click();
+
+function handleCreateDatasetClick() : void {
+    triggerImageInput();
     viewState.currentAction = ImageAction.CreateDataset;
 }
 
-function onCompareClick() : void {
-    if (!uploadInput.value || !captureInput.value) return;
-    if (currentMode.value === "Capture") captureInput.value.click();
-    else uploadInput.value.click();
+
+function handleCompareClick() : void {
+    triggerImageInput();
     viewState.currentAction = ImageAction.CompareWithDataset;
 }
 
-function onImageUpload(event: Event) : void {
+
+function handleImageUpload(event: Event) : void {
     const imageFile = (event.target as HTMLInputElement)!.files?.[0];
     if (imageFile !== undefined) {
         // Set image URL to display it later on
@@ -73,16 +77,16 @@ function onImageUpload(event: Event) : void {
 
 <template>
     <div class="image-select">
-        <VButton class="wide-button" label="Count elements" icon="pi pi-box" @click="onCountingClick()" />
-        <VButton class="wide-button" label="Create dataset" icon="pi pi-images" @click="onCreateDatasetClick()" />
-        <VButton class="wide-button" label="Compare quantity" icon="pi pi-arrow-right-arrow-left" @click="onCompareClick()" />
+        <VButton class="wide-button" label="Count elements" icon="pi pi-box" @click="handleCountingClick()" />
+        <VButton class="wide-button" label="Create dataset" icon="pi pi-images" @click="handleCreateDatasetClick()" />
+        <VButton class="wide-button" label="Compare quantity" icon="pi pi-arrow-right-arrow-left" @click="handleCompareClick()" />
         <VSelectButton class="mode-select" v-model="currentMode" :options="['Capture', 'Upload']" :allow-empty="false" />
     </div>
     <div class="image-select-inputs">
         <input type="file" name="image-capture" ref="captureInput"
-            accept="image/*" capture="environment" @change.stop.prevent="onImageUpload($event)" />
+            accept="image/*" capture="environment" @change.stop.prevent="handleImageUpload($event)" />
         <input type="file" name="image-upload" ref="uploadInput"
-            accept="image/*" @change.stop.prevent="onImageUpload($event)" />
+            accept="image/*" @change.stop.prevent="handleImageUpload($event)" />
     </div>
 </template>
 

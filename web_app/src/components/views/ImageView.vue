@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import ImageDisplay from "../ImageDisplay.vue";
 import ImageViewNavBar from "../navbars/ImageViewNavBar.vue";
-import { ImageAction, useViewStateStore, ViewStates } from "../../stores/viewState";
+import { useViewStateStore, ViewStates } from "../../stores/viewState";
 import InstructionsViewWidget from "../InstructionsWidget.vue";
 
 const viewState = useViewStateStore();
@@ -11,8 +11,7 @@ const viewState = useViewStateStore();
 <template>
     <div id="image-view" class="view">
         <ImageViewNavBar />
-        <div v-if="viewState.currentAction === ImageAction.CreateDataset
-                && viewState.currentState === ViewStates.ImageViewResult" id="additional-info-bar">
+        <div v-if="viewState.currentState === ViewStates.ImageViewCreateDataset" id="additional-info-bar">
             <p>Select one representant of each category</p>
             <InstructionsViewWidget />
         </div>

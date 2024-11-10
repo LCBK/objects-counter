@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import "./ImageViewToolBar.css";
 import VButton from "primevue/button";
 import { ImageAction, useViewStateStore, ViewStates } from "@/stores/viewState";
 import { config, endpoints } from "@/config";
@@ -25,21 +26,25 @@ function setPositivePointType() {
     negativePointButton.value!.classList.remove("checked");
 }
 
+
 function setNegativePointType() {
     viewState.isPointTypePositive = false;
     positivePointButton.value!.classList.remove("checked");
     negativePointButton.value!.classList.add("checked");
 }
 
+
 function handleAddClick() {
     viewState.toggleAddPoint();
     displayPointTypes.value = !displayPointTypes.value;
 }
 
+
 function handleRemoveClick() {
     viewState.toggleRemovePoint();
     displayPointTypes.value = false;
 }
+
 
 async function handleConfirmBackground() {
     viewState.isWaitingForResponse = true;
@@ -62,15 +67,27 @@ async function handleConfirmBackground() {
         if (viewState.currentState !== ViewStates.ImageEditPoints) return;
 
         if (viewState.currentAction === ImageAction.CreateDataset) {
+            // Backend responds with elements without classifications, only for leader selection
             parseElementsFromResponse(response.data.elements);
             if (response.data.id) imageState.resultId = response.data.id;
         }
         else {
+            // Otherwise the response contains classifications
             parseClassificationsFromResponse(JSON.parse(response.data).classifications);
             if (JSON.parse(response.data).id) imageState.resultId = JSON.parse(response.data).id;
         }
 
-        viewState.setState(ViewStates.ImageViewResult);
+        switch (viewState.currentAction) {
+            case ImageAction.SimpleCounting:
+                viewState.setState(ViewStates.ImageViewCountingResult);
+                break;
+            case ImageAction.CreateDataset:
+                viewState.setState(ViewStates.ImageViewCreateDataset);
+                break;
+            case ImageAction.CompareWithDataset:
+                viewState.setState(ViewStates.ImageViewCompareWithDataset);
+                break;
+        }
     });
 }
 
@@ -100,21 +117,6 @@ onMounted(() => {
 
 
 <style scoped>
-.image-view-tool-bar {
-    padding: 0;
-    position: fixed;
-    bottom: 0;
-    height: 90px;
-    align-items: stretch;
-}
-
-.image-view-tool-bar > button {
-    flex-direction: column;
-    padding: 12px 1rem;
-    justify-content: space-between;
-    flex: 1 1 0px;
-}
-
 #point-types {
     z-index: 200;
     position: absolute;

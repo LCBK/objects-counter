@@ -6,29 +6,37 @@ import ImageView from "@/components/views/ImageView.vue";
 import UserView from "@/components/views/UserView.vue";
 import ResultHistoryView from "@/components/views/ResultHistoryView.vue";
 import EditPointsToolBar from "@/components/toolbars/EditPointsToolBar.vue";
-import ResultViewToolBar from "@/components/toolbars/ResultViewToolBar.vue";
 import BrowseDatasetsView from "@/components/views/BrowseDatasetsView.vue";
 import { useImageStateStore } from "./imageState";
 import { shallowRef, type Component } from "vue";
+import CountingResultViewToolBar from "@/components/toolbars/CountingResultViewToolBar.vue";
+import CreateDatasetToolBar from "@/components/toolbars/CreateDatasetToolBar.vue";
+import ConfirmDatasetToolBar from "@/components/toolbars/ConfirmDatasetToolBar.vue";
+import ComparisonToolBar from "@/components/toolbars/ComparisonToolBar.vue";
 
 
 // Stores data about current application states and views
 // Allows to manage state through setState, handling all state transitions
 
+// All possible views of the application
 export enum ViewStates {
     MainView,
     UserView,
     Uploading,
     ImageEditPoints,
-    ImageViewResult,
+    ImageViewCountingResult,
+    ImageViewCreateDataset,
+    ImageViewConfirmDataset,
+    ImageViewCompareWithDataset,
+    ImageViewComparisonResult,
     BrowseResultHistory,
     BrowseDatasets
 }
 
+// Actions selected by the user in the main view, these determine how certain components behave
 export enum ImageAction {
-    SimpleCounting,
+    SimpleCounting,         // Default
     CreateDataset,
-    ConfirmDataset,
     CompareWithDataset
 }
 
@@ -84,12 +92,34 @@ export const useViewStateStore = defineStore("viewState", {
                     this.showBackground = false;
                     break;
 
-                case ViewStates.ImageViewResult:
+                case ViewStates.ImageViewCountingResult:
                     this.currentView = shallowRef(ImageView);
-                    this.currentImageViewToolBar = shallowRef(ResultViewToolBar);
-                    if (this.currentAction === ImageAction.CompareWithDataset) this.currentNavBarTitle = "Comparison";
-                    else if (this.currentAction === ImageAction.CreateDataset) this.currentNavBarTitle = "Create dataset";
-                    else this.currentNavBarTitle = "Counted elements";
+                    this.currentImageViewToolBar = shallowRef(CountingResultViewToolBar);
+                    this.currentNavBarTitle = "Counted elements";
+                    this.showPoints = false;
+                    this.showBackground = false;
+                    break;
+
+                case ViewStates.ImageViewCreateDataset:
+                    this.currentView = shallowRef(ImageView);
+                    this.currentImageViewToolBar = shallowRef(CreateDatasetToolBar);
+                    this.currentNavBarTitle = "Create dataset";
+                    this.showPoints = false;
+                    this.showBackground = false;
+                    break;
+
+                case ViewStates.ImageViewConfirmDataset:
+                    this.currentView = shallowRef(ImageView);
+                    this.currentImageViewToolBar = shallowRef(ConfirmDatasetToolBar);
+                    this.currentNavBarTitle = "Confirm dataset";
+                    this.showPoints = false;
+                    this.showBackground = false;
+                    break;
+
+                case ViewStates.ImageViewCompareWithDataset:
+                    this.currentView = shallowRef(ImageView);
+                    this.currentImageViewToolBar = shallowRef(ComparisonToolBar);
+                    this.currentNavBarTitle = "Compare with dataset";
                     this.showPoints = false;
                     this.showBackground = false;
                     break;

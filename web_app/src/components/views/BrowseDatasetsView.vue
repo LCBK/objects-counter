@@ -5,7 +5,6 @@ import type { DatasetListItem } from "@/types";
 import { config, endpoints } from "@/config";
 import { sendRequest } from "@/utils";
 import SettingsWidget from "../SettingsWidget.vue";
-import LoadingSpinner from "../LoadingSpinner.vue";
 import { onMounted, ref } from "vue";
 import DatasetListItemComponent from "../DatasetListItem.vue";
 

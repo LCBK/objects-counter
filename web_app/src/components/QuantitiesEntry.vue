@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { config, endpoints } from "@/config";
 import { useImageStateStore } from "@/stores/imageState";
-import { sendRequest, type Response } from "@/utils";
+import { sendRequest } from "@/utils";
 import VButton from "primevue/button";
 import VDialog from "primevue/dialog";
 import VInputSwitch from "primevue/inputswitch";

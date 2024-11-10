@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { config, endpoints } from "@/config";
 import { useImageStateStore } from "@/stores/imageState";
-import { ImageAction, useViewStateStore, ViewStates } from "@/stores/viewState";
+import { useViewStateStore, ViewStates } from "@/stores/viewState";
 import { parseClassificationsFromResponse, sendRequest } from "@/utils";
 import { type Response } from "@/utils";
 import { defineProps } from "vue";
@@ -41,7 +41,7 @@ const date = new Date(props.timestamp).toISOString().split("T")[0];
 const time = new Date(props.timestamp).toLocaleTimeString();
 
 
-function onResultClick() {
+function handleResultClick() {
     const imageRequestUri = config.serverUri + endpoints.getImage.replace("{image_id}", props.imageId.toString());
     const imageRequestPromise = sendRequest(imageRequestUri, null, "GET", "application/json", false);
 
@@ -80,14 +80,14 @@ function onResultClick() {
         parseClassificationsFromResponse(resultData.classifications);
         imageState.resultId = props.id;
         viewState.isWaitingForResponse = false;
-        viewState.setState(ViewStates.ImageViewResult);
+        viewState.setState(ViewStates.ImageViewCountingResult);
     });
 }
 </script>
 
 
 <template>
-    <div class="result-history-item" @click="onResultClick()">
+    <div class="result-history-item" @click="handleResultClick()">
         <img :src="props.thumbnailUri" alt="No thumbnail" class="result-image" />
         <div class="result-date">{{ date }}</div>
         <div class="result-time">{{ time }}</div>

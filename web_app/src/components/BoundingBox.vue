@@ -2,7 +2,7 @@
 import { boundingBoxColors } from '@/config';
 import { useImageStateStore } from '@/stores/imageState';
 import { useSettingsStateStore } from '@/stores/settingsState';
-import { ImageAction, useViewStateStore } from '@/stores/viewState';
+import { useViewStateStore, ViewStates } from '@/stores/viewState';
 import { computed, defineProps, ref } from 'vue';
 
 
@@ -36,7 +36,7 @@ const props = defineProps({
 const isSelected = ref<boolean>(false);
 
 const boxColor = computed(() => {
-    if (viewState.currentAction === ImageAction.CreateDataset || props.classificationIndex === undefined) {
+    if (viewState.currentState === ViewStates.ImageViewCreateDataset || props.classificationIndex === undefined) {
         return boundingBoxColors[0];
     }
     else {
@@ -58,9 +58,10 @@ const left = computed(() => props.topLeft[0] * scale.value + "px");
 const width = computed(() => (props.bottomRight[0] - props.topLeft[0]) * scale.value + "px");
 const height = computed(() => (props.bottomRight[1] - props.topLeft[1]) * scale.value + "px");
 
+
 function handleBoundingBoxClick() {
     // If creating dataset, enable leader selection
-    if (viewState.currentAction === ImageAction.CreateDataset) {
+    if (viewState.currentState === ViewStates.ImageViewCreateDataset) {
         if (imageState.selectedLeaderIds.includes(props.id)) {
             imageState.selectedLeaderIds = imageState.selectedLeaderIds.filter(id => id !== props.id);
         }
@@ -74,7 +75,7 @@ function handleBoundingBoxClick() {
 
 
 <template>
-    <div :class="(isSelected && viewState.currentAction === ImageAction.CreateDataset ? 'selected-box ' : '') + 'bounding-box'"
+    <div :class="(isSelected && viewState.currentState === ViewStates.ImageViewCreateDataset ? 'selected-box ' : '') + 'bounding-box'"
             v-bind:data-topleft="props.topLeft[0] + ',' + props.topLeft[1]"
             v-bind:data-bottomright="props.bottomRight[0] + ',' + props.bottomRight[1]"
             v-bind:data-certainty="props.certainty" v-bind:data-classification="classification"
