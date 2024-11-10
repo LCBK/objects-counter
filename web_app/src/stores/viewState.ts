@@ -25,10 +25,10 @@ export enum ViewStates {
     BrowseDatasets
 }
 
-// TODO: refine, rename? what about capture/upload?
 export enum ImageAction {
     SimpleCounting,
     CreateDataset,
+    ConfirmDataset,
     CompareWithDataset
 }
 

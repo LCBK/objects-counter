@@ -3,7 +3,8 @@ export interface ImageElement {
     topLeft: [number, number],
     bottomRight: [number, number],
     certainty?: number,
-    classificationIndex?: number
+    classificationIndex?: number,
+    isLeader?: boolean
 }
 
 export interface ObjectClassification {

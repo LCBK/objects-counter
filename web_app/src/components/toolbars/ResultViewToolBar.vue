@@ -11,7 +11,9 @@ import { config, endpoints } from "@/config";
 import { parseClassificationsFromResponse, sendRequest } from "@/utils";
 import { type DatasetListItem } from "@/types";
 import DatasetListItemComponent from "../DatasetListItem.vue";
+import { request } from "http";
 
+// TODO: Separate to other components
 
 const imageState = useImageStateStore();
 const viewState = useViewStateStore();
@@ -32,8 +34,13 @@ function handleReturnClick() {
 }
 
 
-function handleSubmitClick() {
-    datasetDialogVisible.value = true;
+function handleSubmitLeadersClick() {
+    submitClassificationLeaders();
+}
+
+
+function handleSubmitDatasetClick() {
+    submitDataset();
 }
 
 
@@ -62,31 +69,68 @@ function handleCompareClick() {
 
 
 function submitClassificationLeaders() {
-    const classifications = imageState.selectedLeaderIds.map((id) => {
-        // TODO: temporary data
-        return {
-            name: "Leader " + id,
-            leader: id,
-            elements: [id]
-        };
-    });
-
-    const requestUri = config.serverUri + endpoints.createDataset;
+    const requestUri = config.serverUri + endpoints.classifyByLeaders.replace("{image_id}", imageState.imageId.toString());
     const requestData = JSON.stringify({
-        image_id: imageState.imageId,
-        name: datasetName.value,
-        classifications: classifications
+        leaders: imageState.selectedLeaderIds
     });
     const requestPromise = sendRequest(requestUri, requestData, "POST");
 
     requestPromise.then((response) => {
         if (response.status === 200) {
-            console.log("Dataset created successfully");
-            viewState.reset();
-            imageState.reset();
+            imageState.clearResult();
+            parseClassificationsFromResponse(response.data.classifications);
+            viewState.currentAction = ImageAction.ConfirmDataset;
         }
         else {
-            console.error("Failed to create dataset");
+            console.error("Failed to submit dataset leaders");
+        }
+    });
+}
+
+
+function submitDataset() {
+    const classifications = imageState.objectClassifications.map((classification) => {
+        const elements = imageState.imageElements.filter((el) => el.classificationIndex === classification.index)
+        const elementIds = elements.map((el) => el.id);
+        const leaders = elements.filter((el) => el.isLeader);
+
+        if (leaders.length === 0) {
+            console.error("No leader found for classification " + classification.classificationName);
+            return null;
+        }
+        else if (leaders.length > 1) {
+            console.error("Multiple leaders found for classification " + classification.classificationName);
+            return null;
+        }
+
+        return {
+            name: classification.classificationName,
+            leader: leaders[0].id,
+            elements: elementIds
+        };
+    });
+    if (classifications.some((classification) => classification === null)) {
+        console.error("Failed to submit dataset");
+        return;
+    }
+
+    const requestUri = config.serverUri + endpoints.createDataset;
+    const requestData = JSON.stringify({
+        name: datasetName.value,
+        image_id: imageState.imageId,
+        classifications: classifications
+    });
+
+    const requestPromise = sendRequest(requestUri, requestData, "POST");
+    requestPromise.then((response) => {
+        if (response.status === 200) {
+            console.log("Dataset submitted successfully");
+            // TODO: handle response (same as registration popup)
+            imageState.reset();
+            viewState.reset();
+        }
+        else {
+            console.error("Failed to submit dataset");
         }
     });
 }
@@ -105,6 +149,7 @@ function compareWithDataset(datasetId: number) {
             console.log("Comparison successful");
             imageState.clearResult();
             parseClassificationsFromResponse(response.data.classifications);
+            datasetDialogVisible.value = false;
         }
         else {
             console.error("Comparison failed");
@@ -118,15 +163,16 @@ function compareWithDataset(datasetId: number) {
 
 <template>
     <div class="image-view-tool-bar bar">
-        <VButton text label="Adjust" class="edit-selection" icon="pi pi-pencil" @click="handleReturnClick();" />
+        <VButton text label="Adjust" icon="pi pi-pencil" @click="handleReturnClick();" />
         <div class="element-count">
             <span class="element-count-value">{{ imageState.imageElements.length }}</span>
             <span class="element-count-label">Elements</span>
         </div>
-        <VButton v-if="viewState.currentAction !== ImageAction.CreateDataset" text label="Details"
-                class="quant" icon="pi pi-list" @click="quantitiesVisible = true" />
-        <VButton v-else text label="Submit dataset" class="submit-dataset-button"
-                icon="pi pi-check" @click="handleSubmitClick" :disabled="imageState.selectedLeaderIds.length === 0" />
+        <VButton v-if="viewState.currentAction === ImageAction.CreateDataset" text label="Submit leaders"
+                icon="pi pi-check" @click="handleSubmitLeadersClick" :disabled="imageState.selectedLeaderIds.length === 0" />
+        <VButton v-else-if="viewState.currentAction === ImageAction.ConfirmDataset" text label="Submit dataset"
+                icon="pi pi-check" @click="datasetDialogVisible = true" />
+        <VButton v-else text label="Details" icon="pi pi-list" @click="quantitiesVisible = true" />
     </div>
     <VButton v-if="viewState.currentAction === ImageAction.CompareWithDataset" label="Compare with dataset"
             :class="(viewState.isWaitingForResponse ? 'inactive-button ' : '') + 'compare-button'" @click="handleCompareClick" />
@@ -150,7 +196,7 @@ function compareWithDataset(datasetId: number) {
                 placeholder="My board game" />
         <div class="dialog-controls">
             <VButton outlined label="Cancel" @click="datasetDialogVisible = false" />
-            <VButton label="Submit" @click="submitClassificationLeaders" />
+            <VButton label="Submit" @click="handleSubmitDatasetClick" />
         </div>
     </VDialog>
     <VDialog v-model:visible="compareDialogVisible" modal header="Select dataset" class="compare-dialog"

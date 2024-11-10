@@ -74,7 +74,7 @@ function handleBoundingBoxClick() {
 
 
 <template>
-    <div :class="(isSelected ? 'selected-box ' : '') + 'bounding-box'"
+    <div :class="(isSelected && viewState.currentAction === ImageAction.CreateDataset ? 'selected-box ' : '') + 'bounding-box'"
             v-bind:data-topleft="props.topLeft[0] + ',' + props.topLeft[1]"
             v-bind:data-bottomright="props.bottomRight[0] + ',' + props.bottomRight[1]"
             v-bind:data-certainty="props.certainty" v-bind:data-classification="classification"

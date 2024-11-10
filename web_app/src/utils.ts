@@ -1,11 +1,14 @@
 import { boundingBoxColors, config, endpoints } from "./config";
 import { useUserStateStore } from "./stores/userState";
 import { useImageStateStore } from "./stores/imageState";
+import type { ImageElement } from "./types";
+
 
 export interface Response {
     data: any,
     status: number
 }
+
 
 export async function sendRequest(
     uri: string, data: FormData | string | null, method: string = "POST",
@@ -47,9 +50,11 @@ export async function sendRequest(
     }
 }
 
+
 export function distance(x1: number, y1: number, x2: number, y2: number) : number {
     return Math.sqrt(Math.pow(x1 - x2, 2) + Math.pow(y1 - y2, 2))
 }
+
 
 export function createMaskImage(mask: Array<Array<boolean>>) : ImageData {
     const width = mask[0].length;
@@ -70,8 +75,10 @@ export function createMaskImage(mask: Array<Array<boolean>>) : ImageData {
     return imageData;
 }
 
+
 export function parseClassificationsFromResponse(classifications: Array<any>) : void {
     const imageState = useImageStateStore();
+
     classifications.forEach((classification: any, index: number) => {
         imageState.objectClassifications.push({
             index: index,
@@ -80,17 +87,28 @@ export function parseClassificationsFromResponse(classifications: Array<any>) : 
             showBoxes: true,
             boxColor: boundingBoxColors[index % boundingBoxColors.length]
         });
+
         classification.objects.forEach((element: any) => {
-            imageState.imageElements.push({
+            const imageElement = {
                 id: element.id,
                 topLeft: element.top_left,
                 bottomRight: element.bottom_right,
                 certainty: element.certainty,
                 classificationIndex: index
-            });
+            } as ImageElement;
+
+            for (const leaderId of imageState.selectedLeaderIds) {
+                if (leaderId === element.id) {
+                    imageElement.isLeader = true;
+                    break;
+                }
+            }
+
+            imageState.imageElements.push(imageElement);
         });
     });
 }
+
 
 export function parseElementsFromResponse(elements: Array<any>) : void {
     const imageState = useImageStateStore();
@@ -102,6 +120,7 @@ export function parseElementsFromResponse(elements: Array<any>) : void {
         });
     }
 }
+
 
 export function checkServerStatus() : Promise<boolean> {
     return new Promise((resolve) => {
@@ -116,6 +135,7 @@ export function checkServerStatus() : Promise<boolean> {
             .catch(() => resolve(false));
     });
 }
+
 
 export function base64ToImageUri(base64: string) : string {
     return "data:image/png;base64," + base64;
