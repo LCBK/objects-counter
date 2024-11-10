@@ -167,6 +167,9 @@ def serialize_image_as_result(image: Image) -> dict:
 
         classification_dict[element.classification]["objects"].append(element_data)
 
+    # sort classifications by classification name
+    classification_dict = dict(sorted(classification_dict.items()))
+
     return {
         "count": len(image.elements),
         "classifications": list(classification_dict.values())
