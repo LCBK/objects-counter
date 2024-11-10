@@ -92,15 +92,15 @@ function compareWithDataset(datasetId: number) {
     <VButton :class="(viewState.isWaitingForResponse ? 'inactive-button ' : '') + 'compare-button'"
             label="Compare with dataset" @click="handleCompareClick" />
     <VSidebar v-model:visible="quantitiesVisible" position="bottom" style="height: auto" class="quantities" header="Counted elements">
-        <div class="quantities-label-notice">You can toggle label visibility in the settings</div>
+        <div class="quantities-label-notice notice">You can toggle label visibility in the settings</div>
         <div class="quantities-header">
             <div class="quantities-col">Count</div>
-            <div class="quantities-col">Label<span class="rename-notice">(tap to rename)</span></div>
+            <div class="quantities-col">Label<span class="rename-notice notice">(tap to rename)</span></div>
             <div class="quantities-col">Show boxes</div>
         </div>
         <div class="quantities-content">
             <QuantitiesEntry v-for="(quantity, index) in classifications" :key="index" :index="quantity.index" />
-            <div v-if="classifications.length === 0" class="no-elements-notice">(no elements found)</div>
+            <div v-if="classifications.length === 0" class="no-elements-notice notice">(no elements found)</div>
         </div>
     </VSidebar>
     <VDialog v-model:visible="compareDialogVisible" modal header="Select dataset" class="compare-dialog"

@@ -6,10 +6,12 @@ import { config, endpoints } from "@/config";
 import { useImageStateStore } from "@/stores/imageState";
 import { parseClassificationsFromResponse, parseElementsFromResponse, sendRequest } from "@/utils";
 import { computed, onMounted, ref } from "vue";
+import { useUserStateStore } from "@/stores/userState";
 
 
 const viewState = useViewStateStore();
 const imageState = useImageStateStore();
+const userState = useUserStateStore();
 
 const pointTypePanel = ref<HTMLElement>();
 const positivePointButton = ref<HTMLElement>();
@@ -49,10 +51,13 @@ function handleRemoveClick() {
 async function handleConfirmBackground() {
     viewState.isWaitingForResponse = true;
 
-    if (viewState.isEditingExistingResult) {
-        const deleteRequestUri = config.serverUri + endpoints.deleteResult.replace("{result_id}", imageState.resultId.toString());
-        const deleteRequestData = JSON.stringify({});
-        await sendRequest(deleteRequestUri, deleteRequestData, "DELETE");
+    if (viewState.isEditingExistingResult && viewState.currentAction !== ImageAction.CreateDataset) {
+        if (userState.isLoggedIn) {
+            const deleteRequestUri = config.serverUri + endpoints.deleteResult.replace("{result_id}", imageState.resultId.toString());
+            const deleteRequestData = JSON.stringify({});
+            await sendRequest(deleteRequestUri, deleteRequestData, "DELETE");
+        }
+
         viewState.isEditingExistingResult = false;
     }
 

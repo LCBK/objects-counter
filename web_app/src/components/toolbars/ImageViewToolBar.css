@@ -1,3 +1,5 @@
+/* Common styles for all ImageView toolbars */
+
 .image-view-tool-bar {
     padding: 0;
     position: fixed;
@@ -78,17 +80,8 @@
     line-height: 1.1rem;
     font-weight: 300;
     letter-spacing: 0.3px;
-    color: var(--text-color-secondary);
-    opacity: 0.7;
     user-select: none;
     text-align: center;
-}
-
-.rename-notice,
-.no-elements-notice {
-    margin-left: 10px;
-    color: var(--text-color-secondary);
-    opacity: 0.7;
 }
 
 .no-elements-notice {

@@ -51,7 +51,7 @@ onMounted(async () => {
             <h2>Browse datasets</h2>
             <SettingsWidget />
         </div>
-        <p class="browse-datasets-notice">tap on a dataset to view details</p>
+        <p class="browse-datasets-notice notice">tap on a dataset to view details</p>
         <div class="browse-datasets-list">
             <DatasetListItemComponent v-for="(dataset, index) in userDatasets.sort((a, b) => b.timestamp - a.timestamp)"
                     :key="index" v-bind="dataset" />
@@ -80,7 +80,6 @@ onMounted(async () => {
 }
 
 .browse-datasets-notice {
-    color: var(--text-color-secondary);
     font-size: 0.8rem;
     text-align: center;
     margin: 63px 0 8px 0;
