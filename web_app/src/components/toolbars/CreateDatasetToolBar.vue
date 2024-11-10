@@ -30,6 +30,7 @@ function submitClassificationLeaders() {
     });
     const requestPromise = sendRequest(requestUri, requestData, "POST");
 
+    viewState.isWaitingForResponse = true;
     requestPromise.then((response) => {
         if (response.status === 200) {
             imageState.clearResult();
@@ -39,6 +40,7 @@ function submitClassificationLeaders() {
         else {
             console.error("Failed to submit dataset leaders");
         }
+        viewState.isWaitingForResponse = false;
     });
 }
 </script>

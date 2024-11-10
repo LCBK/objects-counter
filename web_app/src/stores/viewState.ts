@@ -119,7 +119,7 @@ export const useViewStateStore = defineStore("viewState", {
                 case ViewStates.ImageViewCompareWithDataset:
                     this.currentView = shallowRef(ImageView);
                     this.currentImageViewToolBar = shallowRef(ComparisonToolBar);
-                    this.currentNavBarTitle = "Compare with dataset";
+                    this.currentNavBarTitle = "Comparison";
                     this.showPoints = false;
                     this.showBackground = false;
                     break;
