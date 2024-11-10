@@ -21,9 +21,9 @@ from objects_counter.api.default.models import points_model, accept_model
 from objects_counter.api.utils import authentication_optional, authentication_required, gzip_compress
 from objects_counter.consts import SAM_CHECKPOINT, SAM_MODEL_TYPE
 from objects_counter.db.dataops.image import insert_image, update_background_points, get_image_by_id, \
-    serialize_image_as_result, set_element_as_leader, mark_leaders_in_image
+    serialize_image_as_result, mark_leaders_in_image
 from objects_counter.db.dataops.result import insert_result
-from objects_counter.db.models import User, ImageElement
+from objects_counter.db.models import User
 from objects_counter.utils import create_thumbnail
 
 
@@ -194,8 +194,8 @@ class ClassifyByLeaders(Resource):
             return Response('Image not found', 404)
         except (ValueError, TypeError) as e:
             log.exception("Invalid leader ID: %s", e)
-            return Response(f'One or more leaders do not belong to the image {image_id} or are invalid', 400)
-        except Exception as e:
+            return Response('One or more leaders do not belong to the image or are invalid', 400)
+        except Exception as e:  # pylint: disable=broad-except
             log.exception("Error processing image: %s", e)
             return Response('Error processing image', 500)
 
