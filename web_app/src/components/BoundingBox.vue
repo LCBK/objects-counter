@@ -33,8 +33,6 @@ const props = defineProps({
     }
 });
 
-const isSelected = ref<boolean>(false);
-
 const boxColor = computed(() => {
     if (viewState.currentState === ViewStates.ImageViewCreateDataset || props.classificationIndex === undefined) {
         return boundingBoxColors[0];
@@ -43,6 +41,7 @@ const boxColor = computed(() => {
         return imageState.objectClassifications[props.classificationIndex].boxColor;
     }
 });
+const isSelected = computed(() => imageState.selectedLeaderIds.includes(props.id));
 const selectedBoxColor = computed(() => boundingBoxColors[2]);
 const classification = computed(() => {
     if (props.classificationIndex === undefined) {
@@ -68,7 +67,6 @@ function handleBoundingBoxClick() {
         else {
             imageState.selectedLeaderIds.push(props.id);
         }
-        isSelected.value = !isSelected.value;
     }
 }
 </script>
@@ -147,5 +145,11 @@ function handleBoundingBoxClick() {
 
 .selected-box .selected-box-overlay {
     opacity: 0.4;
+}
+
+.selected-box .box-certainty,
+.selected-box .box-ids,
+.selected-box .box-classification {
+    background-color: v-bind(selectedBoxColor);
 }
 </style>
