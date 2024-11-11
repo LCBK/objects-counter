@@ -48,6 +48,9 @@ const defaultState = {
     isPointTypePositive: true,
     isWaitingForResponse: false,
     isEditingExistingResult: false,
+    isSelectingAssignment: false,
+    isAssigningClassifications: false,
+    currentlyAssignedClassificationIndex: 0,
     showPoints: true,
     showBackground: false,
     currentNavBarTitle: "",
@@ -106,6 +109,8 @@ export const useViewStateStore = defineStore("viewState", {
                     this.currentNavBarTitle = "Create dataset";
                     this.showPoints = false;
                     this.showBackground = false;
+                    this.isAssigningClassifications = false;
+                    this.isSelectingAssignment = false;
                     break;
 
                 case ViewStates.ImageViewConfirmDataset:
@@ -114,6 +119,8 @@ export const useViewStateStore = defineStore("viewState", {
                     this.currentNavBarTitle = "Confirm dataset";
                     this.showPoints = false;
                     this.showBackground = false;
+                    this.isAssigningClassifications = false;
+                    this.isSelectingAssignment = false;
                     break;
 
                 case ViewStates.ImageViewCompareWithDataset:

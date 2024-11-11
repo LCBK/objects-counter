@@ -44,6 +44,7 @@ const isInfoCollapsed = ref<boolean>(false);
     top: 55px;
     background-color: var(--surface-section);
     transition: top 0.3s;
+    z-index: 5;
 }
 
 #additional-info-bar p {

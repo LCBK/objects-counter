@@ -7,7 +7,7 @@ import VInputText from "primevue/inputtext";
 import QuantitiesEntry from "../QuantitiesEntry.vue";
 import { useImageStateStore } from "@/stores/imageState";
 import { useViewStateStore } from "@/stores/viewState";
-import { computed, ref } from "vue";
+import { computed, ref, watch } from "vue";
 import { config, endpoints } from "@/config";
 import { sendRequest } from "@/utils";
 
@@ -19,11 +19,21 @@ const quantitiesVisible = ref<boolean>(false);
 const datasetDialogVisible = ref<boolean>(false);
 const datasetName = ref<string>("");
 const classifications = computed(() => imageState.objectClassifications);
+const assignedClassificationName = computed(() => {
+    const name = imageState.objectClassifications[viewState.currentlyAssignedClassificationIndex].classificationName;
+    return /^\d*$/.test(name) ? "Type " + name : name;
+});
+const assignedBoxColor = computed(() => {
+    return imageState.objectClassifications[viewState.currentlyAssignedClassificationIndex].boxColor;
+});
 
 
-function handleSubmitDatasetClick() {
-    submitDataset();
-}
+// Close quantities sidebar when user starts to assign classifications
+watch(() => viewState.isSelectingAssignment, (newValue) => {
+    if (!newValue) {
+        quantitiesVisible.value = false;
+    }
+});
 
 
 function submitDataset() {
@@ -63,6 +73,7 @@ function submitDataset() {
     requestPromise.then((response) => {
         if (response.status === 200) {
             console.log("Dataset submitted successfully");
+            console.log(requestData);
             // TODO: handle response (same as registration popup)
             imageState.reset();
             viewState.reset();
@@ -77,19 +88,31 @@ function submitDataset() {
 
 <template>
     <div class="image-view-tool-bar bar">
-        <VButton text label="Details" icon="pi pi-list" @click="quantitiesVisible = true" />
+        <VButton text label="Adjust categories" icon="pi pi-list" @click="quantitiesVisible = true" />
         <div class="element-count">
             <span class="element-count-value">{{ imageState.imageElements.length }}</span>
             <span class="element-count-label">Elements</span>
         </div>
         <VButton text label="Submit dataset" icon="pi pi-check" @click="datasetDialogVisible = true" />
     </div>
-    <VSidebar v-model:visible="quantitiesVisible" position="bottom" style="height: auto" class="quantities" header="Counted elements">
+    <Transition name="assign-fade">
+        <div v-if="viewState.isAssigningClassifications" class="assignment-notice">
+            <VButton text icon="pi pi-times" @click="viewState.isAssigningClassifications = false" />
+            <div>
+                <div class="assignment-notice-label">Currently assigning</div>
+                <div class="assignment-notice-value">{{ assignedClassificationName }}</div>
+            </div>
+        </div>
+    </Transition>
+    <VSidebar v-model:visible="quantitiesVisible" position="bottom" style="height: auto"
+            class="quantities" header="Counted elements" @hide="viewState.isSelectingAssignment = false">
+        <VButton text label="Assign categories" icon="pi pi-pencil" class="change-categories"
+                @click="viewState.isSelectingAssignment = true" />
         <div class="quantities-label-notice notice">You can toggle label visibility in the settings</div>
         <div class="quantities-header">
             <div class="quantities-col">Count</div>
             <div class="quantities-col">Label<span class="rename-notice notice">(tap to rename)</span></div>
-            <div class="quantities-col">Show boxes</div>
+            <div v-if="!viewState.isSelectingAssignment" class="quantities-col">Show boxes</div>
         </div>
         <div class="quantities-content">
             <QuantitiesEntry v-for="(quantity, index) in classifications" :key="index" :index="quantity.index" />
@@ -104,7 +127,7 @@ function submitDataset() {
                 placeholder="My board game" />
         <div class="dialog-controls">
             <VButton outlined label="Cancel" @click="datasetDialogVisible = false" />
-            <VButton label="Submit" @click="handleSubmitDatasetClick" />
+            <VButton label="Submit" @click="submitDataset" />
         </div>
     </VDialog>
 </template>
@@ -144,5 +167,55 @@ function submitDataset() {
     display: flex;
     justify-content: flex-end;
     gap: 12px;
+}
+
+.change-categories {
+    margin: 0 auto 5px auto;
+    display: block;
+    padding: 6px 12px;
+}
+
+.assignment-notice {
+    display: flex;
+    position: absolute;
+    bottom: 120px;
+    left: 10px;
+}
+
+.assignment-notice-label {
+    font-size: 0.8rem;
+    color: var(--text-color-secondary);
+    line-height: 1.1rem;
+}
+
+.assignment-notice-value::before {
+    content: "";
+    width: 10px;
+    height: 10px;
+    background-color: v-bind(assignedBoxColor);
+    display: inline-block;
+    margin-right: 6px;
+}
+
+.assign-fade-enter-active, .assign-fade-leave-active {
+    transition: opacity .2s;
+}
+
+.assign-fade-enter-from, .assign-fade-leave-to {
+    opacity: 0;
+}
+
+.assign-fade-enter-to, .assign-fade-leave-from {
+    opacity: 1;
+}
+</style>
+
+<style>
+.quantities .p-sidebar-header {
+    padding-bottom: 6px;
+}
+
+.change-categories .pi {
+    margin-right: 8px;
 }
 </style>
