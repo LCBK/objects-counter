@@ -28,25 +28,21 @@ function setPositivePointType() {
     negativePointButton.value!.classList.remove("checked");
 }
 
-
 function setNegativePointType() {
     viewState.isPointTypePositive = false;
     positivePointButton.value!.classList.remove("checked");
     negativePointButton.value!.classList.add("checked");
 }
 
-
 function handleAddClick() {
     viewState.toggleAddPoint();
     displayPointTypes.value = !displayPointTypes.value;
 }
 
-
 function handleRemoveClick() {
     viewState.toggleRemovePoint();
     displayPointTypes.value = false;
 }
-
 
 async function handleConfirmBackground() {
     viewState.isWaitingForResponse = true;

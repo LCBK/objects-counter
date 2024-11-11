@@ -30,7 +30,6 @@ function handleReturnClick() {
     imageState.clearResult();
 }
 
-
 function handleCompareClick() {
     const datasetRequestUri = config.serverUri + endpoints.getDatasets;
     const datasetRequestPromise = sendRequest(datasetRequestUri, null, "GET");
@@ -69,7 +68,6 @@ function handleCompareClick() {
         }
     });
 }
-
 
 function compareWithDataset(datasetId: number) {
     const requestUri = config.serverUri + endpoints.compareToDataset

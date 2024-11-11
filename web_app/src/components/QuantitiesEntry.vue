@@ -45,13 +45,11 @@ function handleAssignClick() {
     viewState.currentlyAssignedClassificationIndex = props.index;
 }
 
-
 function showRenameDialog(oldName: string) {
     renameOldLabel.value = oldName;
     renameNewLabel.value = oldName;
     isRenameDialogVisible.value = true;
 }
-
 
 function confirmRename() {
     // Classifications are final and stored on the server, so the app requests a rename from the server.

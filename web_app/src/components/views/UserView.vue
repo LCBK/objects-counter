@@ -92,6 +92,7 @@ function submitLoginForm() {
     });
 }
 
+
 function submitRegisterForm() {
     registerForm.value!.submit();   // For triggering credential saving in browsers
 
@@ -125,6 +126,7 @@ function submitRegisterForm() {
         }
     });
 }
+
 
 function showErrorDialog(text: string) {
     showError.value = true;

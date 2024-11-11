@@ -10,6 +10,7 @@ import { parseClassificationsFromResponse, sendRequest } from "@/utils";
 const imageState = useImageStateStore();
 const viewState = useViewStateStore();
 
+
 function handleReturnClick() {
     viewState.setState(ViewStates.ImageEditPoints);
     viewState.showBackground = true;
@@ -17,11 +18,9 @@ function handleReturnClick() {
     imageState.clearResult();
 }
 
-
 function handleSubmitLeadersClick() {
     submitClassificationLeaders();
 }
-
 
 function submitClassificationLeaders() {
     const requestUri = config.serverUri + endpoints.classifyByLeaders.replace("{image_id}", imageState.imageId.toString());

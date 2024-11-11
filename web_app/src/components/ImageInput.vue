@@ -24,24 +24,20 @@ function triggerImageInput() : void {
     else uploadInput.value.click();
 }
 
-
 function handleCountingClick() : void {
     triggerImageInput();
     viewState.currentAction = ImageAction.SimpleCounting;
 }
-
 
 function handleCreateDatasetClick() : void {
     triggerImageInput();
     viewState.currentAction = ImageAction.CreateDataset;
 }
 
-
 function handleCompareClick() : void {
     triggerImageInput();
     viewState.currentAction = ImageAction.CompareWithDataset;
 }
-
 
 function handleImageUpload(event: Event) : void {
     const imageFile = (event.target as HTMLInputElement)!.files?.[0];
