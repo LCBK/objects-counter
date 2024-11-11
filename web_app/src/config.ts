@@ -33,6 +33,7 @@ export const endpoints = {
     renameClassification: "/api/results/{result_id}/classification/{classification_name}/rename",
     getDatasets: "/api/datasets/",
     createDataset: "/api/datasets/",
+    getDatasetsThumbnails: "/api/datasets/thumbnails",
     compareToDataset: "/api/results/{result_id}/compare/{dataset_id}",
     classifyByLeaders: "/api/images/{image_id}/classify-by-leaders"
 };

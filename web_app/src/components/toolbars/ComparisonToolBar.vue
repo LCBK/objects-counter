@@ -8,7 +8,7 @@ import { useImageStateStore } from "@/stores/imageState";
 import { useViewStateStore, ViewStates } from "@/stores/viewState";
 import { computed, ref } from "vue";
 import { config, endpoints } from "@/config";
-import { parseClassificationsFromResponse, sendRequest } from "@/utils";
+import { base64ToImageUri, parseClassificationsFromResponse, sendRequest, type Response } from "@/utils";
 import { type DatasetListItem } from "@/types";
 import DatasetListItemComponent from "../DatasetListItem.vue";
 
@@ -52,7 +52,22 @@ function handleCompareClick() {
         }
     });
 
-    // TODO: implement fetching thumbnails
+    const thumbnailsRequestUri = config.serverUri + endpoints.getDatasetsThumbnails;
+    const thumbnailsRequestPromise = sendRequest(thumbnailsRequestUri, null, "GET");
+    thumbnailsRequestPromise.then((response: Response) => {
+        if (response.status != 200) {
+            console.error("Failed to load result history thumbnails");
+            return;
+        }
+
+        const responseItems = response.data;
+        for (const item of responseItems) {
+            const datasetItem = userDatasets.value.find((item) => datasetItem.id == item.id) as DatasetListItem;
+            if (datasetItem) {
+                datasetItem.thumbnailUri = base64ToImageUri(item.thumbnail);
+            }
+        }
+    });
 }
 
 

@@ -3,7 +3,7 @@ import VButton from "primevue/button";
 import { useViewStateStore, ViewStates } from "@/stores/viewState";
 import type { DatasetListItem } from "@/types";
 import { config, endpoints } from "@/config";
-import { sendRequest } from "@/utils";
+import { base64ToImageUri, sendRequest, type Response } from "@/utils";
 import SettingsWidget from "../SettingsWidget.vue";
 import { onMounted, ref } from "vue";
 import DatasetListItemComponent from "../DatasetListItem.vue";
@@ -40,7 +40,22 @@ onMounted(async () => {
         }
     });
 
-    // TODO: implement fetching thumbnails
+    const thumbnailsRequestUri = config.serverUri + endpoints.getDatasetsThumbnails;
+    const thumbnailsRequestPromise = sendRequest(thumbnailsRequestUri, null, "GET");
+    thumbnailsRequestPromise.then((response: Response) => {
+        if (response.status != 200) {
+            console.error("Failed to load result history thumbnails");
+            return;
+        }
+
+        const responseItems = response.data;
+        for (const item of responseItems) {
+            const datasetItem = userDatasets.value.find((item) => datasetItem.id == item.id) as DatasetListItem;
+            if (datasetItem) {
+                datasetItem.thumbnailUri = base64ToImageUri(item.thumbnail);
+            }
+        }
+    });
 });
 </script>
 
