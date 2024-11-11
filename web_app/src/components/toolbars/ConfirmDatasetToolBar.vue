@@ -121,7 +121,6 @@ function submitDataset() {
     </VSidebar>
     <VDialog v-model:visible="datasetDialogVisible" modal header="Submit dataset" class="dataset-dialog"
             :dismissable-mask="true" :draggable="false">
-        <p><span>{{ imageState.selectedLeaderIds.length }}</span> categories detected</p>
         <label for="dataset-name" class="dataset-label">Dataset name</label>
         <VInputText v-model="datasetName" class="dataset-name" :autofocus="true" :inputId="'dataset-name'"
                 placeholder="My board game" />
@@ -134,31 +133,14 @@ function submitDataset() {
 
 
 <style scoped>
-.no-elements-notice {
-    margin: 20px 0 10px 0;
-    text-align: center;
-}
-
 .dataset-dialog input {
     margin-bottom: 30px;
     width: 100%;
 }
 
-.dataset-dialog p {
-    user-select: none;
-    line-height: 1.8rem;
-}
-
-.dataset-dialog span {
-    font-weight: 600;
-    font-size: 1.4rem;
-    margin-right: 2px;
-}
-
 .dataset-dialog label {
     display: inline-block;
     margin-bottom: 8px;
-    margin-top: 16px;
     color: var(--text-color-secondary);
     user-select: none;
 }
