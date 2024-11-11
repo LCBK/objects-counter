@@ -1,4 +1,3 @@
-import base64
 import logging
 import typing
 
@@ -7,7 +6,7 @@ from flask_restx import Namespace, Resource
 from werkzeug.exceptions import NotFound, Forbidden
 
 from objects_counter.api.default.views import object_grouper
-from objects_counter.api.utils import authentication_required
+from objects_counter.api.utils import authentication_required, get_thumbnails
 from objects_counter.db.dataops.dataset import get_dataset_by_id
 from objects_counter.db.dataops.image import get_image_by_id, serialize_image_as_result
 from objects_counter.db.dataops.result import get_result_by_id
@@ -32,15 +31,7 @@ class GetThumbnails(Resource):
     @authentication_required
     def get(self, current_user: User) -> typing.Any:
         results = get_user_results(current_user)
-        thumbnails = []
-        for result in results:
-            with open(result.image.thumbnail, 'rb') as thumbnail:
-                base64_thumbnail = base64.b64encode(thumbnail.read())
-
-            thumbnails.append({
-                'id': result.id,
-                'thumbnail': base64_thumbnail.decode('utf-8')
-            })
+        thumbnails = get_thumbnails(results)
         return jsonify(thumbnails)
 
 
