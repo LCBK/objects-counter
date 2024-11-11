@@ -14,15 +14,19 @@ const props = defineProps({
     timestamp: {
         type: Number,
         required: true
+    },
+    thumbnailUri: {
+        type: String,
+        required: false
     }
-    // TODO: add thumbnail/images
 });
 </script>
 
 
 <template>
     <div class="dataset-item">
-        <div class="dataset-item-contents">
+        <img :src="props.thumbnailUri" alt="No thumbnail" class="dataset-item-image" />
+        <div>
             <div class="dataset-item-name">{{ name }}</div>
             <div class="dataset-item-date">{{ new Date(timestamp).toISOString().split("T")[0] }}</div>
             <div class="dataset-item-time">{{ new Date(timestamp).toLocaleTimeString() }}</div>
@@ -34,7 +38,6 @@ const props = defineProps({
 <style scoped>
 .dataset-item {
     display: flex;
-    justify-content: space-between;
     align-items: center;
     padding: 12px 0;
     user-select: none;
@@ -52,5 +55,18 @@ const props = defineProps({
     font-weight: 500;
     font-size: 0.8rem;
     color: var(--text-color-secondary);
+}
+
+.dataset-item-image {
+    height: 100%;
+    border-radius: 8px;
+    margin-right: 16px;
+    max-width: 72px;
+    max-height: 72px;
+    aspect-ratio: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
 }
 </style>

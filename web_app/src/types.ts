@@ -32,6 +32,6 @@ export interface ResultHistoryItem {
 export interface DatasetListItem {
     id: number,
     name: string,
+    thumbnailUri?: string,
     timestamp: number
-    // TODO: Add images
 }

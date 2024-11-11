@@ -26,7 +26,6 @@ onMounted(async () => {
 
     datasetRequestPromise.then((response) => {
         if (response.status === 200) {
-            // TODO: add thumbnails to dataset list
             userDatasets.value = [];
             for (const dataset of response.data) {
                 userDatasets.value.push({
@@ -40,6 +39,8 @@ onMounted(async () => {
             console.error("Failed to retrieve datasets");
         }
     });
+
+    // TODO: implement fetching thumbnails
 });
 </script>
 

@@ -74,7 +74,7 @@ onMounted(async () => {
     <div id="result-history-view" class="view">
         <div class="history-view-nav-bar nav-bar bar">
             <VButton text rounded icon="pi pi-chevron-left" @click="onBack()" />
-            <h2>Result history</h2>
+            <h2>Counting history</h2>
             <SettingsWidget />
         </div>
         <div class="result-history-items">
