@@ -63,7 +63,7 @@ class Result(Resource):
             return Response("Invalid result ID", 400)
         except NotFound as e:
             log.exception("Result %s not found: %s", result_id, e)
-            return Response(f"Result {result_id} not found", 404)
+            return Response("Result not found", 404)
         except Exception as e:
             log.exception("Failed to get result %s: %s", result_id, e)
             return Response("Failed to get requested result", 500)
