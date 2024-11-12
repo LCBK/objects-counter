@@ -3,7 +3,7 @@ import { boundingBoxColors } from '@/config';
 import { useImageStateStore } from '@/stores/imageState';
 import { useSettingsStateStore } from '@/stores/settingsState';
 import { useViewStateStore, ViewStates } from '@/stores/viewState';
-import { computed, defineProps } from 'vue';
+import { computed } from 'vue';
 
 
 const viewState = useViewStateStore();

@@ -4,7 +4,6 @@ import { useImageStateStore } from "@/stores/imageState";
 import { useViewStateStore, ViewStates } from "@/stores/viewState";
 import { parseClassificationsFromResponse, sendRequest } from "@/utils";
 import { type Response } from "@/utils";
-import { defineProps } from "vue";
 
 
 const props = defineProps({
