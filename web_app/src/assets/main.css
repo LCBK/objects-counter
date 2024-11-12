@@ -31,6 +31,7 @@
     position: fixed;
     top: 0;
     justify-content: space-between;
+    user-select: none;
 }
 
 .wide-button {
@@ -97,6 +98,7 @@
     margin-left: 10px;
     color: var(--text-color-secondary);
     opacity: 0.7;
+    user-select: none;
 }
 
 /***** PrimeVue styles overrides *****/

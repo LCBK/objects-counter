@@ -7,6 +7,7 @@ import { base64ToImageUri, sendRequest, type Response } from "@/utils";
 import SettingsWidget from "../SettingsWidget.vue";
 import { onMounted, ref } from "vue";
 import DatasetListItemComponent from "../DatasetListItem.vue";
+import LoadingSpinner from "../LoadingSpinner.vue";
 
 
 
@@ -23,7 +24,7 @@ function onBack() {
 onMounted(async () => {
     const datasetRequestUri = config.serverUri + endpoints.getDatasets;
     const datasetRequestPromise = sendRequest(datasetRequestUri, null, "GET");
-
+    viewState.isWaitingForResponse = true;
     datasetRequestPromise.then((response) => {
         if (response.status === 200) {
             userDatasets.value = [];
@@ -50,12 +51,14 @@ onMounted(async () => {
 
         const responseItems = response.data;
         for (const item of responseItems) {
-            const datasetItem = userDatasets.value.find((item) => datasetItem.id == item.id) as DatasetListItem;
+            const datasetItem = userDatasets.value.find((datasetItem) => datasetItem.id == item.id) as DatasetListItem;
             if (datasetItem) {
                 datasetItem.thumbnailUri = base64ToImageUri(item.thumbnail);
             }
         }
     });
+
+    viewState.isWaitingForResponse = false;
 });
 </script>
 
@@ -72,6 +75,11 @@ onMounted(async () => {
             <DatasetListItemComponent v-for="(dataset, index) in userDatasets.sort((a, b) => b.timestamp - a.timestamp)"
                     :key="index" v-bind="dataset" />
         </div>
+        <Transition name="waiting-overlay">
+            <div v-if="viewState.isWaitingForResponse" class="waiting-overlay">
+                <LoadingSpinner />
+            </div>
+        </Transition>
     </div>
 </template>
 

@@ -102,6 +102,9 @@ def gzip_compress(data: bytes) -> bytes:
 def get_thumbnails(collection: list[Dataset | Result]) -> list[dict]:
     thumbnails = []
     for item in collection:
+        if len(item.images) == 0:
+            continue
+
         with open(item.images[0].thumbnail, 'rb') as thumbnail:
             base64_thumbnail = base64.b64encode(thumbnail.read())
 
