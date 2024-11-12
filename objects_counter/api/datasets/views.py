@@ -9,7 +9,7 @@ from objects_counter.api.datasets.models import insert_dataset_model, insert_ima
 from objects_counter.api.utils import authentication_required, get_thumbnails
 from objects_counter.db.dataops.dataset import get_user_datasets_serialized, get_dataset_by_id, delete_dataset_by_id, \
     insert_dataset, add_image_to_dataset, rename_dataset, get_user_datasets
-from objects_counter.db.dataops.image import serialize_image_as_result, get_image_by_id
+from objects_counter.db.dataops.image import serialize_image_as_result
 from objects_counter.db.models import User
 
 api = Namespace('datasets', description='Datasets related operations')
