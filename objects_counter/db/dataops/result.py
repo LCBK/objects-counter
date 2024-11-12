@@ -60,11 +60,12 @@ def rename_classification(user: User, result_id: int, old_classification: str, n
     if not user or result.user_id != user.id:
         log.error('User %s is not authorized to rename classification in result %s', user, result_id)
         raise Forbidden(f'User {user} is not authorized to rename classification in result {result_id}')
-    for element in result.image.elements:
-        if element.classification == old_classification:
-            element.classification = new_classification
-            db.session.add(element)
-            count += 1
+    for image in result.images:
+        for element in image.elements:
+            if element.classification == old_classification:
+                element.classification = new_classification
+                db.session.add(element)
+                count += 1
     if count == 0:
         log.error('Classification %s not found in result %s', old_classification, result_id)
         raise ValueError(f'Classification {old_classification} not found in result {result_id}')

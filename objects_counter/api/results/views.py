@@ -115,7 +115,7 @@ class CompareResults(Resource):
     def get(self, current_user: User, result_id: int, dataset_id: int) -> typing.Any:
         try:
             result = get_result_by_id(int(result_id))
-            image = get_image_by_id(result.image_id)
+            image = result.images[0]
             dataset = get_dataset_by_id(int(dataset_id))
             if result.user_id != dataset.user_id or dataset.user_id != current_user.id:
                 log.error("User %s is not authorized to compare result %s with dataset %s",
