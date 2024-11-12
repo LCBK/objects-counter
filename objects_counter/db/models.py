@@ -88,5 +88,5 @@ class Dataset(db.Model):
             'name': self.name,
             'user': self.user.username,
             'timestamp': self.timestamp,
-            'images': [image.id for image in self.images]
+            'images': [image.as_dict() for image in self.images]
         }

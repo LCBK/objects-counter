@@ -3,13 +3,16 @@ import logging
 from sqlalchemy.exc import DatabaseError
 from werkzeug.exceptions import Forbidden
 
+from objects_counter.db.dataops.image import get_image_by_id
 from objects_counter.db.models import Result, db, User
 
 log = logging.getLogger(__name__)
 
 
 def insert_result(user_id, image_id, response):
-    result = Result(user_id=user_id, image_id=image_id, data=response)
+    result = Result(user_id=user_id, data=response)
+    image = get_image_by_id(image_id)
+    image.result = result
     db.session.add(result)
     try:
         db.session.commit()
