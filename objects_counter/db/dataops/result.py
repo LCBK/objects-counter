@@ -14,6 +14,7 @@ def insert_result(user_id, image_id, response):
     image = get_image_by_id(image_id)
     image.result = result
     db.session.add(result)
+    db.session.add(image)
     try:
         db.session.commit()
         return result
