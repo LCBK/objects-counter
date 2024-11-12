@@ -88,7 +88,7 @@ function handleBoundingBoxClick() {
     else if (viewState.currentState === ViewStates.ImageViewConfirmDataset && viewState.isAssigningClassifications) {
         if (!isSelectedAsLeader.value) {
             const element = imageState.imageElements.find(el => el.id === props.id);
-            if (element && element.classificationIndex) {
+            if (element && element.classificationIndex !== undefined) {
                 imageState.objectClassifications[element.classificationIndex].count--;
                 element.classificationIndex = viewState.currentlyAssignedClassificationIndex;
                 imageState.objectClassifications[viewState.currentlyAssignedClassificationIndex].count++;
