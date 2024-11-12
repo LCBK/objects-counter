@@ -8,10 +8,11 @@ const props = defineProps({
     header: String,
     timeout: {
         type: Number,
-        default: 3000,
         required: false
     }
 });
+
+const emits = defineEmits(['close']);
 
 const visible = defineModel<boolean>();
 
@@ -27,7 +28,8 @@ watch(() => visible.value, (value) => {
 
 
 <template>
-    <VDialog v-model:visible="visible" modal :dismissable-mask="true" :header="header" class="popup">
+    <VDialog v-model:visible="visible" modal :dismissable-mask="true" :header="header" class="popup"
+            @after-hide="$emit('close')">
         <p>{{ text }}</p>
     </VDialog>
 </template>

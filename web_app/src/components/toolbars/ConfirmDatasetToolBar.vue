@@ -10,6 +10,7 @@ import { useViewStateStore } from "@/stores/viewState";
 import { computed, ref, watch } from "vue";
 import { config, endpoints } from "@/config";
 import { sendRequest } from "@/utils";
+import InfoPopup from "../InfoPopup.vue";
 
 
 const imageState = useImageStateStore();
@@ -27,6 +28,10 @@ const assignedBoxColor = computed(() => {
     return imageState.objectClassifications[viewState.currentlyAssignedClassificationIndex].boxColor;
 });
 
+const popupText = ref<string>("");
+const popupHeader = ref<string>("");
+const popupVisible = ref<boolean>(false);
+
 
 // Close quantities sidebar when user starts to assign classifications
 watch(() => viewState.isSelectingAssignment, (newValue) => {
@@ -42,6 +47,7 @@ function submitDataset() {
         const elementIds = elements.map((el) => el.id);
         const leaders = elements.filter((el) => el.isLeader);
 
+        // These checks SHOULD never fail, so we don't need to show an error message
         if (leaders.length === 0) {
             console.error("No leader found for classification " + classification.classificationName);
             return null;
@@ -58,7 +64,9 @@ function submitDataset() {
         };
     });
     if (classifications.some((classification) => classification === null)) {
-        console.error("Failed to submit dataset");
+        popupText.value = "Failed to submit dataset";
+        popupHeader.value = "Error";
+        popupVisible.value = true;
         return;
     }
 
@@ -72,16 +80,24 @@ function submitDataset() {
     const requestPromise = sendRequest(requestUri, requestData, "POST");
     requestPromise.then((response) => {
         if (response.status === 200) {
-            console.log("Dataset submitted successfully");
-            console.log(requestData);
-            // TODO: handle response (same as registration popup)
-            imageState.reset();
-            viewState.reset();
+            popupText.value = "Dataset created successfully";
+            popupHeader.value = "Success";
+            popupVisible.value = true;
         }
         else {
-            console.error("Failed to submit dataset");
+            popupText.value = "Failed to submit dataset";
+            popupHeader.value = "Error";
+            popupVisible.value = true;
         }
     });
+}
+
+
+function handleCreatedDataset() {
+    window.setTimeout(() => {
+        viewState.reset();
+        imageState.reset();
+    }, 500);
 }
 </script>
 
@@ -129,6 +145,8 @@ function submitDataset() {
             <VButton label="Submit" @click="submitDataset" />
         </div>
     </VDialog>
+    <InfoPopup v-model="popupVisible" :text="popupText" :header="popupHeader"
+            @close="handleCreatedDataset" :timeout="2500" />
 </template>
 
 

@@ -3,11 +3,23 @@ import ImageDisplay from "../ImageDisplay.vue";
 import ImageViewNavBar from "../navbars/ImageViewNavBar.vue";
 import { useViewStateStore, ViewStates } from "../../stores/viewState";
 import InstructionsViewWidget from "../InstructionsWidget.vue";
-import { ref } from "vue";
+import { computed, ref } from "vue";
 
 const viewState = useViewStateStore();
 
 const isInfoCollapsed = ref<boolean>(false);
+const additionalInfoBarClasses = computed(() => {
+    const classes = [];
+
+    if (isInfoCollapsed.value) {
+        classes.push("info-collapsed");
+    }
+    if (viewState.isWaitingForResponse) {
+        classes.push("info-waiting");
+    }
+
+    return classes.join(" ");
+});
 </script>
 
 
@@ -16,7 +28,7 @@ const isInfoCollapsed = ref<boolean>(false);
         <ImageViewNavBar />
         <div v-if="viewState.currentState === ViewStates.ImageViewCreateDataset ||
                 viewState.currentState === ViewStates.ImageViewConfirmDataset"
-                :class="isInfoCollapsed ? 'info-collapsed' : ''" id="additional-info-bar">
+                :class="additionalInfoBarClasses" id="additional-info-bar">
             <p v-if="viewState.currentState === ViewStates.ImageViewCreateDataset">
                 Select one representant of each element category
             </p>
@@ -55,10 +67,6 @@ const isInfoCollapsed = ref<boolean>(false);
     font-size: 0.9rem;
 }
 
-#additional-info-bar.collapsed p {
-    width: 100%;
-}
-
 #additional-info-bar .collapse-button {
     color: var(--primary-color);
     position: absolute;
@@ -79,6 +87,11 @@ const isInfoCollapsed = ref<boolean>(false);
 
 #additional-info-bar.info-collapsed {
     top: -2px;
+}
+
+#additional-info-bar.info-waiting p,
+#additional-info-bar.info-waiting .collapse-button i {
+    opacity: 0.6;
 }
 
 @media screen and (max-width: 310px) {
