@@ -1,3 +1,4 @@
+import math
 import os
 from typing import List, Dict
 
@@ -53,7 +54,7 @@ class ObjectClassifier:
         feature_sim = torch.nn.functional.cosine_similarity(embedding_i, embedding_j).item()
         color_sim = self.color_similarity_model.compute_color_similarity(hist_i, hist_j)
 
-        return (color_weight * color_sim) + ((1 - color_weight) * feature_sim)
+        return 1 - math.sqrt(math.pow((1 - color_sim), 2) + math.pow((1 - feature_sim), 2))
 
     def group_objects_by_similarity(self, image: Image, threshold: float = 0.7,
                                     color_weight: float = DEFAULT_COLOR_WEIGHT) -> None:
