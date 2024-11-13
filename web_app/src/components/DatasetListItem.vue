@@ -4,6 +4,7 @@ import { type DatasetClassificationListItem } from "@/types";
 import { formatClassificationName, getClassificationsFromDataset, sendRequest } from "@/utils";
 import VDialog from "primevue/dialog";
 import VButton from "primevue/button";
+import VInputText from "primevue/inputtext";
 import { ref } from "vue";
 import { useViewStateStore, ViewStates } from "@/stores/viewState";
 
@@ -27,12 +28,15 @@ const props = defineProps({
     }
 });
 
-const emits = defineEmits(["compareClick"]);
+const emit = defineEmits(["compareClick", "dataChanged"]);
 
 const viewState = useViewStateStore();
 
 const detailsVisible = ref<boolean>(false);
+const renameDialogVisible = ref<boolean>(false);
+const deleteDialogVisible = ref<boolean>(false);
 const classifications = ref<DatasetClassificationListItem[]>([]);
+const renameNewName = ref<string>("");
 
 const date = new Date(props.timestamp).toISOString().split("T")[0];
 const time = new Date(props.timestamp).toLocaleTimeString();
@@ -53,8 +57,40 @@ function showDatasetDetails() {
     });
 }
 
-function handleCompareClick() {
+function showRenameDialog() {
+    renameNewName.value = props.name;
+    renameDialogVisible.value = true;
+}
 
+function confirmRename() {
+    const requestUri = config.serverUri + endpoints.renameDataset.replace("{dataset_id}", props.id.toString());
+    const requestData = JSON.stringify({ "name": renameNewName.value });
+    const requestPromise = sendRequest(requestUri, requestData, "PATCH");
+    requestPromise.then((response) => {
+        if (response.status === 200) {
+            emit("dataChanged");
+            detailsVisible.value = false;
+            renameDialogVisible.value = false;
+        }
+        else {
+            console.error("Failed to rename dataset");
+        }
+    });
+}
+
+function confirmDelete() {
+    const requestUri = config.serverUri + endpoints.deleteDataset.replace("{dataset_id}", props.id.toString());
+    const requestPromise = sendRequest(requestUri, null, "DELETE");
+    requestPromise.then((response) => {
+        if (response.status === 204) {
+            emit("dataChanged");
+            detailsVisible.value = false;
+            deleteDialogVisible.value = false;
+        }
+        else {
+            console.error("Failed to delete dataset");
+        }
+    });
 }
 </script>
 
@@ -82,6 +118,26 @@ function handleCompareClick() {
         </div>
         <VButton v-if="viewState.currentState === ViewStates.ImageViewCompareWithDataset"
                 label="Compare" class="compare-button" @click="$emit('compareClick', props.id)" />
+        <div v-else class="details-controls">
+            <VButton label="Rename" outlined @click="showRenameDialog" />
+            <VButton label="Delete" @click="deleteDialogVisible = true" />
+        </div>
+    </VDialog>
+    <VDialog v-model:visible="renameDialogVisible" modal :dismissable-mask="true" :draggable="false"
+            header="Rename dataset" class="rename-dialog">
+        <VInputText v-model="renameNewName" class="rename-input" :placeholder="name" :autofocus="true" />
+        <div class="rename-controls">
+            <VButton outlined label="Cancel" @click="renameDialogVisible = false" />
+            <VButton label="Rename" @click="confirmRename" />
+        </div>
+    </VDialog>
+    <VDialog v-model:visible="deleteDialogVisible" modal :dismissable-mask="true" :draggable="false"
+            header="Delete dataset" class="delete-dialog">
+        <p>Are you sure you want to delete this dataset?</p>
+        <div class="delete-controls">
+            <VButton outlined label="Cancel" @click="deleteDialogVisible = false" />
+            <VButton label="Delete" @click="confirmDelete" />
+        </div>
     </VDialog>
 </template>
 
@@ -165,6 +221,19 @@ function handleCompareClick() {
     margin: 20px auto 0 auto;
     display: block;
 }
+
+.rename-input {
+    margin-bottom: 12px;
+}
+
+.rename-controls,
+.delete-controls,
+.details-controls {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    margin-top: 12px;
+}
 </style>
 
 <style>
@@ -178,5 +247,10 @@ function handleCompareClick() {
 
 .dataset-details .p-dialog-content {
     overflow: hidden;
+}
+
+.rename-dialog .p-dialog-header-icons,
+.delete-dialog .p-dialog-header-icons {
+    display: none;
 }
 </style>

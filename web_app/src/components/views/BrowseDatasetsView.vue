@@ -20,8 +20,7 @@ function onBack() {
     viewState.setState(ViewStates.UserView);
 }
 
-
-onMounted(async () => {
+function loadDatasets() {
     const datasetRequestUri = config.serverUri + endpoints.getDatasets;
     const datasetRequestPromise = sendRequest(datasetRequestUri, null, "GET");
     viewState.isWaitingForResponse = true;
@@ -59,6 +58,11 @@ onMounted(async () => {
 
         viewState.isWaitingForResponse = false;
     });
+}
+
+
+onMounted(async () => {
+    loadDatasets();
 });
 </script>
 
@@ -73,7 +77,7 @@ onMounted(async () => {
         <p class="browse-datasets-notice notice">tap on a dataset to view details</p>
         <div class="browse-datasets-list">
             <DatasetListItemComponent v-for="(dataset, index) in userDatasets.sort((a, b) => b.timestamp - a.timestamp)"
-                    :key="index" v-bind="dataset" />
+                    :key="index" v-bind="dataset" @data-changed="loadDatasets" />
         </div>
         <p v-if="userDatasets.length === 0" class="notice">no items to show</p>
         <Transition name="waiting-overlay">

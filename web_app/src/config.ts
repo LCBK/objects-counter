@@ -34,6 +34,8 @@ export const endpoints = {
     getDatasets: "/api/datasets/",
     getDataset: "/api/datasets/{dataset_id}",
     createDataset: "/api/datasets/",
+    deleteDataset: "/api/datasets/{dataset_id}",
+    renameDataset: "/api/datasets/{dataset_id}",
     getDatasetsThumbnails: "/api/datasets/thumbnails",
     compareToDataset: "/api/results/{result_id}/compare/{dataset_id}",
     classifyByLeaders: "/api/images/{image_id}/classify-by-leaders"
