@@ -56,9 +56,9 @@ onMounted(async () => {
                 datasetItem.thumbnailUri = base64ToImageUri(item.thumbnail);
             }
         }
-    });
 
-    viewState.isWaitingForResponse = false;
+        viewState.isWaitingForResponse = false;
+    });
 });
 </script>
 
@@ -75,6 +75,7 @@ onMounted(async () => {
             <DatasetListItemComponent v-for="(dataset, index) in userDatasets.sort((a, b) => b.timestamp - a.timestamp)"
                     :key="index" v-bind="dataset" />
         </div>
+        <p v-if="userDatasets.length === 0" class="notice">no items to show</p>
         <Transition name="waiting-overlay">
             <div v-if="viewState.isWaitingForResponse" class="waiting-overlay">
                 <LoadingSpinner />
@@ -94,7 +95,7 @@ onMounted(async () => {
 }
 
 .browse-datasets-list {
-    padding: 0 24px 8px 24px;
+    padding: 0 20px 8px 20px;
     max-height: calc(100vh - 91px);
     overflow-y: auto;
 }
@@ -107,5 +108,9 @@ onMounted(async () => {
     font-size: 0.8rem;
     text-align: center;
     margin: 63px 0 8px 0;
+}
+
+#browse-datasets-view .notice {
+    text-align: center;
 }
 </style>

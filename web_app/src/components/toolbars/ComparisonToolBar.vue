@@ -30,7 +30,7 @@ function handleReturnClick() {
     imageState.clearResult();
 }
 
-function handleCompareClick() {
+function handleDatasetListClick() {
     const datasetRequestUri = config.serverUri + endpoints.getDatasets;
     const datasetRequestPromise = sendRequest(datasetRequestUri, null, "GET");
 
@@ -48,48 +48,32 @@ function handleCompareClick() {
         }
         else {
             console.error("Failed to retrieve datasets");
+            return;
         }
     });
 
     const thumbnailsRequestUri = config.serverUri + endpoints.getDatasetsThumbnails;
     const thumbnailsRequestPromise = sendRequest(thumbnailsRequestUri, null, "GET");
     thumbnailsRequestPromise.then((response: Response) => {
-        if (response.status != 200) {
+        if (response.status === 200) {
+            const responseItems = response.data;
+            for (const item of responseItems) {
+                const datasetItem = userDatasets.value.find((datasetItem) => datasetItem.id == item.id) as DatasetListItem;
+                if (datasetItem) {
+                    datasetItem.thumbnailUri = base64ToImageUri(item.thumbnail);
+                }
+            }
+        }
+        else {
             console.error("Failed to load result history thumbnails");
             return;
-        }
-
-        const responseItems = response.data;
-        for (const item of responseItems) {
-            const datasetItem = userDatasets.value.find((item) => datasetItem.id == item.id) as DatasetListItem;
-            if (datasetItem) {
-                datasetItem.thumbnailUri = base64ToImageUri(item.thumbnail);
-            }
         }
     });
 }
 
-function compareWithDataset(datasetId: number) {
-    const requestUri = config.serverUri + endpoints.compareToDataset
-            .replace("{result_id}", imageState.resultId.toString())
-            .replace("{dataset_id}", datasetId.toString());
-    const requestPromise = sendRequest(requestUri, null, "GET");
-
-    viewState.isWaitingForResponse = true;
-    compareDialogVisible.value = false;
-    requestPromise.then((response) => {
-        if (response.status === 200) {
-            console.log("Comparison successful");
-            imageState.clearResult();
-            parseClassificationsFromResponse(response.data.classifications);
-            datasetDialogVisible.value = false;
-        }
-        else {
-            console.error("Comparison failed");
-        }
-
-        viewState.isWaitingForResponse = false;
-    });
+function handleCompareClick(datasetId: number) {
+    console.log("TODO: comparison process");
+    console.log("Comparing with dataset ID: " + datasetId);
 }
 </script>
 
@@ -104,7 +88,7 @@ function compareWithDataset(datasetId: number) {
         <VButton text label="Details" icon="pi pi-list" @click="quantitiesVisible = true" />
     </div>
     <VButton :class="(viewState.isWaitingForResponse ? 'inactive-button ' : '') + 'compare-button'"
-            label="Compare with dataset" @click="handleCompareClick" />
+            label="Compare with dataset" @click="handleDatasetListClick" />
     <VSidebar v-model:visible="quantitiesVisible" position="bottom" style="height: auto" class="quantities" header="Counted elements">
         <div class="quantities-label-notice notice">You can toggle label visibility in the settings</div>
         <div class="quantities-header">
@@ -121,8 +105,7 @@ function compareWithDataset(datasetId: number) {
             :dismissable-mask="true" :draggable="false">
         <div class="compare-dataset-list">
             <div v-for="(dataset, index) in userDatasets.sort((a, b) => b.timestamp - a.timestamp)" :key="index">
-                <DatasetListItemComponent v-bind="dataset" />
-                <VButton text label="Select" class="compare-select" @click="compareWithDataset(dataset.id)" />
+                <DatasetListItemComponent v-bind="dataset" @compare-click="handleCompareClick" />
             </div>
         </div>
         <div class="dialog-controls">
@@ -165,12 +148,5 @@ function compareWithDataset(datasetId: number) {
 .inactive-button {
     pointer-events: none;
     opacity: 0.5;
-}
-
-.compare-select {
-    position: absolute;
-    top: 50%;
-    right: 6px;
-    transform: translateY(-50%);
 }
 </style>

@@ -161,7 +161,7 @@ def serialize_image_as_result(image: Image) -> dict:
 
         if element.classification not in classification_dict:
             classification_dict[element.classification] = {
-                "classification": element.classification,
+                "name": element.classification,
                 "objects": []
             }
 

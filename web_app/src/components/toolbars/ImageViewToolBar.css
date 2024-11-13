@@ -75,6 +75,10 @@
     text-align: center;
 }
 
+.rename-notice {
+    margin-left: 10px;
+}
+
 .quantities-label-notice {
     font-size: 0.8rem;
     line-height: 1.1rem;

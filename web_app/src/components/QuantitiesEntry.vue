@@ -2,7 +2,7 @@
 import { config, endpoints } from "@/config";
 import { useImageStateStore } from "@/stores/imageState";
 import { ImageAction, useViewStateStore } from "@/stores/viewState";
-import { sendRequest } from "@/utils";
+import { formatClassificationName, sendRequest } from "@/utils";
 import VButton from "primevue/button";
 import VDialog from "primevue/dialog";
 import VInputSwitch from "primevue/inputswitch";
@@ -78,7 +78,7 @@ function confirmRename() {
     <div class="quantity">
         <div class="quantity-count">{{ count }}</div>
         <div class="quantity-classification" @click="showRenameDialog(classificationName)">
-            {{ /^\d*$/.test(classificationName) ? "Type " + classificationName : classificationName }}
+            {{ formatClassificationName(classificationName) }}
         </div>
         <VInputSwitch v-if="!viewState.isSelectingAssignment" class="quantity-switch" v-model="showBoxes" />
         <VButton v-else class="assign-button" label="Assign" @click="handleAssignClick" />

@@ -87,7 +87,7 @@ function handleImageUpload(event: Event) : void {
         <p v-if="!userState.isLoggedIn" class="login-notice notice">Log in to access functions below</p>
         <VButton class="wide-button" label="Create dataset" icon="pi pi-images"
                 :disabled="!userState.isLoggedIn" @click="handleCreateDatasetClick()" />
-        <VButton class="wide-button" label="Compare quantity" icon="pi pi-arrow-right-arrow-left"
+        <VButton class="wide-button" label="Compare elements" icon="pi pi-arrow-right-arrow-left"
                 :disabled="!userState.isLoggedIn" @click="handleCompareClick()" />
         <VSelectButton class="mode-select" v-model="currentMode" :options="['Capture', 'Upload']" :allow-empty="false" />
     </div>

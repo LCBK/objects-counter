@@ -9,7 +9,7 @@ import { useImageStateStore } from "@/stores/imageState";
 import { useViewStateStore } from "@/stores/viewState";
 import { computed, ref, watch } from "vue";
 import { config, endpoints } from "@/config";
-import { sendRequest } from "@/utils";
+import { formatClassificationName, sendRequest } from "@/utils";
 import InfoPopup from "../InfoPopup.vue";
 
 
@@ -22,7 +22,7 @@ const datasetName = ref<string>("");
 const classifications = computed(() => imageState.objectClassifications);
 const assignedClassificationName = computed(() => {
     const name = imageState.objectClassifications[viewState.currentlyAssignedClassificationIndex].classificationName;
-    return /^\d*$/.test(name) ? "Type " + name : name;
+    return formatClassificationName(name);
 });
 const assignedBoxColor = computed(() => {
     return imageState.objectClassifications[viewState.currentlyAssignedClassificationIndex].boxColor;

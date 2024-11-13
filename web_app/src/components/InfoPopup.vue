@@ -29,7 +29,7 @@ watch(() => visible.value, (value) => {
 
 <template>
     <VDialog v-model:visible="visible" modal :dismissable-mask="true" :header="header" class="popup"
-            @after-hide="$emit('close')">
+            :draggable="false" @after-hide="$emit('close')">
         <p>{{ text }}</p>
     </VDialog>
 </template>
