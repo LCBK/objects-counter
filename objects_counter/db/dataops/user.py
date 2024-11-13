@@ -17,7 +17,7 @@ def get_user_by_id(user_id: int) -> User:
 
 
 def get_user_by_username(username: str) -> User:
-    return User.query.filter_by(username=username).one_or_404()
+    return User.query.filter_by(username=username).one_or_none()
 
 
 def insert_user(username: str, password: str) -> User:
