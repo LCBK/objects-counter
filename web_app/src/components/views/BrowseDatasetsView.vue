@@ -23,6 +23,10 @@ function onBack() {
 function loadDatasets() {
     const datasetRequestUri = config.serverUri + endpoints.getDatasets;
     const datasetRequestPromise = sendRequest(datasetRequestUri, null, "GET");
+
+    const thumbnailsRequestUri = config.serverUri + endpoints.getDatasetsThumbnails;
+    const thumbnailsRequestPromise = sendRequest(thumbnailsRequestUri, null, "GET");
+
     viewState.isWaitingForResponse = true;
     datasetRequestPromise.then((response) => {
         if (response.status === 200) {
@@ -38,25 +42,24 @@ function loadDatasets() {
         else {
             console.error("Failed to retrieve datasets");
         }
-    });
-
-    const thumbnailsRequestUri = config.serverUri + endpoints.getDatasetsThumbnails;
-    const thumbnailsRequestPromise = sendRequest(thumbnailsRequestUri, null, "GET");
-    thumbnailsRequestPromise.then((response: Response) => {
-        if (response.status != 200) {
-            console.error("Failed to load result history thumbnails");
-            return;
-        }
-
-        const responseItems = response.data;
-        for (const item of responseItems) {
-            const datasetItem = userDatasets.value.find((datasetItem) => datasetItem.id == item.id) as DatasetListItem;
-            if (datasetItem) {
-                datasetItem.thumbnailUri = base64ToImageUri(item.thumbnail);
+    })
+    .then(() => {
+        thumbnailsRequestPromise.then((response: Response) => {
+            if (response.status != 200) {
+                console.error("Failed to load result history thumbnails");
+                return;
             }
-        }
 
-        viewState.isWaitingForResponse = false;
+            const responseItems = response.data;
+            for (const item of responseItems) {
+                const datasetItem = userDatasets.value.find((datasetItem) => datasetItem.id == item.id) as DatasetListItem;
+                if (datasetItem) {
+                    datasetItem.thumbnailUri = base64ToImageUri(item.thumbnail);
+                }
+            }
+
+            viewState.isWaitingForResponse = false;
+        });
     });
 }
 
