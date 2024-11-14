@@ -3,7 +3,7 @@ import logging
 from sqlalchemy.exc import DatabaseError
 from werkzeug.exceptions import Forbidden
 
-from objects_counter.db.dataops.image import get_image_by_id
+from objects_counter.db.dataops.image import get_image_by_id, serialize_image_as_result
 from objects_counter.db.models import Result, db, User
 
 log = logging.getLogger(__name__)
@@ -77,6 +77,8 @@ def rename_classification(user: User, result_id: int, old_classification: str, n
         log.error('Classification %s not found in result %s', old_classification, result_id)
         raise ValueError(f'Classification {old_classification} not found in result {result_id}')
     try:
+        result.data = serialize_image_as_result(result.images[0])
+        db.session.add(result)
         db.session.commit()
         return count
     except DatabaseError as e:
