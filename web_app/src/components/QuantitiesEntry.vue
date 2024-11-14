@@ -37,7 +37,13 @@ const showBoxes = computed({
         imageState.objectClassifications[props.index].showBoxes = value;
     }
 });
-const isRenameDisabled = computed(() => renameNewLabel.value === "" || renameNewLabel.value === renameOldLabel.value);
+const isRenameDisabled = computed(() => {
+    return (
+        renameNewLabel.value === ""
+        || renameNewLabel.value === renameOldLabel.value
+        || imageState.objectClassifications.some((c) => c.classificationName === renameNewLabel.value)
+    );
+});
 
 
 function handleAssignClick() {
