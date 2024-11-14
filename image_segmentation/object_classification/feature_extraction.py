@@ -3,12 +3,13 @@ import os
 import cv2
 import numpy as np
 import torch
-from PIL import Image as PILImage
+from PIL import Image as PILImage, ImageEnhance
+from matplotlib import pyplot as plt
 from torch import nn
 from torchvision import transforms as tr
 
 from image_segmentation.constants import TEMP_IMAGE_DIR, ISCC_NBS_CENTROIDS_RGB, BW, A, SIGMA
-from image_segmentation.utils import crop_element
+from image_segmentation.utils import crop_element, display_element
 from objects_counter.db.dataops.image import get_image_by_id
 from objects_counter.db.models import ImageElement
 
@@ -32,7 +33,6 @@ class ImageElementProcessor:
         histogram = self._calculate_histogram(temp_image_path)
 
         os.remove(temp_image_path)
-
         return embedding, histogram
 
     def _calculate_embedding(self, image_path: str) -> torch.Tensor:
@@ -87,7 +87,6 @@ class ColorSimilarity:
         raw_score = ColorSimilarity.__calculate_histogram_intersection(hist1, hist2)
         max_score = ColorSimilarity.__calculate_histogram_intersection(hist1, hist1)
 
-        print(str(ColorSimilarity.__normalize_score(raw_score, max_score)))
         return ColorSimilarity.__normalize_score(raw_score, max_score)
 
     @staticmethod
@@ -98,9 +97,8 @@ class ColorSimilarity:
 
         for i in range(num_bins):
             for j in range(num_bins):
-                distance = ColorSimilarity.__color_distance(
-                    ColorSimilarity.ISCC_NBS_CENTROIDS_LUV[i],
-                    ColorSimilarity.ISCC_NBS_CENTROIDS_LUV[j])
+                distance = ColorSimilarity.__color_distance(ColorSimilarity.ISCC_NBS_CENTROIDS_LUV[i],
+                                                            ColorSimilarity.ISCC_NBS_CENTROIDS_LUV[j])
                 weight = ColorSimilarity.__weight_function(distance)
                 if weight > 0:
                     intersection_score += min(hist_model[i], hist_target[j]) * weight
@@ -127,15 +125,21 @@ class ColorSimilarity:
     @staticmethod
     def get_histogram(image: PILImage) -> np.ndarray:
         """Computes a color histogram for an image, ignoring white background pixels."""
-        image = image.convert('RGB')
-        mask = ColorSimilarity.__get_mask(image)
+        enhancer = ImageEnhance.Brightness(image)
+        image = enhancer.enhance(2.0)
 
-        image = cv2.cvtColor(np.array(image), cv2.COLOR_BGR2RGB).astype(np.float32) / 255.0
+        mask = ColorSimilarity.__get_mask(image)
+        image = np.array(image)
+
+        image = image.astype(np.float32) / 255.0
         image = cv2.cvtColor(image, cv2.COLOR_RGB2Luv)
+
         histogram = np.zeros(len(ColorSimilarity.ISCC_NBS_CENTROIDS_LUV))
 
         for i, pixel in enumerate(image.reshape(-1, 3)):
-            if mask.reshape(-1)[i] is not False:
+            if mask.reshape(-1)[i]:
+                pixel_rgb = cv2.cvtColor(np.array([[pixel]]), cv2.COLOR_LUV2RGB).reshape(-1, 3)[0]
+
                 closest_index = ColorSimilarity.__find_closest_bin_color(pixel)
                 histogram[closest_index] += 1
 
@@ -144,9 +148,10 @@ class ColorSimilarity:
 
     @staticmethod
     def __get_mask(image: PILImage):
-        mask = np.array([not (np.array(image)[x][y] == np.array([255, 255, 255])).all()
-                         for x in range(image.height)
-                         for y in range(image.width)])
+        image = image.convert('RGB')
+        mask = np.array(
+            [not (np.array(image)[x][y] == np.array([255, 255, 255])).all() for x in range(image.height) for y in
+             range(image.width)])
         mask.resize(image.height, image.width)
         return mask
 

@@ -1,4 +1,3 @@
-import math
 import os
 from typing import List, Dict
 
@@ -11,6 +10,7 @@ from image_segmentation.object_classification.feature_extraction import FeatureS
 from image_segmentation.utils import delete_temp_images
 from objects_counter.db.dataops.image import update_element_classification_by_id
 from objects_counter.db.models import Image, ImageElement
+
 
 class ObjectClassifier:
 
@@ -33,7 +33,6 @@ class ObjectClassifier:
 
     def process_image_element(self, element: ImageElement) -> tuple:
         """Crops the image element, computes its embedding and histogram, and cleans up."""
-        # Here we assume the ImageElementProcessor has been instantiated as a class member
         processor = ImageElementProcessor(self.feature_similarity_model, self.color_similarity_model)
         return processor.process_image_element(element)
 
@@ -54,7 +53,7 @@ class ObjectClassifier:
         feature_sim = torch.nn.functional.cosine_similarity(embedding_i, embedding_j).item()
         color_sim = self.color_similarity_model.compute_color_similarity(hist_i, hist_j)
 
-        return 1 - math.sqrt(math.pow((1 - color_sim), 2) + math.pow((1 - feature_sim), 2))
+        return (color_weight * color_sim) + ((1 - color_weight) * feature_sim)
 
     def group_objects_by_similarity(self, image: Image, threshold: float = 0.7,
                                     color_weight: float = DEFAULT_COLOR_WEIGHT) -> None:
