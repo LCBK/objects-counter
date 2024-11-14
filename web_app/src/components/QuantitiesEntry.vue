@@ -52,6 +52,8 @@ function showRenameDialog(oldName: string) {
 }
 
 function confirmRename() {
+    if (renameNewLabel.value === "") return;
+
     // Classifications are final and stored on the server, so the app requests a rename from the server.
     if (viewState.currentAction !== ImageAction.CreateDataset) {
         let requestUri = config.serverUri + endpoints.renameClassification
@@ -60,8 +62,13 @@ function confirmRename() {
         const requestData = renameNewLabel.value
 
         const responsePromise = sendRequest(requestUri, requestData, "POST");
-        responsePromise.then(() => {
-            imageState.objectClassifications[props.index].classificationName = renameNewLabel.value;
+        responsePromise.then((response) => {
+            if (response.status === 200) {
+                imageState.objectClassifications[props.index].classificationName = renameNewLabel.value;
+            }
+            else {
+                console.error("Failed to rename classification");
+            }
             isRenameDialogVisible.value = false;
         });
     }
@@ -87,7 +94,7 @@ function confirmRename() {
             <VInputText v-model="renameNewLabel" class="rename-input" :placeholder="renameOldLabel" :autofocus="true" />
             <div class="rename-controls">
                 <VButton outlined label="Cancel" class="rename-cancel" @click="isRenameDialogVisible = false" />
-                <VButton label="Rename" class="rename-rename" @click="confirmRename()" />
+                <VButton label="Rename" class="rename-rename" @click="confirmRename()" :disabled="renameNewLabel === ''" />
             </div>
         </VDialog>
     </div>
