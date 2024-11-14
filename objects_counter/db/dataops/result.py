@@ -59,10 +59,14 @@ def delete_result_by_id(result_id: int, user: User) -> None:
 
 
 def rename_classification(user: User, result_id: int, old_classification: str, new_classification: str) -> int:
+    result = get_result_by_id(result_id)
+    for classification in result.data['classifications']:
+        if classification["name"] == new_classification:
+            log.error('Classification %s already exists in result %s', new_classification, result_id)
+            raise ValueError(f'Classification {new_classification} already exists in result {result_id}')
     if not new_classification:
         log.error('New classification is empty')
         raise ValueError('New classification is empty')
-    result = get_result_by_id(result_id)
     count = 0
     if not user or result.user_id != user.id:
         log.error('User %s is not authorized to rename classification in result %s', user, result_id)
