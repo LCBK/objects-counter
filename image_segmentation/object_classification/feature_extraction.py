@@ -4,12 +4,11 @@ import cv2
 import numpy as np
 import torch
 from PIL import Image as PILImage, ImageEnhance
-from matplotlib import pyplot as plt
 from torch import nn
 from torchvision import transforms as tr
 
 from image_segmentation.constants import TEMP_IMAGE_DIR, ISCC_NBS_CENTROIDS_RGB, BW, A, SIGMA
-from image_segmentation.utils import crop_element, display_element
+from image_segmentation.utils import crop_element
 from objects_counter.db.dataops.image import get_image_by_id
 from objects_counter.db.models import ImageElement
 
@@ -63,9 +62,8 @@ class FeatureSimilarity:
     def preprocess_image(self, image_path: str) -> torch.Tensor:
         """Preprocesses the image before embedding extraction."""
         img = PILImage.open(image_path)
-        transformations = tr.Compose(
-            [tr.ToTensor(), tr.Resize((224, 224), tr.InterpolationMode.BICUBIC),
-             tr.Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225))])
+        transformations = tr.Compose([tr.ToTensor(), tr.Resize((224, 224), tr.InterpolationMode.BICUBIC),
+                                      tr.Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225))])
         img = transformations(img).float().unsqueeze_(0).to(self.device)
         return img
 
@@ -138,8 +136,6 @@ class ColorSimilarity:
 
         for i, pixel in enumerate(image.reshape(-1, 3)):
             if mask.reshape(-1)[i]:
-                pixel_rgb = cv2.cvtColor(np.array([[pixel]]), cv2.COLOR_LUV2RGB).reshape(-1, 3)[0]
-
                 closest_index = ColorSimilarity.__find_closest_bin_color(pixel)
                 histogram[closest_index] += 1
 
