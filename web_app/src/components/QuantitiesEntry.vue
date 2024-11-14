@@ -37,6 +37,7 @@ const showBoxes = computed({
         imageState.objectClassifications[props.index].showBoxes = value;
     }
 });
+const isRenameDisabled = computed(() => renameNewLabel.value === "" || renameNewLabel.value === renameOldLabel.value);
 
 
 function handleAssignClick() {
@@ -52,7 +53,7 @@ function showRenameDialog(oldName: string) {
 }
 
 function confirmRename() {
-    if (renameNewLabel.value === "") return;
+    if (isRenameDisabled.value) return;
 
     // Classifications are final and stored on the server, so the app requests a rename from the server.
     if (viewState.currentAction !== ImageAction.CreateDataset) {
@@ -94,7 +95,7 @@ function confirmRename() {
             <VInputText v-model="renameNewLabel" class="rename-input" :placeholder="renameOldLabel" :autofocus="true" />
             <div class="rename-controls">
                 <VButton outlined label="Cancel" class="rename-cancel" @click="isRenameDialogVisible = false" />
-                <VButton label="Rename" class="rename-rename" @click="confirmRename()" :disabled="renameNewLabel === ''" />
+                <VButton label="Rename" class="rename-rename" @click="confirmRename()" :disabled="isRenameDisabled" />
             </div>
         </VDialog>
     </div>
