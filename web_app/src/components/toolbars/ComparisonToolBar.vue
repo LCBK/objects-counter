@@ -72,8 +72,26 @@ function handleDatasetListClick() {
 }
 
 function handleCompareClick(datasetId: number) {
-    console.log("TODO: comparison process");
-    console.log("Comparing with dataset ID: " + datasetId);
+    const requestUri = config.serverUri + endpoints.compareToDataset
+            .replace("{result_id}", imageState.resultId.toString())
+            .replace("{dataset_id}", datasetId.toString());
+    const requestPromise = sendRequest(requestUri, null, "GET");
+
+    viewState.isWaitingForResponse = true;
+    compareDialogVisible.value = false;
+    requestPromise.then((response) => {
+        if (response.status === 200) {
+            console.log("Comparison successful");
+            imageState.clearResult();
+            parseClassificationsFromResponse(response.data.classifications);
+            datasetDialogVisible.value = false;
+        }
+        else {
+            console.error("Comparison failed");
+        }
+
+        viewState.isWaitingForResponse = false;
+    });
 }
 </script>
 
