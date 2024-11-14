@@ -89,7 +89,11 @@ class RenameClassification(Resource):
     @authentication_required
     def post(self, current_user: User, result_id: int, classification: str) -> typing.Any:
         new_classification = request.get_data(as_text=True)
-        result_id = int(result_id)
+        try:
+            result_id = int(result_id)
+        except (ValueError, TypeError) as e:
+            log.exception("Invalid result ID %s: %s", result_id, e)
+            return Response("Invalid result ID", 400)
         if result_id < 0:
             return Response('Invalid result ID', 400)
         try:

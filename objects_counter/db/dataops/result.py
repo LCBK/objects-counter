@@ -59,6 +59,9 @@ def delete_result_by_id(result_id: int, user: User) -> None:
 
 
 def rename_classification(user: User, result_id: int, old_classification: str, new_classification: str) -> int:
+    if not new_classification:
+        log.error('New classification is empty')
+        raise ValueError('New classification is empty')
     result = get_result_by_id(result_id)
     count = 0
     if not user or result.user_id != user.id:
