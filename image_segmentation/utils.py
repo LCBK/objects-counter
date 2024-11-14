@@ -1,10 +1,9 @@
 import os
 from typing import Tuple
 
-import cv2
 import numpy as np
-from PIL import ImageDraw
 from PIL import Image as PILImage
+from PIL import ImageDraw
 
 from objects_counter.db.dataops.image import get_image_by_id
 from objects_counter.db.models import ImageElement
