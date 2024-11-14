@@ -1,7 +1,6 @@
 import logging
 
 from sqlalchemy.exc import DatabaseError
-from werkzeug.exceptions import NotFound
 
 from objects_counter.db.models import User, db, bcrypt
 

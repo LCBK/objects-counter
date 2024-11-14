@@ -91,11 +91,11 @@ class RenameClassification(Resource):
         new_classification = request.get_data(as_text=True)
         try:
             result_id = int(result_id)
+            if result_id < 0:
+                raise ValueError("ID must be a positive integer")
         except (ValueError, TypeError) as e:
             log.exception("Invalid result ID %s: %s", result_id, e)
             return Response("Invalid result ID", 400)
-        if result_id < 0:
-            return Response('Invalid result ID', 400)
         try:
             count = rename_classification(current_user, result_id, classification, new_classification)
             return Response(f"{count}", 200)
