@@ -155,7 +155,7 @@ class AcceptBackgroundPoints(Resource):
 
         if not as_dataset:
             object_grouper.group_objects_by_similarity(image)
-            response = serialize_image_as_result(image)
+            response_dict = serialize_image_as_result(image)
         else:
             if not current_user:
                 log.error("User must be logged in")
@@ -164,10 +164,12 @@ class AcceptBackgroundPoints(Resource):
 
         if current_user:
             user_id = current_user.id
-            result = insert_result(user_id, image.id, response)
-            response["id"] = result.id
-            return json.dumps(response), 201
-        return json.dumps(response), 200
+            result = insert_result(user_id, image.id, response_dict)
+            response_dict["id"] = result.id
+            response = jsonify(response_dict)
+            response.status_code = 201
+            return response
+        return jsonify(response_dict)
 
 
 @api.route('/images/<int:image_id>/classify-by-leaders')

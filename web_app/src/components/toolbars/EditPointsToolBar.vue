@@ -74,8 +74,8 @@ async function handleConfirmBackground() {
         }
         else {
             // Otherwise the response contains classifications
-            parseClassificationsFromResponse(JSON.parse(response.data).classifications);
-            if (JSON.parse(response.data).id) imageState.resultId = JSON.parse(response.data).id;
+            parseClassificationsFromResponse(response.data.classifications);
+            if (response.data.id) imageState.resultId = response.data.id;
         }
 
         switch (viewState.currentAction) {
