@@ -10,7 +10,6 @@ import LoadingSpinner from "../LoadingSpinner.vue";
 import { onMounted, ref } from "vue";
 
 
-// todo: refetch images only when number of results changes
 // todo: pagination
 
 
@@ -25,48 +24,48 @@ function onBack() {
 
 
 onMounted(async () => {
+    viewState.isWaitingForResponse = true;
+
     const resultsRequestUri = config.serverUri + endpoints.getResults;
     const resultsRequestPromise = sendRequest(resultsRequestUri, null, "GET");
-    viewState.isWaitingForResponse = true;
     resultsRequestPromise.then((response: Response) => {
-        if (response.status != 200) {
+        if (response.status === 200) {
+            const responseItems = response.data;
+            for (const item of responseItems) {
+                const historyItem: ResultHistoryItem = {
+                    id: item.id,
+                    imageId: item.image_id,
+                    timestamp: Date.parse(item.timestamp),
+                    classificationCount: item.data.classifications.length,
+                    elementCount: item.data.count
+                };
+
+                historyItems.value.push(historyItem);
+            }
+        }
+        else {
             console.error("Failed to load result history items");
             viewState.setState(ViewStates.UserView);
-            return;
-        }
-
-        const responseItems = response.data;
-        for (const item of responseItems) {
-            const historyItem: ResultHistoryItem = {
-                id: item.id,
-                imageId: item.image_id,
-                timestamp: Date.parse(item.timestamp),
-                classificationCount: item.data.classifications.length,
-                elementCount: item.data.count
-            };
-
-            historyItems.value.push(historyItem);
         }
     });
 
     const thumbnailsRequestUri = config.serverUri + endpoints.getResultsThumbnails;
     const thumbnailsRequestPromise = sendRequest(thumbnailsRequestUri, null, "GET");
     thumbnailsRequestPromise.then((response: Response) => {
-        if (response.status != 200) {
-            console.error("Failed to load result history thumbnails");
-            return;
-        }
-
-        const responseItems = response.data;
-        for (const item of responseItems) {
-            const historyItem = historyItems.value.find((historyItem) => historyItem.id == item.id);
-            if (historyItem) {
-                historyItem.thumbnailUri = base64ToImageUri(item.thumbnail);
+        if (response.status === 200) {
+            const responseItems = response.data;
+            for (const item of responseItems) {
+                const historyItem = historyItems.value.find((historyItem) => historyItem.id == item.id);
+                if (historyItem) {
+                    historyItem.thumbnailUri = base64ToImageUri(item.thumbnail);
+                }
             }
         }
+        else {
+            console.error("Failed to load result history thumbnails");
+        }
+        viewState.isWaitingForResponse = false;
     });
-
-    viewState.isWaitingForResponse = false;
 });
 </script>
 
@@ -75,13 +74,14 @@ onMounted(async () => {
     <div id="result-history-view" class="view">
         <div class="history-view-nav-bar nav-bar bar">
             <VButton text rounded icon="pi pi-chevron-left" @click="onBack()" />
-            <h2 id="history-view-title">Result history</h2>
+            <h2>Counting history</h2>
             <SettingsWidget />
         </div>
         <div class="result-history-items">
             <ResultHistoryItemComponent v-for="(item, index) in historyItems.sort((a, b) => b.timestamp - a.timestamp)"
                     :key="index" v-bind="item" />
         </div>
+        <p v-if="historyItems.length === 0" class="notice">no items to show</p>
         <Transition name="waiting-overlay">
             <div v-if="viewState.isWaitingForResponse" class="waiting-overlay">
                 <LoadingSpinner />
@@ -110,5 +110,9 @@ onMounted(async () => {
     overflow: auto;
     user-select: none;
     max-height: calc(100vh - 55px);
+}
+
+#result-history-view .notice {
+    text-align: center;
 }
 </style>

@@ -1,11 +1,14 @@
 import { boundingBoxColors, config, endpoints } from "./config";
 import { useUserStateStore } from "./stores/userState";
 import { useImageStateStore } from "./stores/imageState";
+import type { DatasetClassificationListItem, DatasetResponseClassification, GetDatasetResponse, ImageElement, ObjectClassification } from "./types";
+
 
 export interface Response {
     data: any,
     status: number
 }
+
 
 export async function sendRequest(
     uri: string, data: FormData | string | null, method: string = "POST",
@@ -38,7 +41,7 @@ export async function sendRequest(
         }
 
         if (config.logResponses) {
-            console.log(`Request to ${uri} succeeded (${response.status}). Result: `, result);
+            console.log(`Response for request to ${uri} (${response.status}): `, result);
         }
 
         return { data: result, status: response.status };
@@ -47,9 +50,16 @@ export async function sendRequest(
     }
 }
 
+
 export function distance(x1: number, y1: number, x2: number, y2: number) : number {
     return Math.sqrt(Math.pow(x1 - x2, 2) + Math.pow(y1 - y2, 2))
 }
+
+
+export function formatClassificationName(name: string) : string {
+    return /^\d*$/.test(name) ? "Type " + name : name;
+}
+
 
 export function createMaskImage(mask: Array<Array<boolean>>) : ImageData {
     const width = mask[0].length;
@@ -70,27 +80,78 @@ export function createMaskImage(mask: Array<Array<boolean>>) : ImageData {
     return imageData;
 }
 
+
 export function parseClassificationsFromResponse(classifications: Array<any>) : void {
     const imageState = useImageStateStore();
+
     classifications.forEach((classification: any, index: number) => {
         imageState.objectClassifications.push({
             index: index,
-            classificationName: classification.classification,
+            classificationName: classification.name,
             count: classification.objects.length,
             showBoxes: true,
             boxColor: boundingBoxColors[index % boundingBoxColors.length]
         });
+
         classification.objects.forEach((element: any) => {
-            imageState.imageElements.push({
+            const imageElement = {
                 id: element.id,
                 topLeft: element.top_left,
                 bottomRight: element.bottom_right,
                 certainty: element.certainty,
                 classificationIndex: index
-            });
+            } as ImageElement;
+
+            for (const leaderId of imageState.selectedLeaderIds) {
+                if (leaderId === element.id) {
+                    imageElement.isLeader = true;
+                    break;
+                }
+            }
+
+            imageState.imageElements.push(imageElement);
         });
     });
 }
+
+
+export function parseElementsFromResponse(elements: Array<any>) : void {
+    const imageState = useImageStateStore();
+    for (const element of elements) {
+        imageState.imageElements.push({
+            id: element.id,
+            topLeft: element.top_left,
+            bottomRight: element.bottom_right
+        });
+    }
+}
+
+
+export function getClassificationsFromDataset(dataset: GetDatasetResponse) : Array<DatasetClassificationListItem> {
+    const classifications = [] as Array<DatasetResponseClassification>;
+
+    // Merge classifications from all images
+    dataset.images.forEach(image => {
+        image.classifications.forEach((classification: DatasetResponseClassification) => {
+            const existingClassification = classifications.find(c => c.name === classification.name);
+            if (existingClassification) {
+                existingClassification.objects.push(...classification.objects);
+            }
+            else {
+                classifications.push({ name: classification.name, objects: classification.objects });
+            }
+        });
+    });
+
+    const classificationList = classifications.map((classification: DatasetResponseClassification) => {
+        return {
+            name: classification.name,
+            count: classification.objects.length
+        } as DatasetClassificationListItem;
+    });
+    return classificationList;
+}
+
 
 export function checkServerStatus() : Promise<boolean> {
     return new Promise((resolve) => {
@@ -105,6 +166,7 @@ export function checkServerStatus() : Promise<boolean> {
             .catch(() => resolve(false));
     });
 }
+
 
 export function base64ToImageUri(base64: string) : string {
     return "data:image/png;base64," + base64;

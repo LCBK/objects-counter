@@ -6,9 +6,10 @@ from flask_restx import Namespace, Resource
 from werkzeug.exceptions import NotFound, Forbidden
 
 from objects_counter.api.datasets.models import insert_dataset_model, insert_image_model, rename_dataset_model
-from objects_counter.api.utils import authentication_required
+from objects_counter.api.utils import authentication_required, get_thumbnails
 from objects_counter.db.dataops.dataset import get_user_datasets_serialized, get_dataset_by_id, delete_dataset_by_id, \
-    insert_dataset, add_image_to_dataset, rename_dataset
+    insert_dataset, add_image_to_dataset, rename_dataset, get_user_datasets
+from objects_counter.db.dataops.image import serialize_image_as_result
 from objects_counter.db.models import User
 
 api = Namespace('datasets', description='Datasets related operations')
@@ -53,7 +54,16 @@ class Dataset(Resource):
             if dataset.user_id != current_user.id:
                 log.error("User %s is not authorized to access dataset %s", current_user, dataset_id)
                 return Response('Unauthorized', 403)
-            return jsonify(dataset.as_dict())
+            dataset_dict = {
+                "id": dataset.id,
+                "name": dataset.name,
+                "images": []
+            }
+            for image in dataset.images:
+                image_dict = serialize_image_as_result(image)
+                image_dict["id"] = image.id
+                dataset_dict['images'].append(image_dict)
+            return jsonify(dataset_dict)
         except ValueError as e:
             log.exception("Invalid dataset ID: %s", e)
             return Response("Invalid dataset ID", 400)
@@ -156,3 +166,12 @@ class DatasetImages(Resource):
         except Exception as e:
             log.exception("Failed to add image to dataset: %s", e)
             return Response("Failed to add image to dataset", 500)
+
+
+@api.route('/thumbnails')
+class DatasetsThumbnails(Resource):
+    @authentication_required
+    def get(self, current_user: User) -> typing.Any:
+        datasets = get_user_datasets(current_user)
+        thumbnails = get_thumbnails(datasets)
+        return jsonify(thumbnails)

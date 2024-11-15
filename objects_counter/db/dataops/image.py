@@ -140,7 +140,11 @@ def update_element_classification_by_id(element_id: int, classification: str, ce
             raise
 
 
-def set_element_as_leader(element_id) -> None:
+def set_element_as_leader(element_id: int, image: Image) -> None:
+    element_ids = [element.id for element in image.elements]
+    if element_id not in element_ids:
+        log.error('Element %s does not belong to image %s', element_id, image.id)
+        raise ValueError(f'Element {element_id} does not belong to image {image.id}')
     ImageElement.query.filter_by(id=element_id).update({'is_leader': True})
 
 
@@ -150,17 +154,29 @@ def serialize_image_as_result(image: Image) -> dict:
     for element in image.elements:
         element_data = element.as_dict()
 
+        if element_data["classification"] is None:
+            continue
+
         element_data["certainty"] = round(element.certainty, 2)
 
         if element.classification not in classification_dict:
             classification_dict[element.classification] = {
-                "classification": element.classification,
+                "name": element.classification,
                 "objects": []
             }
 
         classification_dict[element.classification]["objects"].append(element_data)
 
+    # sort classifications by classification name
+    classification_dict = dict(sorted(classification_dict.items()))
+
     return {
         "count": len(image.elements),
         "classifications": list(classification_dict.values())
     }
+
+
+def mark_leaders_in_image(image: Image, leader_ids: list[int]) -> None:
+    for idx, leader in enumerate(leader_ids):
+        set_element_as_leader(leader, image)
+        ImageElement.query.filter_by(id=int(leader)).update({'classification': f'{idx}'})

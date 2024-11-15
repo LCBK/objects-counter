@@ -24,7 +24,7 @@ class Login(Resource):
             username, password = get_user_from_input(data)
         except ValueError as e:
             log.exception('Failed to get user from input: %s', e)
-            msg = e.args[1]
+            msg = e.args[0]
             return Response(msg, status=400)
         user = login(username, password)
         if user is None:

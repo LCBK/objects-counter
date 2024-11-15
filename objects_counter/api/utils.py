@@ -1,3 +1,4 @@
+import base64
 import gzip
 import io
 import logging
@@ -10,6 +11,7 @@ from jwt import DecodeError
 
 from objects_counter.consts import MAX_DB_STRING_LENGTH, MIN_USERNAME_LENGTH
 from objects_counter.db.dataops.user import get_user_by_id
+from objects_counter.db.models import Dataset, Result
 
 log = logging.getLogger(__name__)
 
@@ -95,3 +97,19 @@ def gzip_compress(data: bytes) -> bytes:
     with gzip.GzipFile(fileobj=buffer, mode='wb') as f:
         f.write(data)
     return buffer.getvalue()
+
+
+def get_thumbnails(collection: list[Dataset | Result]) -> list[dict]:
+    thumbnails = []
+    for item in collection:
+        if len(item.images) == 0:
+            continue
+
+        with open(item.images[0].thumbnail, 'rb') as thumbnail:
+            base64_thumbnail = base64.b64encode(thumbnail.read())
+
+        thumbnails.append({
+            'id': item.id,
+            'thumbnail': base64_thumbnail.decode('utf-8')
+        })
+    return thumbnails

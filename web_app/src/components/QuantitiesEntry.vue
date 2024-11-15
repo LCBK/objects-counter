@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { config, endpoints } from "@/config";
 import { useImageStateStore } from "@/stores/imageState";
-import { sendRequest, type Response } from "@/utils";
+import { ImageAction, useViewStateStore } from "@/stores/viewState";
+import { formatClassificationName, sendRequest } from "@/utils";
 import VButton from "primevue/button";
 import VDialog from "primevue/dialog";
 import VInputSwitch from "primevue/inputswitch";
@@ -19,6 +20,7 @@ const props = defineProps({
 });
 
 const imageState = useImageStateStore();
+const viewState = useViewStateStore();
 
 const isRenameDialogVisible = ref<boolean>(false);
 const renameOldLabel = ref<string>("");
@@ -35,7 +37,20 @@ const showBoxes = computed({
         imageState.objectClassifications[props.index].showBoxes = value;
     }
 });
+const isRenameDisabled = computed(() => {
+    return (
+        renameNewLabel.value === ""
+        || renameNewLabel.value === renameOldLabel.value
+        || imageState.objectClassifications.some((c) => c.classificationName === renameNewLabel.value)
+    );
+});
 
+
+function handleAssignClick() {
+    viewState.isSelectingAssignment = false;
+    viewState.isAssigningClassifications = true;
+    viewState.currentlyAssignedClassificationIndex = props.index;
+}
 
 function showRenameDialog(oldName: string) {
     renameOldLabel.value = oldName;
@@ -44,16 +59,31 @@ function showRenameDialog(oldName: string) {
 }
 
 function confirmRename() {
-    let requestUri = config.serverUri + endpoints.renameClassification
-            .replace("{result_id}", imageState.resultId.toString())
-            .replace("{classification_name}", renameOldLabel.value);
-    const requestData = renameNewLabel.value
+    if (isRenameDisabled.value) return;
 
-    const responsePromise = sendRequest(requestUri, requestData, "POST");
-    responsePromise.then(() => {
+    // Classifications are final and stored on the server, so the app requests a rename from the server.
+    if (viewState.currentAction !== ImageAction.CreateDataset) {
+        let requestUri = config.serverUri + endpoints.renameClassification
+                .replace("{result_id}", imageState.resultId.toString())
+                .replace("{classification_name}", renameOldLabel.value);
+        const requestData = renameNewLabel.value
+
+        const responsePromise = sendRequest(requestUri, requestData, "POST");
+        responsePromise.then((response) => {
+            if (response.status === 200) {
+                imageState.objectClassifications[props.index].classificationName = renameNewLabel.value;
+            }
+            else {
+                console.error("Failed to rename classification");
+            }
+            isRenameDialogVisible.value = false;
+        });
+    }
+    // When creating a dataset, classifications are final when confirming the dataset, rename locally.
+    else {
         imageState.objectClassifications[props.index].classificationName = renameNewLabel.value;
         isRenameDialogVisible.value = false;
-    });
+    }
 }
 </script>
 
@@ -62,15 +92,16 @@ function confirmRename() {
     <div class="quantity">
         <div class="quantity-count">{{ count }}</div>
         <div class="quantity-classification" @click="showRenameDialog(classificationName)">
-            {{ /^\d*$/.test(classificationName) ? "Type " + classificationName : classificationName }}
+            {{ formatClassificationName(classificationName) }}
         </div>
-        <VInputSwitch class="quantity-switch" v-model="showBoxes" />
+        <VInputSwitch v-if="!viewState.isSelectingAssignment" class="quantity-switch" v-model="showBoxes" />
+        <VButton v-else class="assign-button" label="Assign" @click="handleAssignClick" />
         <VDialog v-model:visible="isRenameDialogVisible" modal :dismissable-mask="true" :draggable="false"
                 header="Change label" class="rename-dialog">
             <VInputText v-model="renameNewLabel" class="rename-input" :placeholder="renameOldLabel" :autofocus="true" />
             <div class="rename-controls">
                 <VButton outlined label="Cancel" class="rename-cancel" @click="isRenameDialogVisible = false" />
-                <VButton label="Rename" class="rename-rename" @click="confirmRename()" />
+                <VButton label="Rename" class="rename-rename" @click="confirmRename()" :disabled="isRenameDisabled" />
             </div>
         </VDialog>
     </div>
@@ -127,5 +158,10 @@ function confirmRename() {
     display: flex;
     justify-content: flex-end;
     gap: 12px;
+}
+
+.assign-button {
+    padding: 5px 10px;
+    font-size: 0.85rem;
 }
 </style>

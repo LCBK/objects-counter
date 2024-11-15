@@ -2,8 +2,8 @@
 import { boundingBoxColors } from '@/config';
 import { useImageStateStore } from '@/stores/imageState';
 import { useSettingsStateStore } from '@/stores/settingsState';
-import { ImageAction, useViewStateStore } from '@/stores/viewState';
-import { computed, defineProps, ref } from 'vue';
+import { useViewStateStore, ViewStates } from '@/stores/viewState';
+import { computed } from 'vue';
 
 
 const viewState = useViewStateStore();
@@ -25,26 +25,46 @@ const props = defineProps({
     },
     certainty: {
         type: Number,
-        required: true
+        required: false
     },
     classificationIndex: {
         type: Number,
-        required: true
+        required: false
     }
 });
 
-const isSelected = ref<boolean>(false);
-
 const boxColor = computed(() => {
-    if (viewState.currentAction === ImageAction.CreateDataset) {
+    if (viewState.currentState === ViewStates.ImageViewCreateDataset || props.classificationIndex === undefined) {
         return boundingBoxColors[0];
     }
     else {
         return imageState.objectClassifications[props.classificationIndex].boxColor;
     }
 });
-const selectedBoxColor = computed(() => boundingBoxColors[2]);
-const classification = computed(() => imageState.objectClassifications[props.classificationIndex].classificationName);
+
+const isSelectedAsLeader = computed(() => {
+    return imageState.selectedLeaderIds.includes(props.id)
+        && (viewState.currentState === ViewStates.ImageViewCreateDataset
+            || viewState.currentState === ViewStates.ImageViewConfirmDataset
+        );
+});
+
+const selectedBoxColor = computed(() => {
+    if (viewState.currentState === ViewStates.ImageViewCreateDataset) {
+        return boundingBoxColors[2];
+    }
+    else {
+        return boxColor.value;
+    }
+});
+
+const classification = computed(() => {
+    if (props.classificationIndex === undefined) {
+        return "Unknown";
+    }
+    else return imageState.objectClassifications[props.classificationIndex].classificationName
+});
+
 const scale = computed(() => imageState.boundingBoxScale);
 
 // CSS properties
@@ -56,29 +76,43 @@ const height = computed(() => (props.bottomRight[1] - props.topLeft[1]) * scale.
 
 function handleBoundingBoxClick() {
     // If creating dataset, enable leader selection
-    if (viewState.currentAction === ImageAction.CreateDataset) {
+    if (viewState.currentState === ViewStates.ImageViewCreateDataset) {
         if (imageState.selectedLeaderIds.includes(props.id)) {
             imageState.selectedLeaderIds = imageState.selectedLeaderIds.filter(id => id !== props.id);
         }
         else {
             imageState.selectedLeaderIds.push(props.id);
         }
-        isSelected.value = !isSelected.value;
+    }
+    // If assigning classifications, enable assignment
+    else if (viewState.currentState === ViewStates.ImageViewConfirmDataset && viewState.isAssigningClassifications) {
+        if (!isSelectedAsLeader.value) {
+            const element = imageState.imageElements.find(el => el.id === props.id);
+            if (element && element.classificationIndex !== undefined) {
+                imageState.objectClassifications[element.classificationIndex].count--;
+                element.classificationIndex = viewState.currentlyAssignedClassificationIndex;
+                imageState.objectClassifications[viewState.currentlyAssignedClassificationIndex].count++;
+            }
+        }
     }
 }
 </script>
 
 
 <template>
-    <div :class="(isSelected ? 'selected-box ' : '') + 'bounding-box'"
+    <div :class="(isSelectedAsLeader ? 'selected-box ' : '') + 'bounding-box'"
             v-bind:data-topleft="props.topLeft[0] + ',' + props.topLeft[1]"
             v-bind:data-bottomright="props.bottomRight[0] + ',' + props.bottomRight[1]"
             v-bind:data-certainty="props.certainty" v-bind:data-classification="classification"
-            v-if="imageState.objectClassifications[classificationIndex].showBoxes"
+            v-if="classificationIndex === undefined || imageState.objectClassifications[classificationIndex].showBoxes"
             @click="handleBoundingBoxClick">
         <div>
-            <div v-if="settingsState.showBoxCertainty" class="box-certainty">{{ props.certainty }}</div>
-            <div v-if="settingsState.showBoxLabel" class="box-classification">{{ classification }}</div>
+            <div v-if="settingsState.showBoxCertainty && viewState.currentState !== ViewStates.ImageViewCreateDataset" class="box-certainty">
+                {{ props.certainty }}
+            </div>
+            <div v-if="settingsState.showBoxLabel && viewState.currentState !== ViewStates.ImageViewCreateDataset" class="box-classification">
+                {{ classification }}
+            </div>
             <div v-if="settingsState.showElementIds" class="box-ids">{{ props.id }}</div>
         </div>
         <div class="selected-box-overlay"></div>
@@ -142,5 +176,11 @@ function handleBoundingBoxClick() {
 
 .selected-box .selected-box-overlay {
     opacity: 0.4;
+}
+
+.selected-box .box-certainty,
+.selected-box .box-ids,
+.selected-box .box-classification {
+    background-color: v-bind(selectedBoxColor);
 }
 </style>

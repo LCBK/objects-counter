@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import VButton from "primevue/button";
-import VDialog from "primevue/dialog";
 import VInputGroup from "primevue/inputgroup";
 import VInputGroupAddon from "primevue/inputgroupaddon";
 import VInputText from "primevue/inputtext";
@@ -10,6 +9,7 @@ import { useUserStateStore } from "@/stores/userState";
 import { computed, ref } from "vue";
 import { config, endpoints } from "@/config";
 import { type Response, sendRequest } from "@/utils";
+import InfoPopup from "../InfoPopup.vue";
 
 
 const viewState = useViewStateStore();
@@ -85,12 +85,15 @@ function submitLoginForm() {
             viewState.setState(ViewStates.MainView);
             userState.login(response.data.username, response.data.user_id, response.data.token);
         } else if (response.status === 404) {
-            showErrorDialog("Incorrect user or password");
+            errorText.value = "Incorrect user or password";
+            showError.value = true;
         } else {
-            showErrorDialog("Login failed");
+            errorText.value = "Login failed";
+            showError.value = true;
         }
     });
 }
+
 
 function submitRegisterForm() {
     registerForm.value!.submit();   // For triggering credential saving in browsers
@@ -119,20 +122,13 @@ function submitRegisterForm() {
                 }
             });
         } else if (response.status === 400) {
-            showErrorDialog("Invalid data or user already exists");
+            errorText.value = "Invalid data or user already exists";
+            showError.value = true;
         } else {
-            showErrorDialog("Registration failed");
+            errorText.value = "Registration failed";
+            showError.value = true;
         }
     });
-}
-
-function showErrorDialog(text: string) {
-    showError.value = true;
-    errorText.value = text;
-    setTimeout(() => {
-        showError.value = false;
-        errorText.value = "";
-    }, 2500);
 }
 </script>
 
@@ -146,11 +142,11 @@ function showErrorDialog(text: string) {
                     <p class="user-details-name">{{ userState.username }}</p>
                 </div>
                 <div class="user-details-actions">
-                    <VButton class="results-button wide-button" icon="pi pi-calendar" label="Counting history" @click="viewState.setState(ViewStates.ResultHistoryView)" />
+                    <VButton class="results-button wide-button" icon="pi pi-calendar" label="Counting history" @click="viewState.setState(ViewStates.BrowseResultHistory)" />
                     <VButton class="results-button wide-button" icon="pi pi-calendar" label="Comparison history" />
-                    <VButton class="datasets-button wide-button" icon="pi pi-images" label="Datasets" />
+                    <VButton class="datasets-button wide-button" icon="pi pi-images" label="Datasets" @click="viewState.setState(ViewStates.BrowseDatasets)" />
                 </div>
-                <VButton class="logout-button wide-button" icon="pi pi-sign-out" label="Logout" @click="onLogout()" />
+                <VButton outlined class="logout-button wide-button" icon="pi pi-sign-out" label="Logout" @click="onLogout()" />
             </div>
             <div v-else-if="!isRegistering" class="user-container user-login">
                 <p class="login-label">Login</p>
@@ -171,12 +167,10 @@ function showErrorDialog(text: string) {
                     <VButton class="login-button wide-button" icon="pi pi-sign-in" icon-pos="right"
                             label="Login" @click="submitLoginForm()" :disabled="!isLoginValid" />
                 </form>
-                <p class="register-notice">Don't have an account?
+                <p class="register-notice">
+                    Don't have an account?
                     <VButton class="register-button" text label="Register" @click="isRegistering = true" />
                 </p>
-                <VDialog v-model:visible="showError" modal :dismissable-mask="false" header="Error" class="user-dialog">
-                    <p>{{ errorText }}</p>
-                </VDialog>
             </div>
             <div v-else-if="isRegistering" class="user-container user-register">
                 <p class="login-label">Register</p>
@@ -208,11 +202,9 @@ function showErrorDialog(text: string) {
                 <p class="register-notice">Want to login instead?
                     <VButton class="register-button" text label="Login" @click="isRegistering = false" />
                 </p>
-                <VDialog v-model:visible="showError" modal :dismissable-mask="false" header="Error" class="user-dialog">
-                    <p>{{ errorText }}</p>
-                </VDialog>
             </div>
         </Transition>
+        <InfoPopup v-model="showError" header="Error" :text="errorText" :timeout="2500" />
         <VButton class="return-button wide-button" icon="pi pi-chevron-left" outlined
                 label="Return" @click="onBack()" />
     </div>
@@ -301,8 +293,7 @@ function showErrorDialog(text: string) {
 }
 
 #user-view .user-details .logout-button {
-    position: absolute;
-    bottom: 110px;
+    margin-top: 60px;
 }
 
 #user-view .user-details {
@@ -318,7 +309,7 @@ function showErrorDialog(text: string) {
     align-items: center;
     color: var(--primary-color);
     width: 100%;
-    padding: 40px;
+    padding: 60px 40px 40px 40px;
 }
 
 #user-view .user-details-header i {
@@ -336,7 +327,7 @@ function showErrorDialog(text: string) {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 20px;
+    gap: 30px;
     margin-top: 20px;
     width: 100%;
 }
@@ -345,19 +336,6 @@ function showErrorDialog(text: string) {
 <style>
 #user-view .register-button .p-button-label {
     font-size: 0.85rem;
-}
-
-.user-dialog .p-dialog-header-icons {
-    display: none;
-}
-
-.user-dialog .p-dialog-header {
-    padding: 20px 10px 12px 10px;
-}
-
-.user-dialog .p-dialog-header > span {
-    width: 100%;
-    text-align: center;
 }
 
 #user-view .login-button .pi,

@@ -32,8 +32,13 @@ export const endpoints = {
     deleteResult: "/api/results/{result_id}",
     renameClassification: "/api/results/{result_id}/classification/{classification_name}/rename",
     getDatasets: "/api/datasets/",
+    getDataset: "/api/datasets/{dataset_id}",
     createDataset: "/api/datasets/",
-    compareToDataset: "/api/results/{result_id}/compare/{dataset_id}"
+    deleteDataset: "/api/datasets/{dataset_id}",
+    renameDataset: "/api/datasets/{dataset_id}",
+    getDatasetsThumbnails: "/api/datasets/thumbnails",
+    compareToDataset: "/api/results/{result_id}/compare/{dataset_id}",
+    classifyByLeaders: "/api/images/{image_id}/classify-by-leaders"
 };
 
 export const boundingBoxColors = [

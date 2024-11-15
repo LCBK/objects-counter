@@ -1,14 +1,17 @@
 <script setup lang="ts">
+import "./ImageViewToolBar.css";
 import VButton from "primevue/button";
-import { useViewStateStore, ViewStates } from "@/stores/viewState";
+import { ImageAction, useViewStateStore, ViewStates } from "@/stores/viewState";
 import { config, endpoints } from "@/config";
 import { useImageStateStore } from "@/stores/imageState";
-import { parseClassificationsFromResponse, sendRequest } from "@/utils";
+import { parseClassificationsFromResponse, parseElementsFromResponse, sendRequest } from "@/utils";
 import { computed, onMounted, ref } from "vue";
+import { useUserStateStore } from "@/stores/userState";
 
 
 const viewState = useViewStateStore();
 const imageState = useImageStateStore();
+const userState = useUserStateStore();
 
 const pointTypePanel = ref<HTMLElement>();
 const positivePointButton = ref<HTMLElement>();
@@ -44,23 +47,48 @@ function handleRemoveClick() {
 async function handleConfirmBackground() {
     viewState.isWaitingForResponse = true;
 
-    if (viewState.isEditingExistingResult) {
-        const deleteRequestUri = config.serverUri + endpoints.deleteResult.replace("{result_id}", imageState.resultId.toString());
-        const deleteRequestData = JSON.stringify({});
-        await sendRequest(deleteRequestUri, deleteRequestData, "DELETE");
+    if (viewState.isEditingExistingResult && viewState.currentAction !== ImageAction.CreateDataset) {
+        if (userState.isLoggedIn) {
+            const deleteRequestUri = config.serverUri + endpoints.deleteResult.replace("{result_id}", imageState.resultId.toString());
+            const deleteRequestData = JSON.stringify({});
+            await sendRequest(deleteRequestUri, deleteRequestData, "DELETE");
+        }
+
         viewState.isEditingExistingResult = false;
     }
 
     const requestUri = config.serverUri + endpoints.acceptBackground.replace("{image_id}", imageState.imageId.toString());
-    const requestData = JSON.stringify({});
+    const requestData = JSON.stringify({
+        as_dataset: viewState.currentAction === ImageAction.CreateDataset
+    });
     const responsePromise = sendRequest(requestUri, requestData, "POST");
 
     responsePromise.then((response) => {
         viewState.isWaitingForResponse = false;
-        parseClassificationsFromResponse(JSON.parse(response.data).classifications);
-        if (JSON.parse(response.data).id) imageState.resultId = JSON.parse(response.data).id;
         if (viewState.currentState !== ViewStates.ImageEditPoints) return;
-        viewState.setState(ViewStates.ImageViewResult);
+
+        if (viewState.currentAction === ImageAction.CreateDataset) {
+            // Backend responds with elements without classifications, only for leader selection
+            parseElementsFromResponse(response.data.elements);
+            if (response.data.id) imageState.resultId = response.data.id;
+        }
+        else {
+            // Otherwise the response contains classifications
+            parseClassificationsFromResponse(JSON.parse(response.data).classifications);
+            if (JSON.parse(response.data).id) imageState.resultId = JSON.parse(response.data).id;
+        }
+
+        switch (viewState.currentAction) {
+            case ImageAction.SimpleCounting:
+                viewState.setState(ViewStates.ImageViewCountingResult);
+                break;
+            case ImageAction.CreateDataset:
+                viewState.setState(ViewStates.ImageViewCreateDataset);
+                break;
+            case ImageAction.CompareWithDataset:
+                viewState.setState(ViewStates.ImageViewCompareWithDataset);
+                break;
+        }
     });
 }
 
@@ -90,21 +118,6 @@ onMounted(() => {
 
 
 <style scoped>
-.image-view-tool-bar {
-    padding: 0;
-    position: fixed;
-    bottom: 0;
-    height: 90px;
-    align-items: stretch;
-}
-
-.image-view-tool-bar > button {
-    flex-direction: column;
-    padding: 12px 1rem;
-    justify-content: space-between;
-    flex: 1 1 0px;
-}
-
 #point-types {
     z-index: 200;
     position: absolute;

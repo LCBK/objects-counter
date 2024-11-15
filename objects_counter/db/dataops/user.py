@@ -1,7 +1,6 @@
 import logging
 
 from sqlalchemy.exc import DatabaseError
-from werkzeug.exceptions import NotFound
 
 from objects_counter.db.models import User, db, bcrypt
 
@@ -17,16 +16,13 @@ def get_user_by_id(user_id: int) -> User:
 
 
 def get_user_by_username(username: str) -> User:
-    return User.query.filter_by(username=username).one_or_404()
+    return User.query.filter_by(username=username).one_or_none()
 
 
 def insert_user(username: str, password: str) -> User:
     password_hash = bcrypt.generate_password_hash(password).decode('utf-8')
-    try:
-        get_user_by_username(username)
+    if get_user_by_username(username) is not None:
         raise ValueError('Username already exists')
-    except NotFound:
-        pass
     user = User(username=username, password=password_hash)
     db.session.add(user)
     try:
