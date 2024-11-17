@@ -1,6 +1,6 @@
 import os
 from typing import List, Dict
-
+import logging
 import numpy as np
 import torch
 
@@ -10,6 +10,10 @@ from image_segmentation.object_classification.feature_extraction import FeatureS
 from image_segmentation.utils import delete_temp_images
 from objects_counter.db.dataops.image import update_element_classification_by_id
 from objects_counter.db.models import Image, ImageElement
+from statistics import mean
+
+log = logging.getLogger(__name__)
+
 
 class ObjectClassifier:
 
@@ -23,18 +27,18 @@ class ObjectClassifier:
 
         os.makedirs(TEMP_IMAGE_DIR, exist_ok=True)
 
-    def process_elements(self, image: Image) -> None:
+    def process_image_elements(self, image: Image) -> None:
         """Processes each object in the image to compute embeddings and histograms."""
         for element in image.elements:
-            embedding, histogram = self.process_image_element(element)
-            self.embeddings[element.id] = embedding
-            self.histograms[element.id] = histogram
+            self.process_element(element)
 
-    def process_image_element(self, element: ImageElement) -> tuple:
+    def process_element(self, element: ImageElement) -> None:
         """Crops the image element, computes its embedding and histogram, and cleans up."""
         # Here we assume the ImageElementProcessor has been instantiated as a class member
         processor = ImageElementProcessor(self.feature_similarity_model, self.color_similarity_model)
-        return processor.process_image_element(element)
+        embedding, histogram = processor.process_image_element(element)
+        self.embeddings[element.id] = embedding
+        self.histograms[element.id] = histogram
 
     def calculate_similarity(self, obj_i: ImageElement, obj_j: ImageElement,
                              color_weight: float = DEFAULT_COLOR_WEIGHT) -> float:
@@ -46,8 +50,8 @@ class ObjectClassifier:
             embedding_i = self.embeddings[obj_i.id]
             embedding_j = self.embeddings[obj_j.id]
         else:
-            embedding_i, hist_i = self.process_image_element(obj_i)
-            embedding_j, hist_j = self.process_image_element(obj_j)
+            embedding_i, hist_i = self.process_element(obj_i)
+            embedding_j, hist_j = self.process_element(obj_j)
 
         # pylint: disable=not-callable
         feature_sim = torch.nn.functional.cosine_similarity(embedding_i, embedding_j).item()
@@ -58,39 +62,66 @@ class ObjectClassifier:
     def group_objects_by_similarity(self, image: Image, threshold: float = 0.7,
                                     color_weight: float = DEFAULT_COLOR_WEIGHT) -> None:
         """Groups objects by their similarity based on a combination of feature and color similarity."""
-        self.process_elements(image)
+        self.process_image_elements(image)
         self.assign_categories_based_on_similarity(image, threshold, color_weight)
         delete_temp_images(TEMP_IMAGE_DIR)
 
-    def assign_dataset_categories_to_objects(self, image: Image, dataset):
-        self.process_elements(image)
-        dataset_image = dataset.images[0]
-        self.process_elements(dataset_image)
-        representatives = [[element, element.classification] for element in dataset_image.elements if element.is_leader]
-        for element in image.elements:
-            best_certainty = 0
-            best_category = -1
-            for representative, category_id in representatives:
-                current_certainty = self.calculate_similarity(element, representative)
-                if current_certainty > best_certainty:
-                    best_category = category_id
-                    best_certainty = current_certainty
-                assert best_category != -1
-                self.update_element_category(element.id, best_category, best_certainty)
+    def preprocess_dataset(self, dataset):
+        dataset.elements = [element for image in dataset.images for element in image.elements]
+        for element in dataset.elements:
+            if element.id not in self.histograms or element.id not in self.embeddings:
+                self.process_element(element)
+        dataset.representatives = [element for element in dataset.elements if element.is_leader]
+        dataset.categories = [representative.classification for representative in dataset.representatives]
+        dataset.category_count = {category: 0 for category in dataset.categories}
+        for element in dataset.elements:
+            dataset.category_count[element.classification] += 1
+        dataset.preprocessed = True
 
-    def assign_categories_by_representatives(self, image: Image):
-        self.process_elements(image)
-        representatives = [(element, element.classification) for element in image.elements if element.is_leader]
+    def classify_image_element_based_on_dataset(self, image_element, dataset):
+        if not dataset.preprocessed:
+            log.error("Please run preprocess_dataset() before using classification on dataset")
+
+        classification_results = {category: [] for category in dataset.categories}
+        for element in dataset.elements:
+            classification_results[element.classification].append(self.calculate_similarity(image_element, element))
+        classification = [[category, mean(classification_results[category])] for category in dataset.categories]
+        classification = sorted(classification, key=lambda x: x[1], reverse=True)
+        print(image_element.id, classification)
+        return classification
+
+    def classify_images_based_on_dataset(self, images: List[Image], dataset):
+        """Classify images elements based on dataset"""
+        self.preprocess_dataset(dataset)
+        for image in images:
+            self.process_image_elements(image)
+        elements = [element for image in images for element in image.elements]
+        result = {category: 0 for category in dataset.categories}
+        for element in elements:
+            classes_probabilities = self.classify_image_element_based_on_dataset(element, dataset)
+            element.classification = classes_probabilities[0][0]
+            element.certainty = classes_probabilities[0][1]
+            result[element.classification] += 1
+        result = {category: result[category] - dataset.category_count[category] for category in dataset.categories}
+        return result
+        # todo: Adjust classes based on missing elements
+
+    def assign_dataset_categories_to_image(self, image: Image, dataset):
+        """Assigns categories based on dataset and image representatives. Meant to be used DURING dataset creation"""
+        self.preprocess_dataset(dataset)
+        self.process_image_elements(image)
+        image_representatives = [element for element in image.elements if element.is_leader]
+        representatives = image_representatives + dataset.representatives
         for element in image.elements:
             best_certainty = 0
-            best_category = -1
-            for representative, category_id in representatives:
+            best_category = None
+            for representative in representatives:
                 current_certainty = self.calculate_similarity(element, representative)
                 if current_certainty > best_certainty:
-                    best_category = category_id
+                    best_category = representative.classification
                     best_certainty = current_certainty
-            assert best_category != -1
-            self.update_element_category(element.id, best_category, best_certainty)
+                assert best_category is not None
+                self.update_element_category(element.id, best_category, best_certainty)
 
     def assign_categories_based_on_similarity(self, image: Image, threshold: float, color_weight: float) -> None:
         """Assigns elements to categories based on their similarity scores."""
