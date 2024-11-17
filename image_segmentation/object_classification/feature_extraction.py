@@ -61,7 +61,7 @@ class FeatureSimilarity:
 
     def preprocess_image(self, image_path: str) -> torch.Tensor:
         """Preprocesses the image before embedding extraction."""
-        img = PILImage.open(image_path)
+        img = PILImage.open(image_path).convert('RGB')
         transformations = tr.Compose([tr.ToTensor(), tr.Resize((224, 224), tr.InterpolationMode.BICUBIC),
                                       tr.Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225))])
         img = transformations(img).float().unsqueeze_(0).to(self.device)
@@ -77,7 +77,7 @@ class FeatureSimilarity:
 class ColorSimilarity:
     """Calculates color similarities of the object using histograms"""
 
-    ISCC_NBS_CENTROIDS_LUV = cv2.cvtColor(ISCC_NBS_CENTROIDS_RGB.reshape(1, -1, 3), cv2.COLOR_RGB2Luv).reshape(-1, 3)
+    ISCC_NBS_CENTROIDS_LUV = cv2.cvtColor(ISCC_NBS_CENTROIDS_RGB, cv2.COLOR_RGB2Luv).reshape(-1, 3)
 
     @staticmethod
     def compute_color_similarity(hist1: np.ndarray, hist2: np.ndarray) -> float:
