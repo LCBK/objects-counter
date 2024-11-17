@@ -140,12 +140,36 @@ def update_element_classification_by_id(element_id: int, classification: str, ce
             raise
 
 
-def set_element_as_leader(element_id: int, image: Image) -> None:
+def bulk_update_element_classification_by_id(classifications: list[dict]) -> None:
+    for classification in classifications:
+        name = classification.get('name')
+        if not name:
+            raise ValueError('Classification name is required')
+        elements = classification.get('elements', [])
+        for element in elements:
+            element_id = element.get('id')
+            update_element_classification_by_id(element_id, name, 1., do_commit=False)
+    try:
+        db.session.commit()
+    except DatabaseError as e:
+        log.exception('Failed to update element classifications: %s', e)
+        db.session.rollback()
+        raise
+
+
+def set_element_as_leader(element_id: int, image: Image, do_commit: bool = False) -> None:
     element_ids = [element.id for element in image.elements]
     if element_id not in element_ids:
         log.error('Element %s does not belong to image %s', element_id, image.id)
         raise ValueError(f'Element {element_id} does not belong to image {image.id}')
     ImageElement.query.filter_by(id=element_id).update({'is_leader': True})
+    if do_commit:
+        try:
+            db.session.commit()
+        except DatabaseError as e:
+            log.exception('Failed to set element as leader: %s', e)
+            db.session.rollback()
+            raise
 
 
 def serialize_image_as_result(image: Image) -> dict:
@@ -180,3 +204,9 @@ def mark_leaders_in_image(image: Image, leader_ids: list[int]) -> None:
     for idx, leader in enumerate(leader_ids):
         set_element_as_leader(leader, image)
         ImageElement.query.filter_by(id=int(leader)).update({'classification': f'{idx}'})
+    try:
+        db.session.commit()
+    except DatabaseError as e:
+        log.exception('Failed to mark leaders in image: %s', e)
+        db.session.rollback()
+        raise
