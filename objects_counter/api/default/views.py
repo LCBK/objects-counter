@@ -40,8 +40,9 @@ log = logging.getLogger(__name__)
 
 @api.route('/is-alive')
 class IsAlive(Resource):
+    @authentication_optional  # if user has invalid/outdated token, it will return 401
     def get(self) -> typing.Any:
-        return 'Flask is alive!'
+        return 'Flask is alive!', 200
 
 
 @api.route('/version')
