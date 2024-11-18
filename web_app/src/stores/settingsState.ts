@@ -7,7 +7,7 @@ import { defineStore } from "pinia";
 const defaultState = {
     isDarkTheme: false,
     showBoxCertainty: false,
-    showBoxLabel: false,
+    showBoxLabel: true,
     showElementIds: false
 }
 

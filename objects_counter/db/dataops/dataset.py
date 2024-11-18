@@ -22,7 +22,7 @@ def insert_dataset(user_id: int, image_id: int, name: str, classifications: list
             raise ValueError(f'Classification {classification} is missing required fields')
         for element in elements:
             update_element_classification_by_id(int(element), class_name, 1., do_commit=False)
-        set_element_as_leader(leader_id)
+        set_element_as_leader(leader_id, image)
     db.session.add(image)
     db.session.add(dataset)
     try:

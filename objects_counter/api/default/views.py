@@ -7,7 +7,7 @@ import time
 import typing
 
 import flask
-from flask import request, send_file, Response
+from flask import request, send_file, Response, jsonify
 from flask_restx import Resource, Namespace
 from werkzeug.datastructures import FileStorage
 from werkzeug.exceptions import NotFound
@@ -21,7 +21,7 @@ from objects_counter.api.default.models import points_model, accept_model
 from objects_counter.api.utils import authentication_optional, authentication_required, gzip_compress
 from objects_counter.consts import SAM_CHECKPOINT, SAM_MODEL_TYPE
 from objects_counter.db.dataops.image import insert_image, update_background_points, get_image_by_id, \
-    serialize_image_as_result
+    serialize_image_as_result, mark_leaders_in_image
 from objects_counter.db.dataops.result import insert_result
 from objects_counter.db.models import User
 from objects_counter.utils import create_thumbnail
@@ -153,21 +153,53 @@ class AcceptBackgroundPoints(Resource):
 
         sam.count_objects(image)
 
-        object_grouper.group_objects_by_similarity(image)
-
-        response = serialize_image_as_result(image)
-
-        if as_dataset:
+        if not as_dataset:
+            object_grouper.group_objects_by_similarity(image)
+            response_dict = serialize_image_as_result(image)
+        else:
             if not current_user:
+                log.error("User must be logged in")
                 return Response('You must be logged in', 401)
-            return json.dumps(response), 200
+            return jsonify(image.as_dict())
 
         if current_user:
             user_id = current_user.id
-            result = insert_result(user_id, image.id, response)
-            response["id"] = result.id
-            return json.dumps(response), 201
-        return json.dumps(response), 200
+            result = insert_result(user_id, image.id, response_dict)
+            response_dict["id"] = result.id
+            response = jsonify(response_dict)
+            response.status_code = 201
+            return response
+        return jsonify(response_dict)
+
+
+@api.route('/images/<int:image_id>/classify-by-leaders')
+class ClassifyByLeaders(Resource):
+    @api.doc(params={'image_id': 'The image ID'})
+    @api.expect({'leaders': [int]})
+    @api.response(200, "Objects classified")
+    @api.response(400, "Invalid leader ID")
+    @api.response(404, "Image not found")
+    @api.response(500, "Error processing image")
+    def post(self, image_id: int) -> typing.Any:
+        data = request.json
+        leaders = data.get("leaders", [])
+        if not leaders:
+            log.error("No leaders provided")
+            return Response('No leaders provided', 400)
+        try:
+            image = get_image_by_id(image_id)
+            mark_leaders_in_image(image, leaders)
+            object_grouper.assign_categories_by_representatives(image)
+            return Response(json.dumps(serialize_image_as_result(image)), 200)
+        except NotFound as e:
+            log.exception("Image %s not found: %s", image_id, e)
+            return Response('Image not found', 404)
+        except (ValueError, TypeError) as e:
+            log.exception("Invalid leader ID: %s", e)
+            return Response('One or more leaders do not belong to the image or are invalid', 400)
+        except Exception as e:  # pylint: disable=broad-except
+            log.exception("Error processing image: %s", e)
+            return Response('Error processing image', 500)
 
 
 # Temporary, to change in the future

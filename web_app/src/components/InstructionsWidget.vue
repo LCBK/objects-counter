@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import VButton from "primevue/button";
 import VDialog from "primevue/dialog";
-import { ImageAction, useViewStateStore, ViewStates } from "../stores/viewState";
+import { useViewStateStore, ViewStates } from "../stores/viewState";
 import { computed, onMounted, ref, watch } from "vue";
 
 
@@ -63,8 +63,7 @@ onMounted(() => animateButton());
                 To exclude a part of the image from the background, use "negative" points.
             </p>
         </div>
-        <div v-else-if="currentViewState == ViewStates.ImageViewResult && viewState.currentAction === ImageAction.SimpleCounting"
-                class="instructions-text">
+        <div v-else-if="currentViewState == ViewStates.ImageViewCountingResult" class="instructions-text">
             <p>That's it!</p>
             <p>You can see the element count on the bottom.</p>
             <p>To see how many elements of specific types were counted, use the "Details" button.</p>
@@ -73,8 +72,7 @@ onMounted(() => animateButton());
                 If there's no improvement, consider retaking the picture.
             </p>
         </div>
-        <div v-else-if="currentViewState == ViewStates.ImageViewResult && viewState.currentAction === ImageAction.CreateDataset"
-                class="instructions-text">
+        <div v-else-if="currentViewState == ViewStates.ImageViewCreateDataset" class="instructions-text">
             <p>Elements found in your photo are now selected.</p>
             <p>To finish creating a dataset, select one representant of each category by tapping at them.</p>
             <p>When you're done, press the submit button, provide a fitting name for this dataset and confirm.</p>
@@ -95,7 +93,7 @@ onMounted(() => animateButton());
     position: relative;
     top: 0;
     right: 0;
-    margin-top: 40px;
+    margin-top: 50px;
     width: 90%;
     max-width: 240px;
     height: 50px;

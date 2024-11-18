@@ -14,14 +14,14 @@ class Image(db.Model):
     thumbnail = db.Column(db.String(255), nullable=True)
     timestamp = db.Column(db.DateTime, nullable=False, default=db.func.now())
     background_points = db.Column(db.JSON, nullable=True)
-    result = db.relationship('Result', backref='image', uselist=False)
+    result_id = db.Column(db.Integer, db.ForeignKey('result.id'), nullable=True)
+    result = db.relationship('Result', backref='images')
     dataset_id = db.Column(db.Integer, db.ForeignKey('dataset.id'), nullable=True)
     dataset = db.relationship('Dataset', backref='images')
 
     def as_dict(self):
         return {
             'id': self.id,
-            'thumbnail': self.thumbnail,
             'timestamp': self.timestamp,
             'background_points': self.background_points,
             'elements': [element.as_dict() for element in self.elements]
@@ -60,7 +60,6 @@ class Result(db.Model):
     __tablename__ = 'result'
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     user_id = db.Column(db.Integer, db.ForeignKey(User.id), nullable=False)
-    image_id = db.Column(db.Integer, db.ForeignKey(Image.id), nullable=False)
     data = db.Column(db.JSON, nullable=False)
     timestamp = db.Column(db.DateTime, nullable=False, default=db.func.now())
     user = db.relationship('User', backref='results')
@@ -69,7 +68,7 @@ class Result(db.Model):
         return {
             'id': self.id,
             'user': self.user.username,
-            'image_id': self.image_id,
+            'image_id': self.images[0].id,
             'data': self.data,
             'timestamp': self.timestamp
         }
@@ -89,5 +88,5 @@ class Dataset(db.Model):
             'name': self.name,
             'user': self.user.username,
             'timestamp': self.timestamp,
-            'images': [image.id for image in self.images]
+            'images': [image.as_dict() for image in self.images]
         }

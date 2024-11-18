@@ -31,6 +31,7 @@
     position: fixed;
     top: 0;
     justify-content: space-between;
+    user-select: none;
 }
 
 .wide-button {
@@ -93,6 +94,12 @@
     opacity: 0;
 }
 
+.notice {
+    color: var(--text-color-secondary);
+    opacity: 0.7;
+    user-select: none;
+}
+
 /***** PrimeVue styles overrides *****/
 
 .pi {
@@ -149,4 +156,5 @@
 .p-dialog-header {
     user-select: none;
     padding: 20px 24px 10px 24px;
+    letter-spacing: 0.3px;
 }
