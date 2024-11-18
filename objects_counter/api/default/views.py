@@ -43,7 +43,7 @@ class IsAlive(Resource):
     @api.response(200, "Flask is alive")
     @api.response(401, "User has invalid/outdated token")
     @authentication_optional  # if user has invalid/outdated token, it will return 401
-    def get(self) -> typing.Any:
+    def get(self, _) -> typing.Any:
         return 'Flask is alive!', 200
 
 
