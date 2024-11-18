@@ -102,9 +102,52 @@ class ObjectClassifier:
             element.classification = classes_probabilities[0][0]
             element.certainty = classes_probabilities[0][1]
             result[element.classification] += 1
-        result = {category: result[category] - dataset.category_count[category] for category in dataset.categories}
+            element_dict_classification = {category: 0 for category in dataset.categories}
+            for probability in classes_probabilities:
+                element_dict_classification[probability[0]] = probability[1]
+            element.probabilities = element_dict_classification
+
+        result = {category: dataset.category_count[category] for category in dataset.categories}
+
+        assigned_elements = []
+        for _ in elements:
+            best_candidates = {category: (None, 0) for category in dataset.categories}
+            for element in elements:
+                if element in assigned_elements:
+                    continue
+                for category in dataset.categories:
+                    best_result = -1
+                    for compared_category in dataset.categories:
+                        probabilities = element.probabilities
+                        best_result = max(best_result, probabilities[category] - probabilities[compared_category])
+                    if best_candidates[category][0] is None or best_candidates[category][1] < best_result:
+                        best_candidates[category] = (element, best_result)
+            current_candidate = (None, 0, None)
+            for category in dataset.categories:
+                if result[category] == 0:
+                    continue
+                if current_candidate[0] is None or current_candidate[1] < best_candidates[category][1]:
+                    current_candidate = (best_candidates[category][0], best_candidates[category][1], category)
+            if current_candidate[0] is not None:
+                element = current_candidate[0]
+                category = current_candidate[2]
+                certainty = element.probabilities[category]
+                assigned_elements.append(element)
+                element.classification = category
+                element.certainty = certainty
+                result[category] -= 1
+
+        for element in elements:
+            if element in assigned_elements:
+                continue
+            result[element.classification] -= 1
+
+        result = {category: dataset.category_count[category] - result[category] for category in dataset.categories}
+
         return result
-        # todo: Adjust classes based on missing elements
+
+
+
 
     def assign_dataset_categories_to_image(self, image: Image, dataset):
         """Assigns categories based on dataset and image representatives. Meant to be used DURING dataset creation"""
