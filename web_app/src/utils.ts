@@ -159,6 +159,10 @@ export function checkServerStatus() : Promise<boolean> {
             .then(response => {
                 if (response.status === 200) {
                     resolve(true);
+                } else if (response.status === 401) {
+                    const userState = useUserStateStore();
+                    userState.logout();
+                    resolve(true);
                 } else {
                     resolve(false);
                 }
