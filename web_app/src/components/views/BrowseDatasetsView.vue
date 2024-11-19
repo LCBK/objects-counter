@@ -73,9 +73,11 @@ onMounted(async () => {
 <template>
     <div id="browse-datasets-view" class="view">
         <div class="browse-datasets-view-nav-bar nav-bar bar">
-            <VButton text rounded icon="pi pi-chevron-left" @click="onBack()" />
-            <h2>Browse datasets</h2>
-            <SettingsWidget />
+            <div class="nav-bar-content bar-content">
+                <VButton text rounded icon="pi pi-chevron-left" @click="onBack()" />
+                <h2>Browse datasets</h2>
+                <SettingsWidget />
+            </div>
         </div>
         <p class="browse-datasets-notice notice">tap on a dataset to view details</p>
         <div class="browse-datasets-list">
@@ -105,6 +107,8 @@ onMounted(async () => {
     padding: 0 20px 8px 20px;
     max-height: calc(100vh - 91px);
     overflow-y: auto;
+    max-width: 768px;
+    margin: 0 auto;
 }
 
 .browse-datasets-list > *:not(:last-child) {
@@ -119,5 +123,25 @@ onMounted(async () => {
 
 #browse-datasets-view .notice {
     text-align: center;
+}
+
+@media screen and (min-width: 340px) {
+    .browse-datasets-view-nav-bar h2 {
+        font-size: 1.4rem;
+    }
+
+    .browse-datasets-list {
+        max-height: calc(100vh - 106px);
+    }
+
+    .browse-datasets-notice {
+        margin-top: 78px;
+    }
+}
+
+@media screen and (min-width: 380px) {
+    .browse-datasets-view-nav-bar h2 {
+        font-size: 1.5rem;
+    }
 }
 </style>

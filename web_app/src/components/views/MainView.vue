@@ -106,7 +106,7 @@ onMounted(async () => {
 }
 
 #main-view.server-checking h2 {
-    max-width: 60%;
+    max-width: 300px;
 }
 
 #main-view.server-offline {
@@ -131,11 +131,39 @@ onMounted(async () => {
 #main-view.server-offline .p-button {
     margin: 48px auto 0 auto;
 }
+
+@media screen and (min-width: 340px) {
+    #main-view.server-checking h2 {
+        font-size: 1.5rem;
+    }
+}
+
+@media screen and (min-width: 450px) {
+    #main-view.server-checking h2 {
+        max-width: unset;
+    }
+}
 </style>
 
 <style>
 #main-view.server-checking .loader {
     width: 80px;
     height: 80px;
+}
+
+@media screen and (min-width: 340px) {
+    #main-view.server-checking .loader {
+        width: 100px;
+        height: 100px;
+        border-width: 6px;
+    }
+}
+
+@media screen and (min-width: 576px) {
+    #main-view.server-checking .loader {
+        width: 120px;
+        height: 120px;
+        border-width: 8px;
+    }
 }
 </style>

@@ -161,6 +161,23 @@ function handleResultClick() {
     align-items: center;
     gap: 8px;
 }
+
+@media screen and (min-width: 400px) {
+    .result-counts,
+    .result-date {
+        font-size: 1.2rem;
+    }
+
+    .result-time {
+        font-size: 1rem;
+    }
+}
+
+@media screen and (min-width: 520px) {
+    .result-history-item {
+        width: calc(33.33% - 12px);
+    }
+}
 </style>
 
 <style>

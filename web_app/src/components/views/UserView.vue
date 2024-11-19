@@ -230,7 +230,6 @@ function submitRegisterForm() {
     align-items: center;
     justify-content: center;
     gap: 30px;
-    padding: 20px;
 }
 
 #user-view .user-container {
@@ -330,6 +329,38 @@ function submitRegisterForm() {
     gap: 30px;
     margin-top: 20px;
     width: 100%;
+}
+
+@media screen and (min-width: 340px) {
+    #user-view .login-button {
+        height: 44px;
+    }
+}
+
+@media screen and (min-width: 400px) {
+    #user-view .login-label {
+        font-size: 1.6rem;
+    }
+
+    #user-view .login-label-small {
+        font-size: 0.95rem;
+    }
+
+    #user-view .login-button {
+        height: 42px;
+    }
+
+    #user-view .register-notice {
+        font-size: 0.9rem;
+    }
+
+    #user-view .user-details-header i {
+        font-size: 4rem;
+    }
+
+    #user-view .user-details-name {
+        font-size: 1.5rem;
+    }
 }
 </style>
 

@@ -101,14 +101,16 @@ onMounted(() => {
 
 <template>
     <div class="image-view-tool-bar bar">
-        <VButton text label="Add points" icon="pi pi-plus"
-                :disabled="allButtonsDisabled" @click="handleAddClick"
-                :class="viewState.isAddingPoint ? 'active ' : '' + 'add-points'" />
-        <VButton text label="Remove points" icon="pi pi-minus"
-                :disabled="allButtonsDisabled" @click="handleRemoveClick"
-                :class="viewState.isRemovingPoint ? 'active ' : '' + 'remove-points'" />
-        <VButton text label="Confirm selection" class="confirm-points" icon="pi pi-check"
-                :disabled="confirmButtonDisabled || allButtonsDisabled" @click="handleConfirmBackground" />
+        <div class="bar-content tool-bar-content">
+            <VButton text label="Add points" icon="pi pi-plus"
+                    :disabled="allButtonsDisabled" @click="handleAddClick"
+                    :class="viewState.isAddingPoint ? 'active ' : '' + 'add-points'" />
+            <VButton text label="Remove points" icon="pi pi-minus"
+                    :disabled="allButtonsDisabled" @click="handleRemoveClick"
+                    :class="viewState.isRemovingPoint ? 'active ' : '' + 'remove-points'" />
+            <VButton text label="Confirm selection" class="confirm-points" icon="pi pi-check"
+                    :disabled="confirmButtonDisabled || allButtonsDisabled" @click="handleConfirmBackground" />
+        </div>
     </div>
     <div id="point-types" ref="pointTypePanel" v-show="displayPointTypes">
         <div id="positive-point" ref="positivePointButton" @click="setPositivePointType">+</div>
@@ -169,5 +171,12 @@ onMounted(() => {
 
 #negative-point.checked {
     background-color: rgba(255, 98, 89, 1);
+}
+
+@media screen and (min-width: 768px) {
+    #point-types {
+        /* Half of a toolbar button's length (768px * 1/6) minus half of own width (45px) plus half of bar margin */
+        left: calc((768px * 0.1667) - 45px + (50vw - 768px / 2));
+    }
 }
 </style>

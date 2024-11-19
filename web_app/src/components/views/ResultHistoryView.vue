@@ -73,9 +73,11 @@ onMounted(async () => {
 <template>
     <div id="result-history-view" class="view">
         <div class="history-view-nav-bar nav-bar bar">
-            <VButton text rounded icon="pi pi-chevron-left" @click="onBack()" />
-            <h2>Counting history</h2>
-            <SettingsWidget />
+            <div class="nav-bar-content bar-content">
+                <VButton text rounded icon="pi pi-chevron-left" @click="onBack()" />
+                <h2>Counting history</h2>
+                <SettingsWidget />
+            </div>
         </div>
         <div class="result-history-items">
             <ResultHistoryItemComponent v-for="(item, index) in historyItems.sort((a, b) => b.timestamp - a.timestamp)"
@@ -106,13 +108,33 @@ onMounted(async () => {
     flex-wrap: wrap;
     gap: 16px;
     padding: 16px;
-    margin-top: 55px;
-    overflow: auto;
     user-select: none;
     max-height: calc(100vh - 55px);
+    max-width: 768px;
+    margin: 55px auto 0 auto;
+}
+
+#result-history-view {
+    overflow: auto;
 }
 
 #result-history-view .notice {
     text-align: center;
+}
+
+@media screen and (min-width: 340px) {
+    .result-history-items {
+        margin-top: 70px;
+    }
+
+    .history-view-nav-bar h2 {
+        font-size: 1.4rem;
+    }
+}
+
+@media screen and (min-width: 380px) {
+    .history-view-nav-bar h2 {
+        font-size: 1.5rem;
+    }
 }
 </style>

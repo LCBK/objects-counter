@@ -105,12 +105,14 @@ function handleCompareClick(datasetId: number) {
 
 <template>
     <div class="image-view-tool-bar bar">
-        <VButton text label="Adjust" icon="pi pi-pencil" @click="handleReturnClick();" />
-        <div class="element-count">
-            <span class="element-count-value">{{ imageState.imageElements.length }}</span>
-            <span class="element-count-label">Elements</span>
+        <div class="bar-content tool-bar-content">
+            <VButton text label="Adjust" icon="pi pi-pencil" @click="handleReturnClick();" />
+            <div class="element-count">
+                <span class="element-count-value">{{ imageState.imageElements.length }}</span>
+                <span class="element-count-label">Elements</span>
+            </div>
+            <VButton text label="Details" icon="pi pi-list" @click="quantitiesVisible = true" />
         </div>
-        <VButton text label="Details" icon="pi pi-list" @click="quantitiesVisible = true" />
     </div>
     <VButton :class="(viewState.isWaitingForResponse ? 'inactive-button ' : '') + 'compare-button'"
             label="Compare with dataset" @click="handleDatasetListClick" />
@@ -152,7 +154,7 @@ function handleCompareClick(datasetId: number) {
     bottom: 130px;
     left: 50%;
     transform: translateX(-50%);
-    max-width: 240px;
+    max-width: 280px;
     width: 100%;
 }
 
@@ -173,5 +175,11 @@ function handleCompareClick(datasetId: number) {
 .inactive-button {
     pointer-events: none;
     opacity: 0.5;
+}
+</style>
+
+<style>
+.compare-dialog {
+    max-width: 600px;
 }
 </style>

@@ -104,12 +104,14 @@ function handleCreatedDataset() {
 
 <template>
     <div class="image-view-tool-bar bar">
-        <VButton text label="Adjust categories" icon="pi pi-list" @click="quantitiesVisible = true" />
-        <div class="element-count">
-            <span class="element-count-value">{{ imageState.imageElements.length }}</span>
-            <span class="element-count-label">Elements</span>
+        <div class="bar-content tool-bar-content">
+            <VButton text label="Adjust categories" icon="pi pi-list" @click="quantitiesVisible = true" />
+            <div class="element-count">
+                <span class="element-count-value">{{ imageState.imageElements.length }}</span>
+                <span class="element-count-label">Elements</span>
+            </div>
+            <VButton text label="Submit dataset" icon="pi pi-check" @click="datasetDialogVisible = true" />
         </div>
-        <VButton text label="Submit dataset" icon="pi pi-check" @click="datasetDialogVisible = true" />
     </div>
     <Transition name="assign-fade">
         <div v-if="viewState.isAssigningClassifications" class="assignment-notice">
@@ -217,5 +219,11 @@ function handleCreatedDataset() {
 
 .change-categories .pi {
     margin-right: 8px;
+}
+
+@media screen and (min-width: 400px) {
+    .change-categories .p-button-label {
+        font-size: 1.1rem;
+    }
 }
 </style>

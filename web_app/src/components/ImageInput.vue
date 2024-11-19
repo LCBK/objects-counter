@@ -4,7 +4,7 @@ import VButton from "primevue/button";
 import VSelectButton from "primevue/selectbutton";
 import { useImageStateStore } from "@/stores/imageState";
 import { ImageAction, useViewStateStore, ViewStates } from "@/stores/viewState";
-import { sendRequest } from "@/utils";
+import { isUserAgentMobile, sendRequest } from "@/utils";
 import { config, endpoints } from "@/config";
 import { useUserStateStore } from "@/stores/userState";
 
@@ -89,7 +89,7 @@ function handleImageUpload(event: Event) : void {
                 :disabled="!userState.isLoggedIn" @click="handleCreateDatasetClick()" />
         <VButton class="wide-button" label="Compare elements" icon="pi pi-arrow-right-arrow-left"
                 :disabled="!userState.isLoggedIn" @click="handleCompareClick()" />
-        <VSelectButton class="mode-select" v-model="currentMode" :options="['Capture', 'Upload']" :allow-empty="false" />
+        <VSelectButton v-if="isUserAgentMobile()" class="mode-select" v-model="currentMode" :options="['Capture', 'Upload']" :allow-empty="false" />
     </div>
     <div class="image-select-inputs">
         <input type="file" name="image-capture" ref="captureInput"
@@ -121,10 +121,6 @@ function handleImageUpload(event: Event) : void {
 </style>
 
 <style>
-.image-select .p-button-icon {
-    font-size: 1.25rem;
-}
-
 .mode-select .p-button {
     border: none;
 }
@@ -148,5 +144,11 @@ function handleImageUpload(event: Event) : void {
 
 .dark .mode-select .p-button {
     background-color: #0a0a0a;
+}
+
+@media screen and (min-width: 340px) {
+    .image-select .p-button-label {
+        font-size: 1.2rem;
+    }
 }
 </style>
