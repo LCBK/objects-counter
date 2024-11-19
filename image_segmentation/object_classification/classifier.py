@@ -1,6 +1,8 @@
-import os
-from typing import List, Dict
 import logging
+import os
+from statistics import mean
+from typing import List, Dict
+
 import numpy as np
 import torch
 
@@ -10,7 +12,6 @@ from image_segmentation.object_classification.feature_extraction import FeatureS
 from image_segmentation.utils import delete_temp_images
 from objects_counter.db.dataops.image import update_element_classification_by_id
 from objects_counter.db.models import Image, ImageElement
-from statistics import mean
 
 log = logging.getLogger(__name__)
 
