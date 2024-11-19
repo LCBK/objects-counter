@@ -104,14 +104,16 @@ function handleCreatedDataset() {
 
 <template>
     <div class="image-view-tool-bar bar">
-        <VButton text label="Adjust categories" icon="pi pi-list" @click="quantitiesVisible = true" />
-        <div class="element-count">
-            <span class="element-count-value">{{ imageState.imageElements.length }}</span>
-            <span class="element-count-label">Elements</span>
+        <div class="bar-content tool-bar-content">
+            <VButton text label="Adjust categories" icon="pi pi-list" @click="quantitiesVisible = true" />
+            <div class="element-count">
+                <span class="element-count-value">{{ imageState.imageElements.length }}</span>
+                <span class="element-count-label">Elements</span>
+            </div>
+            <VButton text label="Submit dataset" icon="pi pi-check" @click="datasetDialogVisible = true" />
         </div>
-        <VButton text label="Submit dataset" icon="pi pi-check" @click="datasetDialogVisible = true" />
     </div>
-    <Transition name="assign-fade">
+    <Transition name="fade">
         <div v-if="viewState.isAssigningClassifications" class="assignment-notice">
             <VButton text icon="pi pi-times" @click="viewState.isAssigningClassifications = false" />
             <div>
@@ -135,8 +137,8 @@ function handleCreatedDataset() {
             <div v-if="classifications.length === 0" class="no-elements-notice notice">(no elements found)</div>
         </div>
     </VSidebar>
-    <VDialog v-model:visible="datasetDialogVisible" modal header="Submit dataset" class="dataset-dialog"
-            :dismissable-mask="true" :draggable="false">
+    <VDialog v-model:visible="datasetDialogVisible" modal header="Submit dataset"
+            class="dataset-dialog input-dialog" :dismissable-mask="true" :draggable="false">
         <label for="dataset-name" class="dataset-label">Dataset name</label>
         <VInputText v-model="datasetName" class="dataset-name" :autofocus="true" :inputId="'dataset-name'"
                 placeholder="My board game" />
@@ -151,24 +153,6 @@ function handleCreatedDataset() {
 
 
 <style scoped>
-.dataset-dialog input {
-    margin-bottom: 30px;
-    width: 100%;
-}
-
-.dataset-dialog label {
-    display: inline-block;
-    margin-bottom: 8px;
-    color: var(--text-color-secondary);
-    user-select: none;
-}
-
-.dataset-dialog .dialog-controls {
-    display: flex;
-    justify-content: flex-end;
-    gap: 12px;
-}
-
 .change-categories {
     margin: 0 auto 5px auto;
     display: block;
@@ -196,18 +180,6 @@ function handleCreatedDataset() {
     display: inline-block;
     margin-right: 6px;
 }
-
-.assign-fade-enter-active, .assign-fade-leave-active {
-    transition: opacity .2s;
-}
-
-.assign-fade-enter-from, .assign-fade-leave-to {
-    opacity: 0;
-}
-
-.assign-fade-enter-to, .assign-fade-leave-from {
-    opacity: 1;
-}
 </style>
 
 <style>
@@ -217,5 +189,11 @@ function handleCreatedDataset() {
 
 .change-categories .pi {
     margin-right: 8px;
+}
+
+@media screen and (min-width: 400px) {
+    .change-categories .p-button-label {
+        font-size: 1.1rem;
+    }
 }
 </style>

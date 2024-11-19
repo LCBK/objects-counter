@@ -28,9 +28,11 @@ function onBack() {
 
 <template>
     <div class="image-view-nav-bar nav-bar bar">
-        <VButton text rounded icon="pi pi-chevron-left" @click="onBack()" />
-        <h2 id="image-view-title">{{ viewState.currentNavBarTitle }}</h2>
-        <SettingsWidget />
+        <div class="nav-bar-content bar-content">
+            <VButton text rounded icon="pi pi-chevron-left" @click="onBack()" />
+            <h2 id="image-view-title">{{ viewState.currentNavBarTitle }}</h2>
+            <SettingsWidget />
+        </div>
     </div>
 </template>
 
@@ -43,5 +45,17 @@ function onBack() {
     letter-spacing: 0.4px;
     font-weight: 600;
     white-space: nowrap;
+}
+
+@media screen and (min-width: 340px) {
+    .image-view-nav-bar h2 {
+        font-size: 1.4rem;
+    }
+}
+
+@media screen and (min-width: 380px) {
+    .image-view-nav-bar h2 {
+        font-size: 1.5rem;
+    }
 }
 </style>

@@ -112,6 +112,16 @@ onMounted(() => {
 
 <style>
 .main-view-nav-bar #settings-widget {
-    margin-left: 4px;
+    margin: auto 0 auto 4px;
+}
+
+#settings-popup {
+    max-width: 400px;
+}
+
+@media screen and (min-width: 340px) {
+    .main-view-nav-bar #settings-widget {
+        margin-left: 8px;
+    }
 }
 </style>

@@ -35,7 +35,6 @@ class ObjectClassifier:
 
     def process_element(self, element: ImageElement) -> None:
         """Crops the image element, computes its embedding and histogram, and cleans up."""
-        # Here we assume the ImageElementProcessor has been instantiated as a class member
         processor = ImageElementProcessor(self.feature_similarity_model, self.color_similarity_model)
         embedding, histogram = processor.process_image_element(element)
         self.embeddings[element.id] = embedding
