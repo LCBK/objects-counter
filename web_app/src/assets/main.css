@@ -112,6 +112,46 @@
     user-select: none;
 }
 
+.input-dialog {
+    max-width: 400px;
+    width: 95vw;
+}
+
+.input-dialog input {
+    margin-bottom: 30px;
+    width: 100%;
+}
+
+.input-dialog label {
+    display: inline-block;
+    margin-bottom: 8px;
+    color: var(--text-color-secondary);
+    user-select: none;
+}
+
+.input-dialog .dialog-controls {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+}
+
+/***** Animations *****/
+
+.fade-enter-active,
+.fade-leave-active {
+    transition: opacity 0.25s ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+    opacity: 0;
+}
+
+.fade-enter-to,
+.fade-leave-from {
+    opacity: 1;
+}
+
 /***** PrimeVue styles overrides *****/
 
 .pi {

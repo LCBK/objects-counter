@@ -1,5 +1,8 @@
 <script setup lang="ts">
 import VButton from "primevue/button";
+import VCheckbox from "primevue/checkbox";
+import VDialog from "primevue/dialog";
+import VInputText from "primevue/inputtext";
 import ImageInput from "../ImageInput.vue";
 import InstructionsWidget from "../InstructionsWidget.vue";
 import LoadingSpinner from "../LoadingSpinner.vue";
@@ -16,6 +19,9 @@ const isOffline = ref<boolean>(false);          // means that we are sure the se
 
 const isCheckingStatus = ref<boolean>(false);
 const receivedStatusResponse = ref<boolean>(false);
+const serverAddressDialogVisible = ref<boolean>(false);
+const serverAddress = ref<string>("");
+const serverUseHttps = ref<boolean>(false);
 
 
 function performServerCheck() {
@@ -39,8 +45,20 @@ function performServerCheck() {
     });
 }
 
-function onRetry() {
+function handleRetry() {
     isCheckingStatus.value = true;
+    performServerCheck();
+}
+
+function handleChangeAddress() {
+    config.serverAddress = serverAddress.value;
+    config.serverUseHttps = serverUseHttps.value;
+    localStorage.setItem("serverAddress", serverAddress.value);
+    localStorage.setItem("serverUseHttps", serverUseHttps.value.toString());
+
+    serverAddressDialogVisible.value = false;
+    isCheckingStatus.value = true;
+
     performServerCheck();
 }
 
@@ -56,7 +74,7 @@ onMounted(async () => {
 
 
 <template>
-    <Transition name="status-fade" mode="out-in">
+    <Transition name="fade" mode="out-in">
         <div v-if="isCheckingStatus" id="main-view" class="view server-checking">
             <h2>Checking server availability...</h2>
             <LoadingSpinner />
@@ -64,7 +82,21 @@ onMounted(async () => {
         <div v-else-if="isOffline" id="main-view" class="view server-offline">
             <h2>Server Offline</h2>
             <p>The server is currently offline.<br>Please try again later.</p>
-            <VButton class="wide-button" label="Retry" icon="pi pi-refresh" @click="onRetry()" />
+            <VButton class="wide-button" label="Retry" icon="pi pi-refresh" @click="handleRetry()" />
+            <VButton class="wide-button" label="Change server address" icon="pi pi-pencil"
+                    @click="serverAddressDialogVisible = true;" />
+            <VDialog v-model:visible="serverAddressDialogVisible" modal header="Change address"
+                    class="server-dialog input-dialog" :dismissable-mask="true" :draggable="false">
+                <label for="server-address" class="server-label">Server address</label>
+                <VInputText v-model="serverAddress" class="server-address" :autofocus="true"
+                        :placeholder="config.serverAddress" :inputId="'server-address'" />
+                <VCheckbox v-model="serverUseHttps" class="server-https" :inputId="'server-https'" binary />
+                <label for="server-https" class="server-https-label">Use HTTPS</label>
+                <div class="dialog-controls">
+                    <VButton outlined label="Cancel" @click="serverAddressDialogVisible = false" />
+                    <VButton label="Submit" @click="handleChangeAddress" />
+                </div>
+            </VDialog>
         </div>
         <div v-else id="main-view" class="view">
             <MainViewNavBar />
@@ -76,16 +108,18 @@ onMounted(async () => {
 
 
 <style scoped>
-.status-fade-enter-active, .status-fade-leave-active {
-    transition: opacity .4s;
+.server-dialog input {
+    margin-bottom: 10px;
 }
 
-.status-fade-enter-from, .status-fade-leave-to {
-    opacity: 0;
+.server-dialog .server-https-label {
+    position: relative;
+    margin: 0 0 0 10px;
+    top: 3px;
 }
 
-.status-fade-enter-to, .status-fade-leave-from {
-    opacity: 1;
+.server-dialog .dialog-controls {
+    margin-top: 15px;
 }
 
 #main-view {
@@ -105,10 +139,6 @@ onMounted(async () => {
     align-items: center;
 }
 
-#main-view.server-checking h2 {
-    max-width: 300px;
-}
-
 #main-view.server-offline {
     gap: 20px;
 }
@@ -126,21 +156,24 @@ onMounted(async () => {
     font-size: 1rem;
     font-weight: 400;
     letter-spacing: 0.3px;
+    margin-bottom: 64px;
 }
 
-#main-view.server-offline .p-button {
-    margin: 48px auto 0 auto;
+#main-view.server-offline .wide-button {
+    margin: 0 auto 10px auto;
 }
 
 @media screen and (min-width: 340px) {
     #main-view.server-checking h2 {
         font-size: 1.5rem;
     }
-}
 
-@media screen and (min-width: 450px) {
-    #main-view.server-checking h2 {
-        max-width: unset;
+    #main-view.server-offline h2 {
+        font-size: 2.25rem;
+    }
+
+    #main-view.server-offline p {
+        font-size: 1.125rem;
     }
 }
 </style>

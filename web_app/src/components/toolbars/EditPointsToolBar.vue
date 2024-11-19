@@ -179,4 +179,11 @@ onMounted(() => {
         left: calc((768px * 0.1667) - 45px + (50vw - 768px / 2));
     }
 }
+
+@media screen and (min-width: 1200px) {
+    #point-types {
+        /* Half of a toolbar button's length (1200px * 1/6) minus half of own width (45px) plus half of bar margin */
+        left: calc((1200px * 0.1667) - 45px + (50vw - 1200px / 2));
+    }
+}
 </style>

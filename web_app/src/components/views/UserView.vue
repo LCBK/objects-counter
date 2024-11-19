@@ -135,7 +135,7 @@ function submitRegisterForm() {
 
 <template>
     <div id="user-view" class="view">
-        <Transition name="user-fade" mode="out-in">
+        <Transition name="fade" mode="out-in">
             <div v-if="userState.isLoggedIn" class="user-container user-details">
                 <div class="user-details-header">
                     <i class="pi pi-user"></i>
@@ -212,18 +212,6 @@ function submitRegisterForm() {
 
 
 <style scoped>
-.user-fade-enter-active, .user-fade-leave-active {
-    transition: opacity .2s;
-}
-
-.user-fade-enter-from, .user-fade-leave-to {
-    opacity: 0;
-}
-
-.user-fade-enter-to, .user-fade-leave-from {
-    opacity: 1;
-}
-
 #user-view {
     display: flex;
     flex-direction: column;
