@@ -183,4 +183,38 @@ function handleBoundingBoxClick() {
 .selected-box .box-classification {
     background-color: v-bind(selectedBoxColor);
 }
+
+@media screen and (min-width: 460px) {
+    .bounding-box .box-certainty,
+    .bounding-box .box-ids {
+        font-size: 10px;
+        line-height: 14px;
+        bottom: -14px;
+        right: -2px;
+    }
+
+    .bounding-box .box-classification {
+        font-size: 10px;
+        line-height: 14px;
+        bottom: -14px;
+        left: -2px;
+    }
+}
+
+@media screen and (min-width: 768px) {
+    .bounding-box .box-certainty,
+    .bounding-box .box-ids {
+        font-size: 12px;
+        line-height: 16px;
+        bottom: -16px;
+        right: -2px;
+    }
+
+    .bounding-box .box-classification {
+        font-size: 12px;
+        line-height: 16px;
+        bottom: -16px;
+        left: -2px;
+    }
+}
 </style>

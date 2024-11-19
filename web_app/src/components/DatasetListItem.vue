@@ -234,6 +234,47 @@ function confirmDelete() {
     gap: 12px;
     margin-top: 12px;
 }
+
+@media screen and (min-width: 400px) {
+    .dataset-item-name {
+        font-size: 1.2rem;
+    }
+
+    .dataset-item-date,
+    .dataset-item-time {
+        font-size: 1rem;
+    }
+
+    .dataset-item-image {
+        max-width: 96px;
+        max-height: 96px;
+    }
+
+    .classification-name {
+        font-size: 1rem;
+    }
+
+    .classification-count {
+        font-size: 1.5rem;
+        line-height: 2.1rem;
+    }
+
+    .dataset-details-date {
+        font-size: 1rem;
+        line-height: 1rem;
+    }
+
+    .dataset-classifications-label {
+        font-size: 1.2rem;
+    }
+
+    .rename-controls,
+    .delete-controls,
+    .details-controls {
+        gap: 16px;
+        margin-top: 16px;
+    }
+}
 </style>
 
 <style>
@@ -252,5 +293,11 @@ function confirmDelete() {
 .rename-dialog .p-dialog-header-icons,
 .delete-dialog .p-dialog-header-icons {
     display: none;
+}
+
+.rename-dialog,
+.delete-dialog,
+.dataset-details {
+    max-width: 400px;
 }
 </style>

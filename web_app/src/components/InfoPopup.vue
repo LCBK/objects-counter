@@ -36,6 +36,10 @@ watch(() => visible.value, (value) => {
 
 
 <style>
+.popup {
+    max-width: 400px;
+}
+
 .popup .p-dialog-header-icons {
     display: none;
 }

@@ -1,6 +1,10 @@
 export const config = {
     // Backend communication
-    serverUri: "http://" + import.meta.env.VITE_BACKEND_ADDRESS,
+    serverAddress: import.meta.env.VITE_BACKEND_ADDRESS,
+    serverUseHttps: false,
+    get serverUri() {
+        return (this.serverUseHttps ? "https://" : "http://") + this.serverAddress;
+    },
     serverIsAliveDelay: 1500,           // [ms]
     serverIsAliveTimeout: 5000,         // [ms]
 

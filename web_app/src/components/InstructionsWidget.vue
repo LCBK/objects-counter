@@ -94,9 +94,6 @@ onMounted(() => animateButton());
     top: 0;
     right: 0;
     margin-top: 50px;
-    width: 90%;
-    max-width: 240px;
-    height: 50px;
     align-self: center;
 }
 
@@ -116,6 +113,7 @@ onMounted(() => animateButton());
 #instructions-popup .instructions-text p {
     margin: 12px 0;
     font-size: 0.9rem;
+    text-align: left;
 }
 
 #instructions-popup .instructions-text p:last-child {
@@ -129,6 +127,7 @@ onMounted(() => animateButton());
 #instructions-popup .instructions-text li {
     margin: 4px 0;
     font-size: 0.9rem;
+    text-align: left;
 }
 
 @keyframes pulse-animation {
@@ -145,9 +144,41 @@ onMounted(() => animateButton());
         box-shadow: 0 0 0 12px rgba(96, 165, 250, 0.0);
     }
 }
+
+@media screen and (min-width: 340px) {
+    #instructions-button {
+        top: 80px;
+        right: 10px;
+    }
+
+}
+
+@media screen and (min-width: 400px) {
+    #instructions-popup .instructions-text p,
+    #instructions-popup .instructions-text li {
+        font-size: 1rem;
+    }
+}
+
+@media screen and (min-width: 788px) and (max-width: 1200px) {
+    #instructions-button {
+        right: calc(50vw - 768px / 2);
+    }
+}
+
+@media screen and (min-width: 1220px) {
+    #instructions-button {
+        right: calc(50vw - 1200px / 2);
+    }
+}
+
 </style>
 
 <style>
+#instructions-popup {
+    max-width: 600px;
+}
+
 #instructions-button .pi {
     margin-right: 0 !important;
     font-size: 1.5rem;
@@ -159,12 +190,14 @@ onMounted(() => animateButton());
     opacity: 0.4;
 }
 
-#main-view #instructions-button .pi {
-    font-size: 1.3rem;
-}
-
 #instructions-popup .p-dialog-title {
     font-weight: 500;
     letter-spacing: 0.3px;
+}
+
+@media screen and (min-width: 340px) {
+    #instructions-button .pi {
+        font-size: 1.7rem;
+    }
 }
 </style>
