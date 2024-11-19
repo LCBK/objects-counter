@@ -113,6 +113,7 @@ onMounted(() => animateButton());
 #instructions-popup .instructions-text p {
     margin: 12px 0;
     font-size: 0.9rem;
+    text-align: left;
 }
 
 #instructions-popup .instructions-text p:last-child {
@@ -126,6 +127,7 @@ onMounted(() => animateButton());
 #instructions-popup .instructions-text li {
     margin: 4px 0;
     font-size: 0.9rem;
+    text-align: left;
 }
 
 @keyframes pulse-animation {
@@ -148,10 +150,12 @@ onMounted(() => animateButton());
         top: 80px;
         right: 10px;
     }
+
 }
 
 @media screen and (min-width: 400px) {
-    #instructions-popup .instructions-text p {
+    #instructions-popup .instructions-text p,
+    #instructions-popup .instructions-text li {
         font-size: 1rem;
     }
 }
