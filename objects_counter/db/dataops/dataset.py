@@ -3,27 +3,15 @@ import logging
 from sqlalchemy.exc import DatabaseError
 from werkzeug.exceptions import Forbidden
 
+from image_segmentation.object_classification.classifier import ObjectClassifier
 from objects_counter.db.dataops.image import get_image_by_id, update_element_classification_by_id, set_element_as_leader
 from objects_counter.db.models import User, Dataset, db
 
 log = logging.getLogger(__name__)
 
 
-def insert_dataset(user_id: int, image_id: int, name: str, classifications: list[dict]) -> Dataset:
+def insert_dataset(user_id: int, name: str) -> Dataset:
     dataset = Dataset(user_id=user_id, name=name)
-    image = get_image_by_id(image_id)
-    image.dataset = dataset
-    for classification in classifications:
-        elements = classification.get('elements', [])
-        class_name = classification.get('name')
-        leader_id = int(classification.get('leader'))
-        if not elements or not class_name or not leader_id:
-            log.error('Classification %s is missing required fields: %s %s', classification, class_name, elements)
-            raise ValueError(f'Classification {classification} is missing required fields')
-        for element in elements:
-            update_element_classification_by_id(int(element), class_name, 1., do_commit=False)
-        set_element_as_leader(leader_id, image)
-    db.session.add(image)
     db.session.add(dataset)
     try:
         db.session.commit()
@@ -34,12 +22,15 @@ def insert_dataset(user_id: int, image_id: int, name: str, classifications: list
         raise
 
 
-def add_image_to_dataset(dataset_id: int, image_id: int) -> Dataset:
-    dataset = get_dataset_by_id(dataset_id)
+def add_image_to_dataset(dataset: Dataset, image_id: int, classifications: list[dict],
+                         object_classifier: ObjectClassifier) -> Dataset:
     image = get_image_by_id(image_id)
-    if image.user_id != dataset.user_id:
-        log.error('Image %s does not belong to dataset %s owner', image_id, dataset_id)
-        raise Forbidden(f'Image {image_id} does not belong to dataset {dataset_id}')
+    for classification in classifications:
+        class_name = classification.get('name')
+        leader_id = int(classification.get('leader_id'))
+        set_element_as_leader(leader_id, image)
+        update_element_classification_by_id(leader_id, class_name, 1., do_commit=False)
+    object_classifier.assign_dataset_categories_to_objects(image, dataset)
     image.dataset = dataset
     db.session.add(image)
     try:

@@ -5,11 +5,14 @@ from flask import jsonify, Response, request
 from flask_restx import Namespace, Resource
 from werkzeug.exceptions import NotFound, Forbidden
 
-from objects_counter.api.datasets.models import insert_dataset_model, insert_image_model, rename_dataset_model
+from objects_counter.api.datasets.models import insert_dataset_model, insert_image_model, rename_dataset_model, \
+    adjust_classifications_model
+from objects_counter.api.default.views import object_grouper
 from objects_counter.api.utils import authentication_required, get_thumbnails
 from objects_counter.db.dataops.dataset import get_user_datasets_serialized, get_dataset_by_id, delete_dataset_by_id, \
     insert_dataset, add_image_to_dataset, rename_dataset, get_user_datasets
-from objects_counter.db.dataops.image import serialize_image_as_result
+from objects_counter.db.dataops.image import serialize_image_as_result, get_image_by_id, \
+    bulk_update_element_classification_by_id
 from objects_counter.db.models import User
 
 api = Namespace('datasets', description='Datasets related operations')
@@ -29,13 +32,11 @@ class Datasets(Resource):
     def post(self, current_user: User) -> typing.Any:
         data = request.json
         try:
-            image_id = data.get('image_id')
             name = data.get('name')
-            classifications = data.get('classifications')
-            if not image_id or not name:
+            if not name:
                 raise ValueError("Missing required fields")
-            dataset = insert_dataset(current_user.id, image_id, name, classifications)
-            return jsonify(dataset.as_dict())
+            dataset = insert_dataset(current_user.id, name)
+            return Response(dataset.id, 201)
         except ValueError as e:
             log.exception("Invalid dataset data: %s", e)
             return Response("Invalid dataset data", 400)
@@ -149,9 +150,12 @@ class DatasetImages(Resource):
                 log.error("User %s is not authorized to add images to dataset %s", current_user, dataset_id)
                 return Response("You are not authorized to add images to dataset {dataset_id}", 403)
             image_id = int(data.get('image_id'))
+            classifications = data.get('classifications', [])
             if not image_id or image_id < 0:
                 raise ValueError("Invalid image ID")
-            dataset = add_image_to_dataset(dataset_id, image_id)
+            if not classifications:
+                raise ValueError("No classifications provided")
+            dataset = add_image_to_dataset(dataset, image_id, classifications, object_classifier=object_grouper)
             return jsonify(dataset.as_dict())
         except ValueError as e:
             log.exception("Invalid dataset ID: %s", e)
@@ -166,6 +170,36 @@ class DatasetImages(Resource):
         except Exception as e:
             log.exception("Failed to add image to dataset: %s", e)
             return Response("Failed to add image to dataset", 500)
+
+
+@api.route('/<int:dataset_id>/images/<int:image_id>')
+class AdjustClassifications(Resource):
+    @api.expect(adjust_classifications_model)
+    def patch(self, dataset_id: int, image_id: int) -> typing.Any:
+        data = request.json
+        try:
+            dataset_id = int(dataset_id)
+            image_id = int(image_id)
+            if dataset_id < 0 or image_id < 0:
+                log.error("Invalid dataset ID or image ID: %s, %s", dataset_id, image_id)
+                raise ValueError("ID must be a positive integer")
+            dataset = get_dataset_by_id(dataset_id)
+            image = get_image_by_id(image_id)
+            if image.dataset_id != dataset.id:
+                log.error("Image %s does not belong to dataset %s", image_id, dataset_id)
+                return Response("Image does not belong to dataset", 400)
+            classifications = data.get('classifications', [])
+            bulk_update_element_classification_by_id(classifications)
+            return Response(serialize_image_as_result(image), 200)
+        except ValueError as e:
+            log.exception("Invalid dataset ID %s or image ID %s: %s", dataset_id, image_id, e)
+            return Response("Invalid dataset ID or image ID", 400)
+        except NotFound as e:
+            log.exception("Dataset or image not found: %s", e)
+            return Response("Dataset or image not found", 404)
+        except Exception as e:
+            log.exception("Failed to adjust classifications: %s", e)
+            return Response("Failed to adjust classifications", 500)
 
 
 @api.route('/thumbnails')
