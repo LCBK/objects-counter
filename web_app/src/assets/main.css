@@ -171,6 +171,11 @@
     letter-spacing: 0.3px;
 }
 
+*:not(.p-selectbutton) > .p-button:not(.p-button-outlined):not(.p-button-text):hover {
+    background: var(--primary-color-hover);
+    border-color: var(--primary-color-hover);
+}
+
 /***** Media queries *****/
 @media screen and (min-width: 340px) {
     .nav-bar {
