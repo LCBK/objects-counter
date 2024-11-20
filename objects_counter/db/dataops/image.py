@@ -182,7 +182,10 @@ def serialize_image_as_result(image: Image) -> dict:
         if element_data["classification"] is None:
             continue
 
-        element_data["certainty"] = round(element.certainty, 2)
+        if element.certainty is not None:
+            element_data["certainty"] = round(element.certainty, 2)
+        else:
+            element_data["certainty"] = 1
 
         if element.classification not in classification_dict:
             classification_dict[element.classification] = {

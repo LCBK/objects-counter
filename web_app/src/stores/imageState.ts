@@ -9,6 +9,7 @@ const defaultState = {
     url: "",
     imageId: 0,
     resultId: 0,
+    datasetId: 0,
     width: 0,
     height: 0,
     scaledImageWidth: 0,

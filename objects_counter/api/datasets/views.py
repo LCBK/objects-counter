@@ -36,7 +36,7 @@ class Datasets(Resource):
             if not name:
                 raise ValueError("Missing required fields")
             dataset = insert_dataset(current_user.id, name)
-            return Response(dataset.id, 201)
+            return Response(str(dataset.id), 201)
         except ValueError as e:
             log.exception("Invalid dataset data: %s", e)
             return Response("Invalid dataset data", 400)

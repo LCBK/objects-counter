@@ -40,9 +40,11 @@ export const endpoints = {
     createDataset: "/api/datasets/",
     deleteDataset: "/api/datasets/{dataset_id}",
     renameDataset: "/api/datasets/{dataset_id}",
+    getDatasetImages: "/api/datasets/{dataset_id}/images",
+    addImageToDataset: "/api/datasets/{dataset_id}/images",
     getDatasetsThumbnails: "/api/datasets/thumbnails",
     compareToDataset: "/api/results/{result_id}/compare/{dataset_id}",
-    classifyByLeaders: "/api/images/{image_id}/classify-by-leaders"
+    markLeaders: "/api/images/{image_id}/mark-leaders"
 };
 
 export const boundingBoxColors = [

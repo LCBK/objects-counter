@@ -4,7 +4,7 @@ import VButton from "primevue/button";
 import { useImageStateStore } from "@/stores/imageState";
 import { useViewStateStore, ViewStates } from "@/stores/viewState";
 import { config, endpoints } from "@/config";
-import { parseClassificationsFromResponse, sendRequest } from "@/utils";
+import { parseClassificationsFromDatasetResponse, parseClassificationsFromResponse, sendRequest } from "@/utils";
 
 
 const imageState = useImageStateStore();
@@ -23,23 +23,58 @@ function handleSubmitLeadersClick() {
 }
 
 function submitClassificationLeaders() {
-    const requestUri = config.serverUri + endpoints.classifyByLeaders.replace("{image_id}", imageState.imageId.toString());
+    const requestUri = config.serverUri + endpoints.markLeaders.replace("{image_id}", imageState.imageId.toString());
     const requestData = JSON.stringify({
         leaders: imageState.selectedLeaderIds
     });
     const requestPromise = sendRequest(requestUri, requestData, "POST");
 
     viewState.isWaitingForResponse = true;
-    requestPromise.then((response) => {
-        if (response.status === 200) {
+    requestPromise.then((leadersResponse) => {
+        if (leadersResponse.status === 200) {
             imageState.clearResult();
-            parseClassificationsFromResponse(response.data.classifications);
-            viewState.setState(ViewStates.ImageViewConfirmDataset);
+
+            const createDatasetUri = config.serverUri + endpoints.createDataset;
+            const createDatasetRequestData = JSON.stringify({
+                name: "temporary no. " + imageState.imageId
+            });
+
+            const createDatasetRequestPromise = sendRequest(createDatasetUri, createDatasetRequestData, "POST");
+            createDatasetRequestPromise.then((createDatasetResponse) => {
+                if (createDatasetResponse.status === 201) {
+                    imageState.datasetId = createDatasetResponse.data;
+
+                    const addDatasetImageUri = config.serverUri + endpoints.addImageToDataset.replace("{dataset_id}", imageState.datasetId.toString());
+                    const addDatasetImageRequestData = JSON.stringify({
+                        image_id: imageState.imageId,
+                        classifications: leadersResponse.data.classifications.map((c: any) => {
+                            return {
+                                name: c.name,
+                                leader_id: c.objects[0].id
+                            }
+                        })
+                    });
+
+                    const addDatasetImageRequestPromise = sendRequest(addDatasetImageUri, addDatasetImageRequestData, "POST");
+                    addDatasetImageRequestPromise.then((addDatasetImageResponse) => {
+                        if (addDatasetImageResponse.status === 200) {
+                            parseClassificationsFromDatasetResponse(addDatasetImageResponse.data.images[0].elements);
+                            viewState.setState(ViewStates.ImageViewConfirmDataset);
+                        }
+                        else {
+                            console.error("Failed to add image to dataset for image " + imageState.imageId);
+                        }
+                        viewState.isWaitingForResponse = false;
+                    });
+                }
+                else {
+                    console.error("Failed to create dataset for image " + imageState.imageId);
+                }
+            });
         }
         else {
-            console.error("Failed to submit dataset leaders");
+            console.error("Failed to submit dataset leaders for image " + imageState.imageId);
         }
-        viewState.isWaitingForResponse = false;
     });
 }
 </script>

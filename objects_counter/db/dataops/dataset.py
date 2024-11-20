@@ -30,7 +30,7 @@ def add_image_to_dataset(dataset: Dataset, image_id: int, classifications: list[
         leader_id = int(classification.get('leader_id'))
         set_element_as_leader(leader_id, image)
         update_element_classification_by_id(leader_id, class_name, 1., do_commit=False)
-    object_classifier.assign_dataset_categories_to_objects(image, dataset)
+    object_classifier.assign_dataset_categories_to_image(image, dataset)
     image.dataset = dataset
     db.session.add(image)
     try:
