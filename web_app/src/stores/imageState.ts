@@ -36,6 +36,7 @@ export const useImageStateStore = defineStore("imageState", {
             this.points = [];
             this.objectClassifications = [];
             this.selectedLeaderIds = [];
+            this.comparisonDifference = [];
         },
 
         addPoint(isPositive: boolean, x: number, y: number) {
@@ -58,6 +59,7 @@ export const useImageStateStore = defineStore("imageState", {
         clearResult() {
             this.imageElements = [];
             this.objectClassifications = [];
+            this.comparisonDifference = [];
         }
     }
 });
