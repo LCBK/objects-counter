@@ -8,7 +8,8 @@ classification_model = api.model('Classification', {
 })
 
 insert_dataset_model = api.model('NewDataset', {
-    'name': fields.String(required=True, description='The dataset name')
+    'name': fields.String(required=True, description='The dataset name'),
+    'unfinished': fields.Boolean(required=False, description='Whether the dataset is unfinished')
 })
 
 insert_image_model = api.model('NewDataset', {
@@ -17,8 +18,9 @@ insert_image_model = api.model('NewDataset', {
                                    description='List of classifications'),
 })
 
-rename_dataset_model = api.model('RenameDataset', {
-    'name': fields.String(required=True, description='The new dataset name'),
+patch_dataset_model = api.model('PatchDataset', {
+    'name': fields.String(required=False, description='The new dataset name'),
+    'unfinished': fields.Boolean(required=False, description='Whether the dataset is unfinished')
 })
 
 adjust_classification_model = api.model('AdjustClassification', {

@@ -5,12 +5,12 @@ from flask import jsonify, Response, request
 from flask_restx import Namespace, Resource
 from werkzeug.exceptions import NotFound, Forbidden
 
-from objects_counter.api.datasets.models import insert_dataset_model, insert_image_model, rename_dataset_model, \
+from objects_counter.api.datasets.models import insert_dataset_model, insert_image_model, patch_dataset_model, \
     adjust_classifications_model, images_list_model
 from objects_counter.api.default.views import object_grouper
 from objects_counter.api.utils import authentication_required, get_thumbnails
 from objects_counter.db.dataops.dataset import get_user_datasets_serialized, get_dataset_by_id, delete_dataset_by_id, \
-    insert_dataset, add_image_to_dataset, rename_dataset, get_user_datasets
+    insert_dataset, add_image_to_dataset, rename_dataset, get_user_datasets, update_unfinished_state
 from objects_counter.db.dataops.image import serialize_image_as_result, get_image_by_id, \
     bulk_update_element_classification_by_id
 from objects_counter.db.models import User
@@ -33,9 +33,10 @@ class Datasets(Resource):
         data = request.json
         try:
             name = data.get('name')
+            unfinished = data.get('unfinished', False)
             if not name:
                 raise ValueError("Missing required fields")
-            dataset = insert_dataset(current_user.id, name)
+            dataset = insert_dataset(current_user.id, name, unfinished)
             return Response(str(dataset.id), 201)
         except ValueError as e:
             log.exception("Invalid dataset data: %s", e)
@@ -72,13 +73,20 @@ class Dataset(Resource):
             log.exception("Dataset not found: %s", e)
             return Response("Dataset not found", 404)
 
-    @api.expect(rename_dataset_model)
+    @api.expect(patch_dataset_model)
     @authentication_required
     def patch(self, current_user: User, dataset_id: int) -> typing.Any:
         data = request.json
-        name = data.get('name')
+        name = data.get('name', '')
+        unfinished = data.get('unfinished', None)
+        if not name and unfinished is None:
+            log.error("No data provided for dataset update")
+            return Response("No data provided for dataset update", 400)
         try:
-            dataset = rename_dataset(dataset_id, name, current_user)
+            if name:
+                dataset = rename_dataset(dataset_id, name, current_user)
+            if unfinished is not None:
+                dataset = update_unfinished_state(dataset_id, unfinished, current_user)
             return jsonify(dataset.as_dict())
         except Forbidden as e:
             log.exception("User %s is not authorized to rename dataset %s: %s", current_user, dataset_id, e)

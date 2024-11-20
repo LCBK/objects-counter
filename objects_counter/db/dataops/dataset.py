@@ -10,8 +10,8 @@ from objects_counter.db.models import User, Dataset, db
 log = logging.getLogger(__name__)
 
 
-def insert_dataset(user_id: int, name: str) -> Dataset:
-    dataset = Dataset(user_id=user_id, name=name)
+def insert_dataset(user_id: int, name: str, unfinished: bool) -> Dataset:
+    dataset = Dataset(user_id=user_id, name=name, unfinished=unfinished)
     db.session.add(dataset)
     try:
         db.session.commit()
@@ -86,5 +86,20 @@ def delete_dataset_by_id(dataset_id: int, user: User) -> None:
         db.session.commit()
     except DatabaseError as e:
         log.exception('Failed to delete dataset: %s', e)
+        db.session.rollback()
+        raise
+
+
+def update_unfinished_state(dataset_id: int, unfinished: bool, user: User) -> Dataset:
+    dataset = get_dataset_by_id(dataset_id)
+    if dataset.user_id != user.id:
+        log.error('User %s is not authorized to update dataset %s', user, dataset_id)
+        raise Forbidden(f'User {user} is not authorized to update dataset {dataset_id}')
+    dataset.unfinished = unfinished
+    try:
+        db.session.commit()
+        return dataset
+    except DatabaseError as e:
+        log.exception('Failed to update dataset: %s', e)
         db.session.rollback()
         raise
