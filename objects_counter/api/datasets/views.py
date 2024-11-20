@@ -3,6 +3,7 @@ import typing
 
 from flask import jsonify, Response, request
 from flask_restx import Namespace, Resource
+from natsort import natsorted
 from werkzeug.exceptions import NotFound, Forbidden
 
 from objects_counter.api.datasets.models import insert_dataset_model, insert_image_model, patch_dataset_model, \
@@ -242,6 +243,7 @@ class CompareWithImage(Resource):
             for image_id in image_ids:
                 images.append(get_image_by_id(image_id))
             diff = object_grouper.classify_images_based_on_dataset(images, dataset)
+            diff = dict(natsorted(diff.items()))
             response = {
                 "diff": diff,
                 "images": [image.as_dict() for image in images]
