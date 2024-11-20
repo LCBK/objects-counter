@@ -234,7 +234,11 @@ class CompareWithImage(Resource):
             for image_id in image_ids:
                 images.append(get_image_by_id(image_id))
             diff = object_grouper.classify_images_based_on_dataset(images, dataset)
-            return jsonify(diff)
+            response = {
+                "diff": diff,
+                "images": [image.as_dict() for image in images]
+            }
+            return jsonify(response)
         except NotFound as e:
             log.exception("Image or dataset not found: %s", e)
             return Response("Image or dataset not found", 404)
