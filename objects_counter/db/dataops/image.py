@@ -147,8 +147,7 @@ def bulk_update_element_classification_by_id(classifications: list[dict]) -> Non
         if not name:
             raise ValueError('Classification name is required')
         elements = classification.get('elements', [])
-        for element in elements:
-            element_id = element.get('id')
+        for element_id in elements:
             update_element_classification_by_id(element_id, name, 1., do_commit=False)
     try:
         db.session.commit()
