@@ -30,3 +30,7 @@ adjust_classifications_model = api.model('AdjustClassifications', {
     "classifications": fields.List(fields.Nested(adjust_classification_model), required=True,
                                    description='List of classifications'),
 })
+
+images_list_model = api.model('ImagesList', {
+    "image_ids": fields.List(fields.Integer, required=True, description='List of image IDs'),
+})

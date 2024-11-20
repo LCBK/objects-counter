@@ -6,7 +6,7 @@ from flask_restx import Namespace, Resource
 from werkzeug.exceptions import NotFound, Forbidden
 
 from objects_counter.api.datasets.models import insert_dataset_model, insert_image_model, rename_dataset_model, \
-    adjust_classifications_model
+    adjust_classifications_model, images_list_model
 from objects_counter.api.default.views import object_grouper
 from objects_counter.api.utils import authentication_required, get_thumbnails
 from objects_counter.db.dataops.dataset import get_user_datasets_serialized, get_dataset_by_id, delete_dataset_by_id, \
@@ -200,6 +200,42 @@ class AdjustClassifications(Resource):
         except Exception as e:
             log.exception("Failed to adjust classifications: %s", e)
             return Response("Failed to adjust classifications", 500)
+
+
+@api.route('/<int:dataset_id>/comparison')
+class CompareWithImage(Resource):
+    @api.expect(images_list_model)
+    @api.response(200, "Comparison successful")
+    @api.response(400, "Invalid image or dataset ID")
+    @api.response(404, "Image or dataset not found")
+    @api.response(500, "Error while comparing images with dataset")
+    @authentication_required
+    def post(self, current_user: User, dataset_id: int) -> typing.Any:
+        data = request.json
+        image_ids = data.get('image_ids', [])
+        try:
+            dataset_id = int(dataset_id)
+            for image_id in image_ids:
+                image_id = int(image_id)
+                if image_id < 0:
+                    log.error("Invalid image ID: %s", image_id)
+                    raise ValueError("ID must be a positive integer")
+        except (ValueError, TypeError) as e:
+            log.exception("Invalid ID: %s", e)
+            return Response("Invalid image or dataset ID", 400)
+        try:
+            dataset = get_dataset_by_id(dataset_id)
+            images = []
+            for image_id in image_ids:
+                images.append(get_image_by_id(image_id))
+            diff = object_grouper.classify_images_based_on_dataset(images, dataset)
+            return jsonify(diff)
+        except NotFound as e:
+            log.exception("Image or dataset not found: %s", e)
+            return Response("Image or dataset not found", 404)
+        except Exception as e:
+            log.exception("Error while comparing images with dataset: %s", e)
+            return Response("Error while comparing images with dataset", 500)
 
 
 @api.route('/thumbnails')

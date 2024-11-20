@@ -192,7 +192,7 @@ class ClassifyByLeaders(Resource):
         try:
             image = get_image_by_id(image_id)
             mark_leaders_in_image(image, leaders)
-            return Response(json.dumps(serialize_image_as_result(image)), 200)
+            return Response('Success', 200)
         except NotFound as e:
             log.exception("Image %s not found: %s", image_id, e)
             return Response('Image not found', 404)
