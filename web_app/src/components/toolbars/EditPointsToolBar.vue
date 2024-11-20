@@ -47,7 +47,9 @@ function handleRemoveClick() {
 async function handleConfirmBackground() {
     viewState.isWaitingForResponse = true;
 
-    if (viewState.isEditingExistingResult && viewState.currentAction !== ImageAction.CreateDataset) {
+    if (viewState.isEditingExistingResult
+        && viewState.currentAction !== ImageAction.CreateDataset
+        && viewState.currentAction !== ImageAction.CompareWithDataset) {
         if (userState.isLoggedIn) {
             const deleteRequestUri = config.serverUri + endpoints.deleteResult.replace("{result_id}", imageState.resultId.toString());
             const deleteRequestData = JSON.stringify({});
