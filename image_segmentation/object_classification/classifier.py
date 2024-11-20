@@ -149,9 +149,6 @@ class ObjectClassifier:
 
         return result
 
-
-
-
     def assign_dataset_categories_to_image(self, image: Image, dataset):
         """Assigns categories based on dataset and image representatives. Meant to be used DURING dataset creation"""
         self.preprocess_dataset(dataset)
