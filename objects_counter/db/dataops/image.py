@@ -182,7 +182,7 @@ def serialize_image_as_result(image: Image) -> dict:
             continue
 
         if element.certainty is not None:
-            element_data["certainty"] = round(element.certainty, 2)
+            element_data["certainty"] = element.certainty
         else:
             element_data["certainty"] = 1
 

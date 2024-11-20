@@ -116,6 +116,20 @@ const additionalInfoBarClasses = computed(() => {
         top: 6px;
     }
 }
+
+@media screen and (min-width: 768px) {
+    #additional-info-bar p {
+        max-width: 768px;
+        margin-left: calc(50vw - 768px / 2);
+    }
+}
+
+@media screen and (min-width: 1200px) {
+    #additional-info-bar p {
+        max-width: 1200px;
+        margin-left: calc(50vw - 1200px / 2);
+    }
+}
 </style>
 
 <style>
