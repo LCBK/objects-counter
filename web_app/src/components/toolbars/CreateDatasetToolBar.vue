@@ -4,7 +4,7 @@ import VButton from "primevue/button";
 import { useImageStateStore } from "@/stores/imageState";
 import { useViewStateStore, ViewStates } from "@/stores/viewState";
 import { config, endpoints } from "@/config";
-import { parseClassificationsFromDatasetResponse, parseClassificationsFromResponse, sendRequest } from "@/utils";
+import { parseClassificationsFromDatasetResponse, sendRequest } from "@/utils";
 
 
 const imageState = useImageStateStore();
@@ -16,6 +16,7 @@ function handleReturnClick() {
     viewState.showBackground = true;
     viewState.isEditingExistingResult = true;
     imageState.clearResult();
+    imageState.selectedLeaderIds = [];
 }
 
 function handleSubmitLeadersClick() {
@@ -32,8 +33,6 @@ function submitClassificationLeaders() {
     viewState.isWaitingForResponse = true;
     requestPromise.then((leadersResponse) => {
         if (leadersResponse.status === 200) {
-            imageState.clearResult();
-
             const createDatasetUri = config.serverUri + endpoints.createDataset;
             const createDatasetRequestData = JSON.stringify({
                 name: "temporary no. " + imageState.imageId
@@ -58,6 +57,7 @@ function submitClassificationLeaders() {
                     const addDatasetImageRequestPromise = sendRequest(addDatasetImageUri, addDatasetImageRequestData, "POST");
                     addDatasetImageRequestPromise.then((addDatasetImageResponse) => {
                         if (addDatasetImageResponse.status === 200) {
+                            imageState.clearResult();
                             parseClassificationsFromDatasetResponse(addDatasetImageResponse.data.images[0].elements);
                             viewState.setState(ViewStates.ImageViewConfirmDataset);
                         }
