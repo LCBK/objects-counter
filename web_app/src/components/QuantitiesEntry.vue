@@ -88,7 +88,25 @@ function confirmRename() {
     // When creating a dataset, classifications are final when confirming the dataset, rename locally.
     else {
         imageState.objectClassifications[props.index].classificationName = renameNewLabel.value;
-        isRenameDialogVisible.value = false;
+
+        const adjustClassificationsUri = config.serverUri + endpoints.adjustDatasetClassifications
+                .replace("{dataset_id}", imageState.datasetId.toString())
+                .replace("{image_id}", imageState.imageId.toString());
+        const adjustClassificationsRequestData = JSON.stringify({
+            classifications: imageState.objectClassifications.map((c) => {
+                return {
+                    name: c.classificationName,
+                    elements: imageState.imageElements.filter((el) => el.classificationIndex === c.index).map((el) => el.id)
+                };
+            })
+        });
+        const adjustClassificationsRequestPromise = sendRequest(adjustClassificationsUri, adjustClassificationsRequestData, "PATCH");
+        adjustClassificationsRequestPromise.then((response) => {
+            if (response.status !== 200) {
+                console.error("Failed to adjust classifications");
+            }
+            isRenameDialogVisible.value = false;
+        });
     }
 }
 </script>
