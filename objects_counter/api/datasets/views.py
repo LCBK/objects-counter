@@ -207,6 +207,8 @@ class CompareWithImage(Resource):
     @api.expect(images_list_model)
     @api.response(200, "Comparison successful")
     @api.response(400, "Invalid image or dataset ID")
+    @api.response(401, "You must be logged in")
+    @api.response(403, "You are not authorized to access that dataset")
     @api.response(404, "Image or dataset not found")
     @api.response(500, "Error while comparing images with dataset")
     @authentication_required
@@ -225,6 +227,9 @@ class CompareWithImage(Resource):
             return Response("Invalid image or dataset ID", 400)
         try:
             dataset = get_dataset_by_id(dataset_id)
+            if dataset.user_id != current_user.id:
+                log.error("User %s is not authorized to access dataset %s", current_user, dataset_id)
+                return Response('You are not authorized to access that dataset', 403)
             images = []
             for image_id in image_ids:
                 images.append(get_image_by_id(image_id))
