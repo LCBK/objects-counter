@@ -147,7 +147,7 @@ class AcceptBackgroundPoints(Resource):
     @api.response(500, "Error processing image")
     @authentication_optional
     def post(self, current_user: User, image_id: int) -> typing.Any:
-        as_dataset = request.json.get('as_dataset', False)
+        skip_classification = request.json.get('skip_classification', False)
         try:
             image = get_image_by_id(image_id)
         except NotFound as e:
@@ -156,7 +156,7 @@ class AcceptBackgroundPoints(Resource):
 
         sam.count_objects(image)
 
-        if not as_dataset:
+        if not skip_classification:
             object_grouper.group_objects_by_similarity(image)
             response_dict = serialize_image_as_result(image)
         else:

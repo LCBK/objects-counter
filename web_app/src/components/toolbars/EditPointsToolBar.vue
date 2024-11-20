@@ -59,7 +59,7 @@ async function handleConfirmBackground() {
 
     const requestUri = config.serverUri + endpoints.acceptBackground.replace("{image_id}", imageState.imageId.toString());
     const requestData = JSON.stringify({
-        as_dataset: viewState.currentAction === ImageAction.CreateDataset
+        skip_classification: viewState.currentAction === ImageAction.CreateDataset || viewState.currentAction === ImageAction.CompareWithDataset
     });
     const responsePromise = sendRequest(requestUri, requestData, "POST");
 
@@ -171,6 +171,12 @@ onMounted(() => {
 
 #negative-point.checked {
     background-color: rgba(255, 98, 89, 1);
+}
+
+@media screen and (min-width: 340px) {
+    #point-types {
+        bottom: 110px;
+    }
 }
 
 @media screen and (min-width: 768px) {

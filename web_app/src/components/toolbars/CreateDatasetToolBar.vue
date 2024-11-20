@@ -46,10 +46,10 @@ function submitClassificationLeaders() {
                     const addDatasetImageUri = config.serverUri + endpoints.addImageToDataset.replace("{dataset_id}", imageState.datasetId.toString());
                     const addDatasetImageRequestData = JSON.stringify({
                         image_id: imageState.imageId,
-                        classifications: leadersResponse.data.classifications.map((c: any) => {
+                        classifications: imageState.selectedLeaderIds.map((id: any, index: number) => {
                             return {
-                                name: c.name,
-                                leader_id: c.objects[0].id
+                                name: index,
+                                leader_id: id
                             }
                         })
                     });
