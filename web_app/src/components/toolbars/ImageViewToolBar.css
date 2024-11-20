@@ -8,11 +8,12 @@
     align-items: stretch;
 }
 
-.image-view-tool-bar > button {
+.image-view-tool-bar .bar-content > button {
     flex-direction: column;
     padding: 12px 1rem;
     justify-content: space-between;
     flex: 1 1 0px;
+    height: 100%;
 }
 
 .element-count {
@@ -51,13 +52,16 @@
     font-size: 0.75rem;
     font-weight: 300;
     letter-spacing: 0.3px;
-    margin: 12px 0 6px 0;
+    margin: 12px auto 6px auto;
     color: var(--primary-color);
     user-select: none;
+    max-width: 600px;
 }
 
 .quantities-content {
     max-height: 60vh;
+    max-width: 600px;
+    margin: 0 auto;
 }
 
 .quantities-col:nth-child(1) {
@@ -99,6 +103,8 @@
 
 .quantities .p-sidebar-header {
     padding-bottom: 12px;
+    max-width: 600px;
+    position: relative;
 }
 
 .quantities .p-sidebar-header-content {
@@ -117,4 +123,42 @@
 .quantity-switch .p-inputswitch-slider {
     width: 40px;
     margin: 0 auto;
+}
+
+@media screen and (min-width: 340px) {
+    .image-view-tool-bar .p-button-label {
+        font-size: 1rem;
+    }
+
+    .element-count-label {
+        font-size: 1rem;
+    }
+}
+
+@media screen and (min-width: 400px) {
+    .quantities-header {
+        font-size: 0.9rem;
+    }
+
+    .quantities-label-notice {
+        font-size: 0.9rem;
+    }
+}
+
+@media screen and (min-width: 460px) and (max-width: 767px) {
+    .element-count {
+        padding: 10px 8.36vw;
+    }
+}
+
+@media screen and (min-width: 600px) {
+    .quantities .p-sidebar-header {
+        left: calc(50vw - 300px);
+    }
+}
+
+@media screen and (min-width: 768px) {
+    .element-count {
+        padding: 10px 70px;
+    }
 }

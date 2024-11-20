@@ -159,6 +159,10 @@ export function checkServerStatus() : Promise<boolean> {
             .then(response => {
                 if (response.status === 200) {
                     resolve(true);
+                } else if (response.status === 401) {
+                    const userState = useUserStateStore();
+                    userState.logout();
+                    resolve(true);
                 } else {
                     resolve(false);
                 }
@@ -170,4 +174,9 @@ export function checkServerStatus() : Promise<boolean> {
 
 export function base64ToImageUri(base64: string) : string {
     return "data:image/png;base64," + base64;
+}
+
+
+export function isUserAgentMobile() : boolean {
+    return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 }

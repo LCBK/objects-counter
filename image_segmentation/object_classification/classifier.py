@@ -11,6 +11,7 @@ from image_segmentation.utils import delete_temp_images
 from objects_counter.db.dataops.image import update_element_classification_by_id
 from objects_counter.db.models import Image, ImageElement
 
+
 class ObjectClassifier:
 
     def __init__(self, segmenter, feature_similarity_model: FeatureSimilarity, color_similarity_model: ColorSimilarity):
@@ -32,7 +33,6 @@ class ObjectClassifier:
 
     def process_image_element(self, element: ImageElement) -> tuple:
         """Crops the image element, computes its embedding and histogram, and cleans up."""
-        # Here we assume the ImageElementProcessor has been instantiated as a class member
         processor = ImageElementProcessor(self.feature_similarity_model, self.color_similarity_model)
         return processor.process_image_element(element)
 

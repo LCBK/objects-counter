@@ -47,12 +47,14 @@ function submitClassificationLeaders() {
 
 <template>
     <div class="image-view-tool-bar bar">
-        <VButton text label="Adjust" icon="pi pi-pencil" @click="handleReturnClick();" />
-        <div class="element-count">
-            <span class="element-count-value">{{ imageState.imageElements.length }}</span>
-            <span class="element-count-label">Elements</span>
+        <div class="bar-content tool-bar-content">
+            <VButton text label="Adjust" icon="pi pi-pencil" @click="handleReturnClick();" />
+            <div class="element-count">
+                <span class="element-count-value">{{ imageState.imageElements.length }}</span>
+                <span class="element-count-label">Elements</span>
+            </div>
+            <VButton text label="Submit leaders" icon="pi pi-check"
+                    @click="handleSubmitLeadersClick" :disabled="imageState.selectedLeaderIds.length === 0" />
         </div>
-        <VButton text label="Submit leaders" icon="pi pi-check"
-                @click="handleSubmitLeadersClick" :disabled="imageState.selectedLeaderIds.length === 0" />
     </div>
 </template>
