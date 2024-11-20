@@ -145,8 +145,8 @@ class ObjectClassifier:
                 continue
             result[element.classification] -= 1
 
-        result = {category: dataset.category_count[category] - result[category] for category in dataset.categories}
-
+        result = {category: -result[category] for category in dataset.categories}
+        print (result)
         return result
 
     def assign_dataset_categories_to_image(self, image: Image, dataset):
