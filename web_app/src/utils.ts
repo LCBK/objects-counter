@@ -116,7 +116,7 @@ export function parseClassificationsFromResponse(classifications: Array<any>) : 
 
 
 // TODO: rework, cleanup
-export function parseClassificationsFromDatasetResponse(elements: Array<any>) : void {
+export function parseClassificationsFromElementsResponse(elements: Array<any>) : void {
     const imageState = useImageStateStore();
     const classifications = [] as Array<string>;
 

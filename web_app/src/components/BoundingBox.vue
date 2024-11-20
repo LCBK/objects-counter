@@ -60,7 +60,7 @@ const selectedBoxColor = computed(() => {
 
 const classification = computed(() => {
     if (props.classificationIndex === undefined) {
-        return "Unknown";
+        return "";
     }
     else return imageState.objectClassifications[props.classificationIndex].classificationName
 });

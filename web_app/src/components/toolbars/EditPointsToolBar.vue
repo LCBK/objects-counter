@@ -67,13 +67,15 @@ async function handleConfirmBackground() {
         viewState.isWaitingForResponse = false;
         if (viewState.currentState !== ViewStates.ImageEditPoints) return;
 
-        if (viewState.currentAction === ImageAction.CreateDataset) {
-            // Backend responds with elements without classifications, only for leader selection
+        if (viewState.currentAction === ImageAction.CreateDataset
+            || viewState.currentAction === ImageAction.CompareWithDataset
+        ) {
+            // Backend responds with elements without classifications, for leader selection or comparison
             parseElementsFromResponse(response.data.elements);
             if (response.data.id) imageState.resultId = response.data.id;
         }
         else {
-            // Otherwise the response contains classifications
+            // Otherwise the response contains classifications (for simple counting)
             parseClassificationsFromResponse(response.data.classifications);
             if (response.data.id) imageState.resultId = response.data.id;
         }

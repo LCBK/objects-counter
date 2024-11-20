@@ -4,7 +4,7 @@ import VButton from "primevue/button";
 import { useImageStateStore } from "@/stores/imageState";
 import { useViewStateStore, ViewStates } from "@/stores/viewState";
 import { config, endpoints } from "@/config";
-import { parseClassificationsFromDatasetResponse, sendRequest } from "@/utils";
+import { parseClassificationsFromElementsResponse, sendRequest } from "@/utils";
 
 
 const imageState = useImageStateStore();
@@ -58,7 +58,7 @@ function submitClassificationLeaders() {
                     addDatasetImageRequestPromise.then((addDatasetImageResponse) => {
                         if (addDatasetImageResponse.status === 200) {
                             imageState.clearResult();
-                            parseClassificationsFromDatasetResponse(addDatasetImageResponse.data.images[0].elements);
+                            parseClassificationsFromElementsResponse(addDatasetImageResponse.data.images[0].elements);
                             viewState.setState(ViewStates.ImageViewConfirmDataset);
                         }
                         else {

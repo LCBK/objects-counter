@@ -24,6 +24,7 @@ const defaultState = {
     points: [] as Array<BackgroundPoint>,
     objectClassifications: [] as Array<ObjectClassification>,
     selectedLeaderIds: [] as Array<number>,
+    comparisonDifference: [] as Array<any>      // TODO: Type
 }
 
 export const useImageStateStore = defineStore("imageState", {
