@@ -92,6 +92,7 @@ function handleBoundingBoxClick() {
                 imageState.objectClassifications[element.classificationIndex].count--;
                 element.classificationIndex = viewState.currentlyAssignedClassificationIndex;
                 imageState.objectClassifications[viewState.currentlyAssignedClassificationIndex].count++;
+                viewState.wereClassificationsAdjusted = true;
             }
         }
     }

@@ -31,6 +31,7 @@ const assignedBoxColor = computed(() => {
 const popupText = ref<string>("");
 const popupHeader = ref<string>("");
 const popupVisible = ref<boolean>(false);
+const isSuccessfullyCreated = ref<boolean>(false);
 
 
 // Close quantities sidebar when user starts to assign classifications
@@ -45,21 +46,9 @@ function submitDataset() {
     const classifications = imageState.objectClassifications.map((classification) => {
         const elements = imageState.imageElements.filter((el) => el.classificationIndex === classification.index)
         const elementIds = elements.map((el) => el.id);
-        const leaders = elements.filter((el) => el.isLeader);
-
-        // These checks SHOULD never fail, so we don't need to show an error message
-        if (leaders.length === 0) {
-            console.error("No leader found for classification " + classification.classificationName);
-            return null;
-        }
-        else if (leaders.length > 1) {
-            console.error("Multiple leaders found for classification " + classification.classificationName);
-            return null;
-        }
 
         return {
             name: classification.classificationName,
-            leader: leaders[0].id,
             elements: elementIds
         };
     });
@@ -70,19 +59,36 @@ function submitDataset() {
         return;
     }
 
-    const requestUri = config.serverUri + endpoints.createDataset;
-    const requestData = JSON.stringify({
-        name: datasetName.value,
-        image_id: imageState.imageId,
+    const changeElementsUri = config.serverUri + endpoints.adjustDatasetClassifications
+        .replace("{dataset_id}", imageState.datasetId.toString())
+        .replace("{image_id}", imageState.imageId.toString());
+    const changeElementsRequestData = JSON.stringify({
         classifications: classifications
     });
 
-    const requestPromise = sendRequest(requestUri, requestData, "POST");
-    requestPromise.then((response) => {
-        if (response.status === 200) {
-            popupText.value = "Dataset created successfully";
-            popupHeader.value = "Success";
-            popupVisible.value = true;
+    const changeElementsRequestPromise = sendRequest(changeElementsUri, changeElementsRequestData, "PATCH");
+    changeElementsRequestPromise.then((changeElementsResponse) => {
+        if (changeElementsResponse.status === 200) {
+            const renameDatasetUri = config.serverUri + endpoints.renameDataset
+                .replace("{dataset_id}", imageState.datasetId.toString());
+            const renameDatasetRequestData = JSON.stringify({
+                name: datasetName.value
+            });
+
+            const renameDatasetRequestPromise = sendRequest(renameDatasetUri, renameDatasetRequestData, "PATCH");
+            renameDatasetRequestPromise.then((renameDatasetResponse) => {
+                if (renameDatasetResponse.status === 200) {
+                    popupText.value = "Dataset submitted successfully";
+                    popupHeader.value = "Success";
+                    popupVisible.value = true;
+                    isSuccessfullyCreated.value = true;
+                }
+                else {
+                    popupText.value = "Failed to submit dataset";
+                    popupHeader.value = "Error";
+                    popupVisible.value = true;
+                }
+            });
         }
         else {
             popupText.value = "Failed to submit dataset";
@@ -95,8 +101,10 @@ function submitDataset() {
 
 function handleCreatedDataset() {
     window.setTimeout(() => {
-        viewState.reset();
-        imageState.reset();
+        if (isSuccessfullyCreated.value) {
+            viewState.reset();
+            imageState.reset();
+        }
     }, 500);
 }
 </script>
@@ -179,6 +187,21 @@ function handleCreatedDataset() {
     background-color: v-bind(assignedBoxColor);
     display: inline-block;
     margin-right: 6px;
+}
+
+@media screen and (min-width: 400px) {
+    .assignment-notice-label {
+        font-size: 1rem;
+    }
+
+    .assignment-notice-value::before {
+        width: 12px;
+        height: 12px;
+    }
+
+    .assignment-notice-value {
+        font-size: 1.2rem;
+    }
 }
 </style>
 
