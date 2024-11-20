@@ -33,16 +33,19 @@ class ObjectClassifier:
         for element in image.elements:
             self.process_element(element)
 
-    def process_element(self, element: ImageElement) -> None:
+    def process_element(self, element: ImageElement):
         """Crops the image element, computes its embedding and histogram, and cleans up."""
         processor = ImageElementProcessor(self.feature_similarity_model, self.color_similarity_model)
         embedding, histogram = processor.process_image_element(element)
         self.embeddings[element.id] = embedding
         self.histograms[element.id] = histogram
+        return embedding, histogram
 
     def calculate_similarity(self, obj_i: ImageElement, obj_j: ImageElement,
                              color_weight: float = DEFAULT_COLOR_WEIGHT) -> float:
         """Calculates combined feature and color similarity between two objects."""
+        if obj_i.id == obj_j.id:
+            return 1
         if self.histograms and self.embeddings:
             hist_i = self.histograms[obj_i.id]
             hist_j = self.histograms[obj_j.id]
@@ -163,8 +166,8 @@ class ObjectClassifier:
                 if current_certainty > best_certainty:
                     best_category = representative.classification
                     best_certainty = current_certainty
-                assert best_category is not None
-                self.update_element_category(element.id, best_category, best_certainty)
+            assert best_category is not None
+            self.update_element_category(element.id, best_category, best_certainty)
 
     def assign_categories_based_on_similarity(self, image: Image, threshold: float, color_weight: float) -> None:
         """Assigns elements to categories based on their similarity scores."""
