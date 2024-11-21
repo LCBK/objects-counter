@@ -88,7 +88,7 @@ class Dataset(Resource):
                 dataset = rename_dataset(dataset_id, name, current_user)
             if unfinished is not None:
                 dataset = update_unfinished_state(dataset_id, unfinished, current_user)
-            return jsonify(dataset.as_dict())
+            return jsonify(dataset.as_dict())  # noqa
         except Forbidden as e:
             log.exception("User %s is not authorized to rename dataset %s: %s", current_user, dataset_id, e)
             return Response("You are not authorized to rename this dataset", 403)
