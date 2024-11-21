@@ -90,7 +90,6 @@ class ObjectClassifier:
             classification_results[element.classification].append(self.calculate_similarity(image_element, element))
         classification = [[category, mean(classification_results[category])] for category in dataset.categories]
         classification = sorted(classification, key=lambda x: x[1], reverse=True)
-        print(image_element.id, classification)
         return classification
 
     def classify_images_based_on_dataset(self, images: List[Image], dataset):

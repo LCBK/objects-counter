@@ -83,24 +83,25 @@ class Dataset(Resource):
         if not name and unfinished is None:
             log.error("No data provided for dataset update")
             return Response("No data provided for dataset update", 400)
-        try:
-            if name:
-                dataset = rename_dataset(dataset_id, name, current_user)
-            if unfinished is not None:
-                dataset = update_unfinished_state(dataset_id, unfinished, current_user)
-            return jsonify(dataset.as_dict())
-        except Forbidden as e:
-            log.exception("User %s is not authorized to rename dataset %s: %s", current_user, dataset_id, e)
-            return Response("You are not authorized to rename this dataset", 403)
-        except NotFound as e:
-            log.exception("Dataset not found: %s", e)
-            return Response("Dataset not found", 404)
-        except ValueError as e:
-            log.exception("Invalid dataset name: %s", e)
-            return Response("Invalid dataset name", 400)
-        except Exception as e:
-            log.exception("Failed to rename dataset: %s", e)
-            return Response("Failed to rename dataset", 500)
+        else:
+            try:
+                if name:
+                    dataset = rename_dataset(dataset_id, name, current_user)
+                if unfinished is not None:
+                    dataset = update_unfinished_state(dataset_id, unfinished, current_user)
+                return jsonify(dataset.as_dict())
+            except Forbidden as e:
+                log.exception("User %s is not authorized to rename dataset %s: %s", current_user, dataset_id, e)
+                return Response("You are not authorized to rename this dataset", 403)
+            except NotFound as e:
+                log.exception("Dataset not found: %s", e)
+                return Response("Dataset not found", 404)
+            except ValueError as e:
+                log.exception("Invalid dataset name: %s", e)
+                return Response("Invalid dataset name", 400)
+            except Exception as e:
+                log.exception("Failed to rename dataset: %s", e)
+                return Response("Failed to rename dataset", 500)
 
     @authentication_required
     def delete(self, current_user: User, dataset_id: int) -> typing.Any:
