@@ -60,7 +60,7 @@ const selectedBoxColor = computed(() => {
 
 const classification = computed(() => {
     if (props.classificationIndex === undefined) {
-        return "Unknown";
+        return "";
     }
     else return imageState.objectClassifications[props.classificationIndex].classificationName
 });
@@ -92,6 +92,7 @@ function handleBoundingBoxClick() {
                 imageState.objectClassifications[element.classificationIndex].count--;
                 element.classificationIndex = viewState.currentlyAssignedClassificationIndex;
                 imageState.objectClassifications[viewState.currentlyAssignedClassificationIndex].count++;
+                viewState.wereClassificationsAdjusted = true;
             }
         }
     }
@@ -101,19 +102,19 @@ function handleBoundingBoxClick() {
 
 <template>
     <div :class="(isSelectedAsLeader ? 'selected-box ' : '') + 'bounding-box'"
-            v-bind:data-topleft="props.topLeft[0] + ',' + props.topLeft[1]"
-            v-bind:data-bottomright="props.bottomRight[0] + ',' + props.bottomRight[1]"
-            v-bind:data-certainty="props.certainty" v-bind:data-classification="classification"
+            v-bind:data-topleft="topLeft[0] + ',' + topLeft[1]"
+            v-bind:data-bottomright="bottomRight[0] + ',' + bottomRight[1]"
+            v-bind:data-certainty="certainty" v-bind:data-classification="classification"
             v-if="classificationIndex === undefined || imageState.objectClassifications[classificationIndex].showBoxes"
             @click="handleBoundingBoxClick">
         <div>
             <div v-if="settingsState.showBoxCertainty && viewState.currentState !== ViewStates.ImageViewCreateDataset" class="box-certainty">
-                {{ props.certainty }}
+                {{ certainty ? Math.round(certainty * 100) / 100 : "" }}
             </div>
             <div v-if="settingsState.showBoxLabel && viewState.currentState !== ViewStates.ImageViewCreateDataset" class="box-classification">
                 {{ classification }}
             </div>
-            <div v-if="settingsState.showElementIds" class="box-ids">{{ props.id }}</div>
+            <div v-if="settingsState.showElementIds" class="box-ids">{{ id }}</div>
         </div>
         <div class="selected-box-overlay"></div>
     </div>

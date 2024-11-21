@@ -115,6 +115,40 @@ export function parseClassificationsFromResponse(classifications: Array<any>) : 
 }
 
 
+// TODO: rework, cleanup
+export function parseClassificationsFromElementsResponse(elements: Array<any>) : void {
+    const imageState = useImageStateStore();
+    const classifications = [] as Array<string>;
+
+    elements.forEach((element: any) => {
+        if (!classifications.includes(element.classification)) {
+            classifications.push(element.classification);
+        }
+    });
+
+    classifications.forEach((classification: string, index: number) => {
+        const classificationElements = elements.filter((element: any) => element.classification === classification);
+        imageState.objectClassifications.push({
+            index: index,
+            classificationName: classification,
+            count: classificationElements.length,
+            showBoxes: true,
+            boxColor: boundingBoxColors[index % boundingBoxColors.length]
+        });
+
+        classificationElements.forEach((element: any) => {
+            imageState.imageElements.push({
+                id: element.id,
+                topLeft: element.top_left,
+                bottomRight: element.bottom_right,
+                certainty: element.certainty,
+                classificationIndex: index
+            });
+        });
+    });
+}
+
+
 export function parseElementsFromResponse(elements: Array<any>) : void {
     const imageState = useImageStateStore();
     for (const element of elements) {

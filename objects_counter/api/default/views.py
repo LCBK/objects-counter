@@ -147,7 +147,7 @@ class AcceptBackgroundPoints(Resource):
     @api.response(500, "Error processing image")
     @authentication_optional
     def post(self, current_user: User, image_id: int) -> typing.Any:
-        as_dataset = request.json.get('as_dataset', False)
+        skip_classification = request.json.get('skip_classification', False)
         try:
             image = get_image_by_id(image_id)
         except NotFound as e:
@@ -156,7 +156,7 @@ class AcceptBackgroundPoints(Resource):
 
         sam.count_objects(image)
 
-        if not as_dataset:
+        if not skip_classification:
             object_grouper.group_objects_by_similarity(image)
             response_dict = serialize_image_as_result(image)
         else:
@@ -175,7 +175,7 @@ class AcceptBackgroundPoints(Resource):
         return jsonify(response_dict)
 
 
-@api.route('/images/<int:image_id>/classify-by-leaders')
+@api.route('/images/<int:image_id>/mark-leaders')
 class ClassifyByLeaders(Resource):
     @api.doc(params={'image_id': 'The image ID'})
     @api.expect({'leaders': [int]})
@@ -192,8 +192,7 @@ class ClassifyByLeaders(Resource):
         try:
             image = get_image_by_id(image_id)
             mark_leaders_in_image(image, leaders)
-            object_grouper.assign_categories_by_representatives(image)
-            return Response(json.dumps(serialize_image_as_result(image)), 200)
+            return Response('Success', 200)
         except NotFound as e:
             log.exception("Image %s not found: %s", image_id, e)
             return Response('Image not found', 404)

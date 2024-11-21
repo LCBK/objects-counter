@@ -9,6 +9,7 @@ const defaultState = {
     url: "",
     imageId: 0,
     resultId: 0,
+    datasetId: 0,
     width: 0,
     height: 0,
     scaledImageWidth: 0,
@@ -23,6 +24,7 @@ const defaultState = {
     points: [] as Array<BackgroundPoint>,
     objectClassifications: [] as Array<ObjectClassification>,
     selectedLeaderIds: [] as Array<number>,
+    comparisonDifference: [] as Array<any>      // TODO: Type
 }
 
 export const useImageStateStore = defineStore("imageState", {
@@ -34,6 +36,7 @@ export const useImageStateStore = defineStore("imageState", {
             this.points = [];
             this.objectClassifications = [];
             this.selectedLeaderIds = [];
+            this.comparisonDifference = [];
         },
 
         addPoint(isPositive: boolean, x: number, y: number) {
@@ -56,6 +59,7 @@ export const useImageStateStore = defineStore("imageState", {
         clearResult() {
             this.imageElements = [];
             this.objectClassifications = [];
+            this.comparisonDifference = [];
         }
     }
 });

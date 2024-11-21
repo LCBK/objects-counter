@@ -8,7 +8,7 @@ import { useImageStateStore } from "@/stores/imageState";
 import { useViewStateStore, ViewStates } from "@/stores/viewState";
 import { computed, ref } from "vue";
 import { config, endpoints } from "@/config";
-import { base64ToImageUri, parseClassificationsFromResponse, sendRequest, type Response } from "@/utils";
+import { base64ToImageUri, parseClassificationsFromElementsResponse, sendRequest, type Response } from "@/utils";
 import { type DatasetListItem } from "@/types";
 import DatasetListItemComponent from "../DatasetListItem.vue";
 
@@ -19,6 +19,7 @@ const viewState = useViewStateStore();
 const quantitiesVisible = ref<boolean>(false);
 const datasetDialogVisible = ref<boolean>(false);
 const compareDialogVisible = ref<boolean>(false);
+const hasCompared = ref<boolean>(false);
 const userDatasets = ref<DatasetListItem[]>([]);
 const classifications = computed(() => imageState.objectClassifications);
 
@@ -79,18 +80,21 @@ function loadDatasets() {
 }
 
 function handleCompareClick(datasetId: number) {
-    const requestUri = config.serverUri + endpoints.compareToDataset
-            .replace("{result_id}", imageState.resultId.toString())
-            .replace("{dataset_id}", datasetId.toString());
-    const requestPromise = sendRequest(requestUri, null, "GET");
+    const requestUri = config.serverUri + endpoints.compareToDataset.replace("{dataset_id}", datasetId.toString());
+    const requestData = JSON.stringify({
+        image_ids: [imageState.imageId]
+    });
+    const requestPromise = sendRequest(requestUri, requestData, "POST");
 
     viewState.isWaitingForResponse = true;
     compareDialogVisible.value = false;
     requestPromise.then((response) => {
         if (response.status === 200) {
-            console.log("Comparison successful");
             imageState.clearResult();
-            parseClassificationsFromResponse(response.data.classifications);
+            imageState.comparisonDifference = response.data.diff;
+            parseClassificationsFromElementsResponse(response.data.images[0].elements);
+            hasCompared.value = true;
+            quantitiesVisible.value = true;
             datasetDialogVisible.value = false;
         }
         else {
@@ -111,15 +115,19 @@ function handleCompareClick(datasetId: number) {
                 <span class="element-count-value">{{ imageState.imageElements.length }}</span>
                 <span class="element-count-label">Elements</span>
             </div>
-            <VButton text label="Details" icon="pi pi-list" @click="quantitiesVisible = true" />
+            <VButton text label="Details" icon="pi pi-list" @click="quantitiesVisible = true" :disabled="!hasCompared" />
         </div>
     </div>
-    <VButton :class="(viewState.isWaitingForResponse ? 'inactive-button ' : '') + 'compare-button'"
+    <VButton v-if="!hasCompared" :class="(viewState.isWaitingForResponse ? 'inactive-button ' : '') + 'compare-button'"
             label="Compare with dataset" @click="handleDatasetListClick" />
     <VSidebar v-model:visible="quantitiesVisible" position="bottom" style="height: auto" class="quantities" header="Counted elements">
+        <div class="difference-notice">
+            <span v-if="Object.values(imageState.comparisonDifference).every(x => x === 0)" class="match">All elements match</span>
+            <span v-else class="mismatch">Elements mismatch</span>
+        </div>
         <div class="quantities-label-notice notice">You can toggle label visibility in the settings</div>
         <div class="quantities-header">
-            <div class="quantities-col">Count</div>
+            <div class="quantities-col quantities-count-diff">Count</div>
             <div class="quantities-col">Label<span class="rename-notice notice">(tap to rename)</span></div>
             <div class="quantities-col">Show boxes</div>
         </div>
@@ -175,6 +183,27 @@ function handleCompareClick(datasetId: number) {
 .inactive-button {
     pointer-events: none;
     opacity: 0.5;
+}
+
+.difference-notice {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 8px;
+    font-weight: 500;
+    font-size: 1.2rem;
+    user-select: none;
+}
+
+.mismatch {
+    color: var(--color-error);
+}
+
+.match {
+    color: var(--color-success);
+}
+
+.quantities-count-diff {
+    flex-basis: 20%;
 }
 </style>
 

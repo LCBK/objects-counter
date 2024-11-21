@@ -47,7 +47,9 @@ function handleRemoveClick() {
 async function handleConfirmBackground() {
     viewState.isWaitingForResponse = true;
 
-    if (viewState.isEditingExistingResult && viewState.currentAction !== ImageAction.CreateDataset) {
+    if (viewState.isEditingExistingResult
+        && viewState.currentAction !== ImageAction.CreateDataset
+        && viewState.currentAction !== ImageAction.CompareWithDataset) {
         if (userState.isLoggedIn) {
             const deleteRequestUri = config.serverUri + endpoints.deleteResult.replace("{result_id}", imageState.resultId.toString());
             const deleteRequestData = JSON.stringify({});
@@ -59,7 +61,7 @@ async function handleConfirmBackground() {
 
     const requestUri = config.serverUri + endpoints.acceptBackground.replace("{image_id}", imageState.imageId.toString());
     const requestData = JSON.stringify({
-        as_dataset: viewState.currentAction === ImageAction.CreateDataset
+        skip_classification: viewState.currentAction === ImageAction.CreateDataset || viewState.currentAction === ImageAction.CompareWithDataset
     });
     const responsePromise = sendRequest(requestUri, requestData, "POST");
 
@@ -67,13 +69,15 @@ async function handleConfirmBackground() {
         viewState.isWaitingForResponse = false;
         if (viewState.currentState !== ViewStates.ImageEditPoints) return;
 
-        if (viewState.currentAction === ImageAction.CreateDataset) {
-            // Backend responds with elements without classifications, only for leader selection
+        if (viewState.currentAction === ImageAction.CreateDataset
+            || viewState.currentAction === ImageAction.CompareWithDataset
+        ) {
+            // Backend responds with elements without classifications, for leader selection or comparison
             parseElementsFromResponse(response.data.elements);
             if (response.data.id) imageState.resultId = response.data.id;
         }
         else {
-            // Otherwise the response contains classifications
+            // Otherwise the response contains classifications (for simple counting)
             parseClassificationsFromResponse(response.data.classifications);
             if (response.data.id) imageState.resultId = response.data.id;
         }
@@ -171,6 +175,12 @@ onMounted(() => {
 
 #negative-point.checked {
     background-color: rgba(255, 98, 89, 1);
+}
+
+@media screen and (min-width: 340px) {
+    #point-types {
+        bottom: 110px;
+    }
 }
 
 @media screen and (min-width: 768px) {

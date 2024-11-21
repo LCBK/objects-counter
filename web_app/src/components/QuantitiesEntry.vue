@@ -44,6 +44,12 @@ const isRenameDisabled = computed(() => {
         || imageState.objectClassifications.some((c) => c.classificationName === renameNewLabel.value)
     );
 });
+const difference = computed(() => {
+    return imageState.comparisonDifference[classificationName.value as any];
+});
+const diffClass = computed(() => {
+    return difference.value > 0 ? "diff-positive" : difference.value < 0 ? "diff-negative" : '';
+});
 
 
 function handleAssignClick() {
@@ -82,7 +88,25 @@ function confirmRename() {
     // When creating a dataset, classifications are final when confirming the dataset, rename locally.
     else {
         imageState.objectClassifications[props.index].classificationName = renameNewLabel.value;
-        isRenameDialogVisible.value = false;
+
+        const adjustClassificationsUri = config.serverUri + endpoints.adjustDatasetClassifications
+                .replace("{dataset_id}", imageState.datasetId.toString())
+                .replace("{image_id}", imageState.imageId.toString());
+        const adjustClassificationsRequestData = JSON.stringify({
+            classifications: imageState.objectClassifications.map((c) => {
+                return {
+                    name: c.classificationName,
+                    elements: imageState.imageElements.filter((el) => el.classificationIndex === c.index).map((el) => el.id)
+                };
+            })
+        });
+        const adjustClassificationsRequestPromise = sendRequest(adjustClassificationsUri, adjustClassificationsRequestData, "PATCH");
+        adjustClassificationsRequestPromise.then((response) => {
+            if (response.status !== 200) {
+                console.error("Failed to adjust classifications");
+            }
+            isRenameDialogVisible.value = false;
+        });
     }
 }
 </script>
@@ -90,7 +114,12 @@ function confirmRename() {
 
 <template>
     <div class="quantity">
-        <div class="quantity-count">{{ count }}</div>
+        <div :class="(viewState.currentAction === ImageAction.CompareWithDataset ? 'diff ' : '') + 'quantity-count'">
+            {{ count }}
+            <span v-if="viewState.currentAction === ImageAction.CompareWithDataset" :class="'diff-value ' + diffClass">
+                ({{ difference }})
+            </span>
+        </div>
         <div class="quantity-classification" @click="showRenameDialog(classificationName)">
             {{ formatClassificationName(classificationName) }}
         </div>
@@ -128,6 +157,10 @@ function confirmRename() {
     text-align: center;
 }
 
+.quantity-count.diff {
+    flex-basis: 20%;
+}
+
 .quantity-classification {
     flex-basis: 60%;
     font-size: 1rem;
@@ -163,5 +196,18 @@ function confirmRename() {
 .assign-button {
     padding: 5px 10px;
     font-size: 0.85rem;
+}
+
+.diff-value {
+    font-size: 0.9rem;
+    font-weight: 400;
+}
+
+.diff-positive {
+    color: var(--color-success);
+}
+
+.diff-negative {
+    color: var(--color-error);
 }
 </style>
