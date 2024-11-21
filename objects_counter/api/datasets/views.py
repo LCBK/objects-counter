@@ -80,16 +80,15 @@ class Dataset(Resource):
         data = request.json
         name = data.get('name', '')
         unfinished = data.get('unfinished', None)
+        if not name and unfinished is None:
+            log.error("No data provided for dataset update")
+            return Response("No data provided for dataset update", 400)
         try:
-            if not name and unfinished is None:
-                log.error("No data provided for dataset update")
-                return Response("No data provided for dataset update", 400)
-            else:
-                if name:
-                    dataset = rename_dataset(dataset_id, name, current_user)
-                if unfinished is not None:
-                    dataset = update_unfinished_state(dataset_id, unfinished, current_user)
-                return jsonify(dataset.as_dict())
+            if name:
+                dataset = rename_dataset(dataset_id, name, current_user)
+            if unfinished is not None:
+                dataset = update_unfinished_state(dataset_id, unfinished, current_user)
+            return jsonify(dataset.as_dict())
         except Forbidden as e:
             log.exception("User %s is not authorized to rename dataset %s: %s", current_user, dataset_id, e)
             return Response("You are not authorized to rename this dataset", 403)
