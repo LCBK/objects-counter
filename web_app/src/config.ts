@@ -1,6 +1,10 @@
 export const config = {
     // Backend communication
-    serverUri: "http://" + import.meta.env.VITE_BACKEND_ADDRESS,
+    serverAddress: import.meta.env.VITE_BACKEND_ADDRESS,
+    serverUseHttps: false,
+    get serverUri() {
+        return (this.serverUseHttps ? "https://" : "http://") + this.serverAddress;
+    },
     serverIsAliveDelay: 1500,           // [ms]
     serverIsAliveTimeout: 5000,         // [ms]
 
@@ -36,9 +40,12 @@ export const endpoints = {
     createDataset: "/api/datasets/",
     deleteDataset: "/api/datasets/{dataset_id}",
     renameDataset: "/api/datasets/{dataset_id}",
+    getDatasetImages: "/api/datasets/{dataset_id}/images",
+    addImageToDataset: "/api/datasets/{dataset_id}/images",
     getDatasetsThumbnails: "/api/datasets/thumbnails",
-    compareToDataset: "/api/results/{result_id}/compare/{dataset_id}",
-    classifyByLeaders: "/api/images/{image_id}/classify-by-leaders"
+    adjustDatasetClassifications: "/api/datasets/{dataset_id}/images/{image_id}",
+    compareToDataset: "/api/datasets/{dataset_id}/comparison",
+    markLeaders: "/api/images/{image_id}/mark-leaders"
 };
 
 export const boundingBoxColors = [

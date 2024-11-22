@@ -18,25 +18,37 @@
     background-color: var(--surface-section);
     z-index: 10;
     width: 100vw;
-    display: flex;
-    flex-direction: row;
-    flex-wrap: nowrap;
     -webkit-box-shadow: 0px 0px 6px 0px var(--color-shadow);
     -moz-box-shadow: 0px 0px 6px 0px var(--color-shadow);
     box-shadow: 0px 0px 6px 0px var(--color-shadow);
+}
+
+.bar-content {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    align-items: center;
+    height: 100%;
+    max-width: 768px;
+    margin: 0 auto;
 }
 
 .nav-bar {
     padding: 8px;
     position: fixed;
     top: 0;
-    justify-content: space-between;
     user-select: none;
+    height: 58px;
+}
+
+.nav-bar-content {
+    justify-content: space-between;
+    max-width: 768px;
+    width: 100%;
 }
 
 .wide-button {
-    width: 90%;
-    max-width: 240px;
+    width: calc(100% - 48px);
     height: 50px;
 }
 
@@ -100,6 +112,46 @@
     user-select: none;
 }
 
+.input-dialog {
+    max-width: 400px;
+    width: 95vw;
+}
+
+.input-dialog input {
+    margin-bottom: 30px;
+    width: 100%;
+}
+
+.input-dialog label {
+    display: inline-block;
+    margin-bottom: 8px;
+    color: var(--text-color-secondary);
+    user-select: none;
+}
+
+.input-dialog .dialog-controls {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+}
+
+/***** Animations *****/
+
+.fade-enter-active,
+.fade-leave-active {
+    transition: opacity 0.25s ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+    opacity: 0;
+}
+
+.fade-enter-to,
+.fade-leave-from {
+    opacity: 1;
+}
+
 /***** PrimeVue styles overrides *****/
 
 .pi {
@@ -112,7 +164,7 @@
 }
 
 .p-button-label {
-    letter-spacing: 0.35px;
+    letter-spacing: 0.2px;
 }
 
 .p-dialog-header-icons button {
@@ -157,4 +209,38 @@
     user-select: none;
     padding: 20px 24px 10px 24px;
     letter-spacing: 0.3px;
+}
+
+*:not(.p-selectbutton) > .p-button:not(.p-button-outlined):not(.p-button-text):hover {
+    background: var(--primary-color-hover);
+    border-color: var(--primary-color-hover);
+}
+
+/***** Media queries *****/
+@media screen and (min-width: 340px) {
+    .nav-bar {
+        height: 70px;
+        padding: 8px 10px;
+    }
+
+    .bar .pi {
+        font-size: 1.75rem;
+    }
+
+    .wide-button {
+        width: calc(100% - 48px);
+        height: 60px;
+        font-size: 1.2rem;
+        max-width: 420px;
+    }
+
+    .wide-button .p-button-icon {
+        font-size: 1.5rem;
+    }
+}
+
+@media screen and (min-width: 1200px) {
+    .bar-content {
+        max-width: 1200px;
+    }
 }

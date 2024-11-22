@@ -31,6 +31,7 @@ const assignedBoxColor = computed(() => {
 const popupText = ref<string>("");
 const popupHeader = ref<string>("");
 const popupVisible = ref<boolean>(false);
+const isSuccessfullyCreated = ref<boolean>(false);
 
 
 // Close quantities sidebar when user starts to assign classifications
@@ -45,21 +46,9 @@ function submitDataset() {
     const classifications = imageState.objectClassifications.map((classification) => {
         const elements = imageState.imageElements.filter((el) => el.classificationIndex === classification.index)
         const elementIds = elements.map((el) => el.id);
-        const leaders = elements.filter((el) => el.isLeader);
-
-        // These checks SHOULD never fail, so we don't need to show an error message
-        if (leaders.length === 0) {
-            console.error("No leader found for classification " + classification.classificationName);
-            return null;
-        }
-        else if (leaders.length > 1) {
-            console.error("Multiple leaders found for classification " + classification.classificationName);
-            return null;
-        }
 
         return {
             name: classification.classificationName,
-            leader: leaders[0].id,
             elements: elementIds
         };
     });
@@ -70,19 +59,36 @@ function submitDataset() {
         return;
     }
 
-    const requestUri = config.serverUri + endpoints.createDataset;
-    const requestData = JSON.stringify({
-        name: datasetName.value,
-        image_id: imageState.imageId,
+    const changeElementsUri = config.serverUri + endpoints.adjustDatasetClassifications
+        .replace("{dataset_id}", imageState.datasetId.toString())
+        .replace("{image_id}", imageState.imageId.toString());
+    const changeElementsRequestData = JSON.stringify({
         classifications: classifications
     });
 
-    const requestPromise = sendRequest(requestUri, requestData, "POST");
-    requestPromise.then((response) => {
-        if (response.status === 200) {
-            popupText.value = "Dataset created successfully";
-            popupHeader.value = "Success";
-            popupVisible.value = true;
+    const changeElementsRequestPromise = sendRequest(changeElementsUri, changeElementsRequestData, "PATCH");
+    changeElementsRequestPromise.then((changeElementsResponse) => {
+        if (changeElementsResponse.status === 200) {
+            const renameDatasetUri = config.serverUri + endpoints.renameDataset
+                .replace("{dataset_id}", imageState.datasetId.toString());
+            const renameDatasetRequestData = JSON.stringify({
+                name: datasetName.value
+            });
+
+            const renameDatasetRequestPromise = sendRequest(renameDatasetUri, renameDatasetRequestData, "PATCH");
+            renameDatasetRequestPromise.then((renameDatasetResponse) => {
+                if (renameDatasetResponse.status === 200) {
+                    popupText.value = "Dataset submitted successfully";
+                    popupHeader.value = "Success";
+                    popupVisible.value = true;
+                    isSuccessfullyCreated.value = true;
+                }
+                else {
+                    popupText.value = "Failed to submit dataset";
+                    popupHeader.value = "Error";
+                    popupVisible.value = true;
+                }
+            });
         }
         else {
             popupText.value = "Failed to submit dataset";
@@ -95,8 +101,10 @@ function submitDataset() {
 
 function handleCreatedDataset() {
     window.setTimeout(() => {
-        viewState.reset();
-        imageState.reset();
+        if (isSuccessfullyCreated.value) {
+            viewState.reset();
+            imageState.reset();
+        }
     }, 500);
 }
 </script>
@@ -104,14 +112,16 @@ function handleCreatedDataset() {
 
 <template>
     <div class="image-view-tool-bar bar">
-        <VButton text label="Adjust categories" icon="pi pi-list" @click="quantitiesVisible = true" />
-        <div class="element-count">
-            <span class="element-count-value">{{ imageState.imageElements.length }}</span>
-            <span class="element-count-label">Elements</span>
+        <div class="bar-content tool-bar-content">
+            <VButton text label="Adjust categories" icon="pi pi-list" @click="quantitiesVisible = true" />
+            <div class="element-count">
+                <span class="element-count-value">{{ imageState.imageElements.length }}</span>
+                <span class="element-count-label">Elements</span>
+            </div>
+            <VButton text label="Submit dataset" icon="pi pi-check" @click="datasetDialogVisible = true" />
         </div>
-        <VButton text label="Submit dataset" icon="pi pi-check" @click="datasetDialogVisible = true" />
     </div>
-    <Transition name="assign-fade">
+    <Transition name="fade">
         <div v-if="viewState.isAssigningClassifications" class="assignment-notice">
             <VButton text icon="pi pi-times" @click="viewState.isAssigningClassifications = false" />
             <div>
@@ -135,8 +145,8 @@ function handleCreatedDataset() {
             <div v-if="classifications.length === 0" class="no-elements-notice notice">(no elements found)</div>
         </div>
     </VSidebar>
-    <VDialog v-model:visible="datasetDialogVisible" modal header="Submit dataset" class="dataset-dialog"
-            :dismissable-mask="true" :draggable="false">
+    <VDialog v-model:visible="datasetDialogVisible" modal header="Submit dataset"
+            class="dataset-dialog input-dialog" :dismissable-mask="true" :draggable="false">
         <label for="dataset-name" class="dataset-label">Dataset name</label>
         <VInputText v-model="datasetName" class="dataset-name" :autofocus="true" :inputId="'dataset-name'"
                 placeholder="My board game" />
@@ -151,24 +161,6 @@ function handleCreatedDataset() {
 
 
 <style scoped>
-.dataset-dialog input {
-    margin-bottom: 30px;
-    width: 100%;
-}
-
-.dataset-dialog label {
-    display: inline-block;
-    margin-bottom: 8px;
-    color: var(--text-color-secondary);
-    user-select: none;
-}
-
-.dataset-dialog .dialog-controls {
-    display: flex;
-    justify-content: flex-end;
-    gap: 12px;
-}
-
 .change-categories {
     margin: 0 auto 5px auto;
     display: block;
@@ -197,16 +189,19 @@ function handleCreatedDataset() {
     margin-right: 6px;
 }
 
-.assign-fade-enter-active, .assign-fade-leave-active {
-    transition: opacity .2s;
-}
+@media screen and (min-width: 400px) {
+    .assignment-notice-label {
+        font-size: 1rem;
+    }
 
-.assign-fade-enter-from, .assign-fade-leave-to {
-    opacity: 0;
-}
+    .assignment-notice-value::before {
+        width: 12px;
+        height: 12px;
+    }
 
-.assign-fade-enter-to, .assign-fade-leave-from {
-    opacity: 1;
+    .assignment-notice-value {
+        font-size: 1.2rem;
+    }
 }
 </style>
 
@@ -217,5 +212,11 @@ function handleCreatedDataset() {
 
 .change-categories .pi {
     margin-right: 8px;
+}
+
+@media screen and (min-width: 400px) {
+    .change-categories .p-button-label {
+        font-size: 1.1rem;
+    }
 }
 </style>

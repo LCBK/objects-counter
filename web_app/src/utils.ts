@@ -115,6 +115,40 @@ export function parseClassificationsFromResponse(classifications: Array<any>) : 
 }
 
 
+// TODO: rework, cleanup
+export function parseClassificationsFromElementsResponse(elements: Array<any>) : void {
+    const imageState = useImageStateStore();
+    const classifications = [] as Array<string>;
+
+    elements.forEach((element: any) => {
+        if (!classifications.includes(element.classification)) {
+            classifications.push(element.classification);
+        }
+    });
+
+    classifications.forEach((classification: string, index: number) => {
+        const classificationElements = elements.filter((element: any) => element.classification === classification);
+        imageState.objectClassifications.push({
+            index: index,
+            classificationName: classification,
+            count: classificationElements.length,
+            showBoxes: true,
+            boxColor: boundingBoxColors[index % boundingBoxColors.length]
+        });
+
+        classificationElements.forEach((element: any) => {
+            imageState.imageElements.push({
+                id: element.id,
+                topLeft: element.top_left,
+                bottomRight: element.bottom_right,
+                certainty: element.certainty,
+                classificationIndex: index
+            });
+        });
+    });
+}
+
+
 export function parseElementsFromResponse(elements: Array<any>) : void {
     const imageState = useImageStateStore();
     for (const element of elements) {
@@ -159,6 +193,10 @@ export function checkServerStatus() : Promise<boolean> {
             .then(response => {
                 if (response.status === 200) {
                     resolve(true);
+                } else if (response.status === 401) {
+                    const userState = useUserStateStore();
+                    userState.logout();
+                    resolve(true);
                 } else {
                     resolve(false);
                 }
@@ -170,4 +208,9 @@ export function checkServerStatus() : Promise<boolean> {
 
 export function base64ToImageUri(base64: string) : string {
     return "data:image/png;base64," + base64;
+}
+
+
+export function isUserAgentMobile() : boolean {
+    return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 }

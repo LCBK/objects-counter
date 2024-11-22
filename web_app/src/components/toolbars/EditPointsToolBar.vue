@@ -47,7 +47,9 @@ function handleRemoveClick() {
 async function handleConfirmBackground() {
     viewState.isWaitingForResponse = true;
 
-    if (viewState.isEditingExistingResult && viewState.currentAction !== ImageAction.CreateDataset) {
+    if (viewState.isEditingExistingResult
+        && viewState.currentAction !== ImageAction.CreateDataset
+        && viewState.currentAction !== ImageAction.CompareWithDataset) {
         if (userState.isLoggedIn) {
             const deleteRequestUri = config.serverUri + endpoints.deleteResult.replace("{result_id}", imageState.resultId.toString());
             const deleteRequestData = JSON.stringify({});
@@ -59,7 +61,7 @@ async function handleConfirmBackground() {
 
     const requestUri = config.serverUri + endpoints.acceptBackground.replace("{image_id}", imageState.imageId.toString());
     const requestData = JSON.stringify({
-        as_dataset: viewState.currentAction === ImageAction.CreateDataset
+        skip_classification: viewState.currentAction === ImageAction.CreateDataset || viewState.currentAction === ImageAction.CompareWithDataset
     });
     const responsePromise = sendRequest(requestUri, requestData, "POST");
 
@@ -67,15 +69,17 @@ async function handleConfirmBackground() {
         viewState.isWaitingForResponse = false;
         if (viewState.currentState !== ViewStates.ImageEditPoints) return;
 
-        if (viewState.currentAction === ImageAction.CreateDataset) {
-            // Backend responds with elements without classifications, only for leader selection
+        if (viewState.currentAction === ImageAction.CreateDataset
+            || viewState.currentAction === ImageAction.CompareWithDataset
+        ) {
+            // Backend responds with elements without classifications, for leader selection or comparison
             parseElementsFromResponse(response.data.elements);
             if (response.data.id) imageState.resultId = response.data.id;
         }
         else {
-            // Otherwise the response contains classifications
-            parseClassificationsFromResponse(JSON.parse(response.data).classifications);
-            if (JSON.parse(response.data).id) imageState.resultId = JSON.parse(response.data).id;
+            // Otherwise the response contains classifications (for simple counting)
+            parseClassificationsFromResponse(response.data.classifications);
+            if (response.data.id) imageState.resultId = response.data.id;
         }
 
         switch (viewState.currentAction) {
@@ -101,14 +105,16 @@ onMounted(() => {
 
 <template>
     <div class="image-view-tool-bar bar">
-        <VButton text label="Add points" icon="pi pi-plus"
-                :disabled="allButtonsDisabled" @click="handleAddClick"
-                :class="viewState.isAddingPoint ? 'active ' : '' + 'add-points'" />
-        <VButton text label="Remove points" icon="pi pi-minus"
-                :disabled="allButtonsDisabled" @click="handleRemoveClick"
-                :class="viewState.isRemovingPoint ? 'active ' : '' + 'remove-points'" />
-        <VButton text label="Confirm selection" class="confirm-points" icon="pi pi-check"
-                :disabled="confirmButtonDisabled || allButtonsDisabled" @click="handleConfirmBackground" />
+        <div class="bar-content tool-bar-content">
+            <VButton text label="Add points" icon="pi pi-plus"
+                    :disabled="allButtonsDisabled" @click="handleAddClick"
+                    :class="viewState.isAddingPoint ? 'active ' : '' + 'add-points'" />
+            <VButton text label="Remove points" icon="pi pi-minus"
+                    :disabled="allButtonsDisabled" @click="handleRemoveClick"
+                    :class="viewState.isRemovingPoint ? 'active ' : '' + 'remove-points'" />
+            <VButton text label="Confirm selection" class="confirm-points" icon="pi pi-check"
+                    :disabled="confirmButtonDisabled || allButtonsDisabled" @click="handleConfirmBackground" />
+        </div>
     </div>
     <div id="point-types" ref="pointTypePanel" v-show="displayPointTypes">
         <div id="positive-point" ref="positivePointButton" @click="setPositivePointType">+</div>
@@ -169,5 +175,25 @@ onMounted(() => {
 
 #negative-point.checked {
     background-color: rgba(255, 98, 89, 1);
+}
+
+@media screen and (min-width: 340px) {
+    #point-types {
+        bottom: 110px;
+    }
+}
+
+@media screen and (min-width: 768px) {
+    #point-types {
+        /* Half of a toolbar button's length (768px * 1/6) minus half of own width (45px) plus half of bar margin */
+        left: calc((768px * 0.1667) - 45px + (50vw - 768px / 2));
+    }
+}
+
+@media screen and (min-width: 1200px) {
+    #point-types {
+        /* Half of a toolbar button's length (1200px * 1/6) minus half of own width (45px) plus half of bar margin */
+        left: calc((1200px * 0.1667) - 45px + (50vw - 1200px / 2));
+    }
 }
 </style>

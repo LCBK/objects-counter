@@ -26,12 +26,14 @@ function handleReturnClick() {
 
 <template>
     <div class="image-view-tool-bar bar">
-        <VButton text label="Adjust" icon="pi pi-pencil" @click="handleReturnClick();" />
-        <div class="element-count">
-            <span class="element-count-value">{{ imageState.imageElements.length }}</span>
-            <span class="element-count-label">Elements</span>
+        <div class="bar-content tool-bar-content">
+            <VButton text label="Adjust" icon="pi pi-pencil" @click="handleReturnClick();" />
+            <div class="element-count">
+                <span class="element-count-value">{{ imageState.imageElements.length }}</span>
+                <span class="element-count-label">Elements</span>
+            </div>
+            <VButton text label="Details" icon="pi pi-list" @click="quantitiesVisible = true" />
         </div>
-        <VButton text label="Details" icon="pi pi-list" @click="quantitiesVisible = true" />
     </div>
     <VSidebar v-model:visible="quantitiesVisible" position="bottom" style="height: auto" class="quantities" header="Counted elements">
         <div class="quantities-label-notice notice">You can toggle label visibility in the settings</div>

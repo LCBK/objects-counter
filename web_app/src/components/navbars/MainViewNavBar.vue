@@ -11,9 +11,11 @@ const userState = useUserStateStore();
 
 <template>
     <div class="main-view-nav-bar nav-bar bar">
-        <SettingsWidget />
-        <VButton text rounded icon="pi pi-user" icon-pos="right" class="user-navbar-button"
-                :label=userState.username @click="viewState.setState(ViewStates.UserView)" />
+        <div class="nav-bar-content bar-content">
+            <SettingsWidget />
+            <VButton text rounded icon="pi pi-user" icon-pos="right" class="user-navbar-button"
+                    :label=userState.username @click="viewState.setState(ViewStates.UserView)" />
+        </div>
     </div>
 </template>
 
@@ -22,5 +24,11 @@ const userState = useUserStateStore();
 .user-navbar-button .p-button-label {
     margin-right: 16px;
     font-weight: 500 !important;
+}
+
+@media (min-width: 340px) {
+    .user-navbar-button .p-button-label {
+        font-size: 1.2rem;
+    }
 }
 </style>

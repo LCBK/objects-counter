@@ -40,8 +40,11 @@ log = logging.getLogger(__name__)
 
 @api.route('/is-alive')
 class IsAlive(Resource):
-    def get(self) -> typing.Any:
-        return 'Flask is alive!'
+    @api.response(200, "Flask is alive")
+    @api.response(401, "User has invalid/outdated token")
+    @authentication_optional  # if user has invalid/outdated token, it will return 401
+    def get(self, _) -> typing.Any:
+        return 'Flask is alive!', 200
 
 
 @api.route('/version')
@@ -144,7 +147,7 @@ class AcceptBackgroundPoints(Resource):
     @api.response(500, "Error processing image")
     @authentication_optional
     def post(self, current_user: User, image_id: int) -> typing.Any:
-        as_dataset = request.json.get('as_dataset', False)
+        skip_classification = request.json.get('skip_classification', False)
         try:
             image = get_image_by_id(image_id)
         except NotFound as e:
@@ -153,9 +156,9 @@ class AcceptBackgroundPoints(Resource):
 
         sam.count_objects(image)
 
-        if not as_dataset:
+        if not skip_classification:
             object_grouper.group_objects_by_similarity(image)
-            response = serialize_image_as_result(image)
+            response_dict = serialize_image_as_result(image)
         else:
             if not current_user:
                 log.error("User must be logged in")
@@ -164,13 +167,15 @@ class AcceptBackgroundPoints(Resource):
 
         if current_user:
             user_id = current_user.id
-            result = insert_result(user_id, image.id, response)
-            response["id"] = result.id
-            return json.dumps(response), 201
-        return json.dumps(response), 200
+            result = insert_result(user_id, image.id, response_dict)
+            response_dict["id"] = result.id
+            response = jsonify(response_dict)
+            response.status_code = 201
+            return response
+        return jsonify(response_dict)
 
 
-@api.route('/images/<int:image_id>/classify-by-leaders')
+@api.route('/images/<int:image_id>/mark-leaders')
 class ClassifyByLeaders(Resource):
     @api.doc(params={'image_id': 'The image ID'})
     @api.expect({'leaders': [int]})
@@ -187,8 +192,7 @@ class ClassifyByLeaders(Resource):
         try:
             image = get_image_by_id(image_id)
             mark_leaders_in_image(image, leaders)
-            object_grouper.assign_categories_by_representatives(image)
-            return Response(json.dumps(serialize_image_as_result(image)), 200)
+            return Response('Success', 200)
         except NotFound as e:
             log.exception("Image %s not found: %s", image_id, e)
             return Response('Image not found', 404)

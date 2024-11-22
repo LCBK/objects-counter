@@ -31,4 +31,15 @@ import LoadingSpinner from "../LoadingSpinner.vue";
     letter-spacing: 0.5px;
     font-size: 1.1rem;
 }
+
+@media screen and (min-width: 340px) {
+    #loading-view .loader {
+        width: 80px;
+        height: 80px;
+    }
+
+    #loading-view .uploading-text {
+        font-size: 1.3rem;
+    }
+}
 </style>

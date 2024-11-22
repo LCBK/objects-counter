@@ -86,7 +86,7 @@ const additionalInfoBarClasses = computed(() => {
 }
 
 #additional-info-bar.info-collapsed {
-    top: -2px;
+    top: 0;
 }
 
 #additional-info-bar.info-waiting p,
@@ -99,6 +99,37 @@ const additionalInfoBarClasses = computed(() => {
         width: 85%;
     }
 }
+
+@media screen and (min-width: 340px) {
+    #additional-info-bar {
+        top: 70px;
+        min-height: 65px;
+        align-items: center;
+    }
+
+    #additional-info-bar p {
+        font-size: 1rem;
+        line-height: 1.4rem;
+    }
+
+    #additional-info-bar.info-collapsed {
+        top: 6px;
+    }
+}
+
+@media screen and (min-width: 768px) {
+    #additional-info-bar p {
+        max-width: 768px;
+        margin-left: calc(50vw - 768px / 2);
+    }
+}
+
+@media screen and (min-width: 1200px) {
+    #additional-info-bar p {
+        max-width: 1200px;
+        margin-left: calc(50vw - 1200px / 2);
+    }
+}
 </style>
 
 <style>
@@ -108,7 +139,7 @@ const additionalInfoBarClasses = computed(() => {
     right: unset;
     margin: auto;
     margin-right: 7px;
-    transition: 0.1s;
+    transition: 0.1s opacity;
 }
 
 #additional-info-bar.info-collapsed #instructions-button {
@@ -121,5 +152,25 @@ const additionalInfoBarClasses = computed(() => {
 
 #additional-info-bar .collapse-button .pi {
     margin-right: 0;
+}
+
+@media screen and (min-width: 788px) and (max-width: 1200px) {
+    #additional-info-bar #instructions-button {
+        margin-right: calc(50vw - 768px / 2);
+    }
+
+    #additional-info-bar .collapse-button {
+        left: calc(50vw - 768px / 2 + 80px) !important;
+    }
+}
+
+@media screen and (min-width: 1220px) {
+    #additional-info-bar #instructions-button {
+        margin-right: calc(50vw - 1200px / 2);
+    }
+
+    #additional-info-bar .collapse-button {
+        left: calc(50vw - 1200px / 2 + 80px) !important;
+    }
 }
 </style>

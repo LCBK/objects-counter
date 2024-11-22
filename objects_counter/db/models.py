@@ -79,14 +79,17 @@ class Dataset(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     name = db.Column(db.String(255), nullable=False)
     timestamp = db.Column(db.DateTime, nullable=False, default=db.func.now())
+    unfinished = db.Column(db.Boolean, nullable=False, default=False)
     user_id = db.Column(db.Integer, db.ForeignKey(User.id), nullable=False)
     user = db.relationship('User', backref='datasets')
+    preprocessed = False
 
     def as_dict(self):
         return {
             'id': self.id,
             'name': self.name,
             'user': self.user.username,
+            'unfinished': self.unfinished,
             'timestamp': self.timestamp,
             'images': [image.as_dict() for image in self.images]
         }
