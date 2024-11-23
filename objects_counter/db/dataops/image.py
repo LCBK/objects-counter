@@ -206,7 +206,7 @@ def serialize_image_as_result(image: Image) -> dict:
 def mark_leaders_in_image(image: Image, leader_ids: list[int]) -> None:
     for idx, leader in enumerate(leader_ids):
         set_element_as_leader(leader, image)
-        ImageElement.query.filter_by(id=int(leader)).update({'classification': f'{idx}'})
+        ImageElement.query.filter_by(id=int(leader)).update({'classification': f'{idx + 1}'})
     try:
         db.session.commit()
     except DatabaseError as e:
