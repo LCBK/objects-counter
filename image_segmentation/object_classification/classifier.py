@@ -62,11 +62,13 @@ class ObjectClassifier:
 
         return (color_weight * color_sim) + ((1 - color_weight) * feature_sim)
 
-    def group_objects_by_similarity(self, image: Image, threshold: float = 0.7,
+    def group_objects_by_similarity(self, images: List[Image], threshold: float = 0.7,
                                     color_weight: float = DEFAULT_COLOR_WEIGHT) -> None:
         """Groups objects by their similarity based on a combination of feature and color similarity."""
-        self.process_image_elements(image)
-        self.assign_categories_based_on_similarity(image, threshold, color_weight)
+        for image in images:
+            self.process_image_elements(image)
+        elements = [element for image in images for element in image.elements]
+        self.assign_categories_based_on_similarity(elements, threshold, color_weight)
         delete_temp_images(TEMP_IMAGE_DIR)
 
     def preprocess_dataset(self, dataset):
@@ -165,9 +167,8 @@ class ObjectClassifier:
             assert best_category is not None
             self.update_element_category(element.id, best_category, best_certainty)
 
-    def assign_categories_based_on_similarity(self, image: Image, threshold: float, color_weight: float) -> None:
+    def assign_categories_based_on_similarity(self, elements: List[ImageElement], threshold: float, color_weight: float) -> None:
         """Assigns elements to categories based on their similarity scores."""
-        elements = image.elements
         num_elements = len(elements)
         analyzed_elements = set()
         category_id = 1
