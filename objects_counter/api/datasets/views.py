@@ -199,7 +199,7 @@ class AdjustClassifications(Resource):
                 return Response("Image does not belong to dataset", 400)
             classifications = data.get('classifications', [])
             bulk_update_element_classification_by_id(classifications)
-            return Response(serialize_image_as_result(image), 200)
+            return jsonify(serialize_image_as_result(image))
         except ValueError as e:
             log.exception("Invalid dataset ID %s or image ID %s: %s", dataset_id, image_id, e)
             return Response("Invalid dataset ID or image ID", 400)
