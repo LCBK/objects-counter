@@ -2,11 +2,12 @@
 import "./ImageViewToolBar.css";
 import VButton from "primevue/button";
 import { ImageAction, useViewStateStore, ViewStates } from "@/stores/viewState";
-import { config, endpoints } from "@/config";
 import { useImageStateStore } from "@/stores/imageState";
-import { parseClassificationsFromResponse, parseElementsFromResponse, sendRequest } from "@/utils";
+import { parseClassificationsFromResponse, parseElementsFromResponse } from "@/utils";
 import { computed, onMounted, ref } from "vue";
 import { useUserStateStore } from "@/stores/userState";
+import { deleteResult } from "@/requests/results";
+import { acceptBackground } from "@/requests/images";
 
 
 const viewState = useViewStateStore();
@@ -51,35 +52,31 @@ async function handleConfirmBackground() {
         && viewState.currentAction !== ImageAction.CreateDataset
         && viewState.currentAction !== ImageAction.CompareWithDataset) {
         if (userState.isLoggedIn) {
-            const deleteRequestUri = config.serverUri + endpoints.deleteResult.replace("{result_id}", imageState.resultId.toString());
-            const deleteRequestData = JSON.stringify({});
-            await sendRequest(deleteRequestUri, deleteRequestData, "DELETE");
+            await deleteResult(imageState.resultId);
         }
 
         viewState.isEditingExistingResult = false;
     }
 
-    const requestUri = config.serverUri + endpoints.acceptBackground.replace("{image_id}", imageState.imageId.toString());
-    const requestData = JSON.stringify({
-        skip_classification: viewState.currentAction === ImageAction.CreateDataset || viewState.currentAction === ImageAction.CompareWithDataset
-    });
-    const responsePromise = sendRequest(requestUri, requestData, "POST");
+    const skipClassification = (
+        viewState.currentAction === ImageAction.CreateDataset
+        || viewState.currentAction === ImageAction.CompareWithDataset
+    );
 
-    responsePromise.then((response) => {
+    await acceptBackground(imageState.imageId, skipClassification).then((response) => {
         viewState.isWaitingForResponse = false;
         if (viewState.currentState !== ViewStates.ImageEditPoints) return;
 
-        if (viewState.currentAction === ImageAction.CreateDataset
-            || viewState.currentAction === ImageAction.CompareWithDataset
-        ) {
-            // Backend responds with elements without classifications, for leader selection or comparison
-            parseElementsFromResponse(response.data.elements);
-            if (response.data.id) imageState.resultId = response.data.id;
+        if (response.id) imageState.resultId = response.id;
+
+        // TODO: rewrite?
+        if ("classifications" in response) {
+            // Otherwise the response contains classifications (for simple counting)
+            parseClassificationsFromResponse(response.classifications);
         }
         else {
-            // Otherwise the response contains classifications (for simple counting)
-            parseClassificationsFromResponse(response.data.classifications);
-            if (response.data.id) imageState.resultId = response.data.id;
+            // Backend responds with elements without classifications, for leader selection or comparison
+            parseElementsFromResponse(response.elements);
         }
 
         switch (viewState.currentAction) {

@@ -1,7 +1,8 @@
-import { boundingBoxColors, config, endpoints } from "./config";
+import { boundingBoxColors, config } from "./config";
 import { useUserStateStore } from "./stores/userState";
 import { useImageStateStore } from "./stores/imageState";
-import type { DatasetClassificationListItem, DatasetResponseClassification, GetDatasetResponse, ImageElement, ObjectClassification } from "./types";
+import type { GetDatasetResponse } from "./types/responses";
+import type { DatasetClassificationListItem, DatasetResponseClassification, ImageElement } from "./types/app";
 
 
 export interface Response {
@@ -11,42 +12,42 @@ export interface Response {
 
 
 export async function sendRequest(
-    uri: string, data: FormData | string | null, method: string = "POST",
-    requestType: string = "application/json", toJson: boolean = true
-) : Promise<Response> {
+    uri: string, data: FormData | string | null, method: string, type: string = "application/json"
+): Promise<globalThis.Response> {
+    const headers = new Headers();
+
+    if (!(data instanceof FormData)) {
+        headers.append("Content-Type", type);
+    }
+
+    const userState = useUserStateStore();
+    if (userState.isLoggedIn) {
+        headers.append("Authorization", userState.userToken);
+    }
+
+    const request: RequestInit = {
+        method: method,
+        body: data,
+        headers: headers
+    }
+
     try {
-        const userState = useUserStateStore();
-
-        const request: RequestInit = {
-            method: method,
-            body: data
-        }
-
-        const requestHeaders: HeadersInit = new Headers();
-        if (!(data instanceof FormData)) {
-            requestHeaders.append("Content-Type", requestType);
-        }
-        if (userState.isLoggedIn) {
-            requestHeaders.append("Authorization", userState.userToken);
-        }
-        request.headers = requestHeaders;
-
         const response = await fetch(uri, request);
-        let result;
-        if (toJson) {
-            result = await response.clone().json().catch(() => response.text());
-        }
-        else {
-            result = await response;
-        }
 
         if (config.logResponses) {
-            console.log(`Response for request to ${uri} (${response.status}): `, result);
+            // Clone responses to avoid consuming the original one
+            const jsonResponse = response.clone();
+            const textResponse = response.clone();
+            console.log(
+                `Response from ${uri} (${response.status}): `,
+                jsonResponse.json().catch(() => textResponse.text())
+            );
         }
 
-        return { data: result, status: response.status };
-    } catch (error) {
-        return Promise.reject(`Request to ${uri} failed: ${error}`);
+        return response;
+    }
+    catch (error) {
+        return Promise.reject(`Request to ${method} ${uri} failed: ${error}`);
     }
 }
 
@@ -81,13 +82,14 @@ export function createMaskImage(mask: Array<Array<boolean>>) : ImageData {
 }
 
 
+// TODO: rework, type
 export function parseClassificationsFromResponse(classifications: Array<any>) : void {
     const imageState = useImageStateStore();
 
     classifications.forEach((classification: any, index: number) => {
-        imageState.objectClassifications.push({
+        imageState.classifications.push({
             index: index,
-            classificationName: classification.name,
+            name: classification.name,
             count: classification.objects.length,
             showBoxes: true,
             boxColor: boundingBoxColors[index % boundingBoxColors.length]
@@ -128,9 +130,9 @@ export function parseClassificationsFromElementsResponse(elements: Array<any>) :
 
     classifications.forEach((classification: string, index: number) => {
         const classificationElements = elements.filter((element: any) => element.classification === classification);
-        imageState.objectClassifications.push({
+        imageState.classifications.push({
             index: index,
-            classificationName: classification,
+            name: classification,
             count: classificationElements.length,
             showBoxes: true,
             boxColor: boundingBoxColors[index % boundingBoxColors.length]
@@ -184,25 +186,6 @@ export function getClassificationsFromDataset(dataset: GetDatasetResponse) : Arr
         } as DatasetClassificationListItem;
     });
     return classificationList;
-}
-
-
-export function checkServerStatus() : Promise<boolean> {
-    return new Promise((resolve) => {
-        sendRequest(config.serverUri + endpoints.isAlive, null, "GET")
-            .then(response => {
-                if (response.status === 200) {
-                    resolve(true);
-                } else if (response.status === 401) {
-                    const userState = useUserStateStore();
-                    userState.logout();
-                    resolve(true);
-                } else {
-                    resolve(false);
-                }
-            })
-            .catch(() => resolve(false));
-    });
 }
 
 

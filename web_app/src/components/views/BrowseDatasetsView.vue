@@ -1,13 +1,13 @@
 <script setup lang="ts">
 import VButton from "primevue/button";
 import { useViewStateStore, ViewStates } from "@/stores/viewState";
-import type { DatasetListItem } from "@/types";
-import { config, endpoints } from "@/config";
-import { base64ToImageUri, sendRequest, type Response } from "@/utils";
+import type { DatasetListItem } from "@/types/app";
+import { base64ToImageUri } from "@/utils";
 import SettingsWidget from "../SettingsWidget.vue";
 import { onMounted, ref } from "vue";
 import DatasetListItemComponent from "../DatasetListItem.vue";
 import LoadingSpinner from "../LoadingSpinner.vue";
+import { getDatasets, getDatasetsThumbnails } from "@/requests/datasets";
 
 
 
@@ -20,46 +20,29 @@ function onBack() {
     viewState.setState(ViewStates.UserView);
 }
 
-function loadDatasets() {
-    const datasetRequestUri = config.serverUri + endpoints.getDatasets;
-    const datasetRequestPromise = sendRequest(datasetRequestUri, null, "GET");
-
-    const thumbnailsRequestUri = config.serverUri + endpoints.getDatasetsThumbnails;
-    const thumbnailsRequestPromise = sendRequest(thumbnailsRequestUri, null, "GET");
-
+async function loadDatasets() {
     viewState.isWaitingForResponse = true;
-    datasetRequestPromise.then((response) => {
-        if (response.status === 200) {
-            userDatasets.value = [];
-            for (const dataset of response.data) {
-                userDatasets.value.push({
-                    id: dataset.id,
-                    name: dataset.name,
-                    timestamp: Date.parse(dataset.timestamp)
-                } as DatasetListItem);
-            }
-        }
-        else {
-            console.error("Failed to retrieve datasets");
+
+    await getDatasets().then((response) => {
+        userDatasets.value = [];
+        for (const dataset of response) {
+            userDatasets.value.push({
+                id: dataset.id,
+                name: dataset.name,
+                timestamp: Date.parse(dataset.timestamp)
+            } as DatasetListItem);
         }
     })
-    .then(() => {
-        thumbnailsRequestPromise.then((response: Response) => {
-            if (response.status != 200) {
-                console.error("Failed to load result history thumbnails");
-                return;
-            }
 
-            const responseItems = response.data;
-            for (const item of responseItems) {
-                const datasetItem = userDatasets.value.find((datasetItem) => datasetItem.id == item.id) as DatasetListItem;
-                if (datasetItem) {
-                    datasetItem.thumbnailUri = base64ToImageUri(item.thumbnail);
-                }
+    await getDatasetsThumbnails().then((response) => {
+        for (const item of response) {
+            const datasetItem = userDatasets.value.find((datasetItem) => datasetItem.id == item.id) as DatasetListItem;
+            if (datasetItem) {
+                datasetItem.thumbnailUri = base64ToImageUri(item.thumbnail);
             }
+        }
 
-            viewState.isWaitingForResponse = false;
-        });
+        viewState.isWaitingForResponse = false;
     });
 }
 

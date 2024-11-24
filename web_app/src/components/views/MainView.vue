@@ -7,7 +7,7 @@ import ImageInput from "../ImageInput.vue";
 import InstructionsWidget from "../InstructionsWidget.vue";
 import LoadingSpinner from "../LoadingSpinner.vue";
 import MainViewNavBar from "../navbars/MainViewNavBar.vue";
-import { checkServerStatus } from "@/utils";
+import { checkServerStatus } from "@/requests/other";
 import { onMounted, ref } from "vue";
 import { config } from "@/config";
 
