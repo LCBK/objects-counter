@@ -25,18 +25,21 @@ async function loadDatasets() {
 
     await getDatasets().then((response) => {
         userDatasets.value = [];
-        for (const dataset of response) {
+        for (const dataset of response.filter((d) => !d.unfinished)) {
             userDatasets.value.push({
                 id: dataset.id,
                 name: dataset.name,
                 timestamp: Date.parse(dataset.timestamp)
             } as DatasetListItem);
         }
+        userDatasets.value = userDatasets.value.sort((a, b) => b.timestamp - a.timestamp);
     })
 
     await getDatasetsThumbnails().then((response) => {
         for (const item of response) {
-            const datasetItem = userDatasets.value.find((datasetItem) => datasetItem.id == item.id) as DatasetListItem;
+            const datasetItem = userDatasets.value
+                .find((datasetItem) => datasetItem.id == item.id) as DatasetListItem;
+
             if (datasetItem) {
                 datasetItem.thumbnailUri = base64ToImageUri(item.thumbnail);
             }
@@ -64,7 +67,7 @@ onMounted(async () => {
         </div>
         <p class="browse-datasets-notice notice">tap on a dataset to view details</p>
         <div class="browse-datasets-list">
-            <DatasetListItemComponent v-for="(dataset, index) in userDatasets.sort((a, b) => b.timestamp - a.timestamp)"
+            <DatasetListItemComponent v-for="(dataset, index) in userDatasets"
                     :key="index" v-bind="dataset" @data-changed="loadDatasets" />
         </div>
         <p v-if="userDatasets.length === 0" class="notice">no items to show</p>

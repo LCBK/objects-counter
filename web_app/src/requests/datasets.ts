@@ -55,9 +55,12 @@ export async function getDatasetsThumbnails() {
 }
 
 
-export async function createDataset(name: string) {
+export async function createDataset(name: string, unfinished: boolean = false) {
     const requestUri = config.serverUri + endpoints.createDataset;
-    const requestData = JSON.stringify({ name: name });
+    const requestData = JSON.stringify({
+        name: name,
+        unfinished: unfinished
+    });
 
     const requestPromise = sendRequest(requestUri, requestData, "POST");
     const response = await requestPromise;
@@ -71,10 +74,13 @@ export async function createDataset(name: string) {
 }
 
 
-export async function renameDataset(id: string | number, name: string) {
+export async function renameDataset(id: string | number, name: string, unfinished: boolean = false) {
     const requestUri = config.serverUri + endpoints.renameDataset
         .replace("{dataset_id}", id.toString());
-    const requestData = JSON.stringify({ name: name });
+    const requestData = JSON.stringify({
+        name: name,
+        unfinished: unfinished
+    });
 
     const requestPromise = sendRequest(requestUri, requestData, "PATCH");
     const response = await requestPromise;

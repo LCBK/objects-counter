@@ -93,8 +93,6 @@ function handleBoundingBoxClick() {
                 imageState.classifications[element.classificationIndex].count--;
                 imageState.classifications[viewState.currentlyAssignedClassificationIndex].count++;
                 element.classificationIndex = viewState.currentlyAssignedClassificationIndex;
-
-                viewState.wereClassificationsAdjusted = true;
             }
         }
     }

@@ -35,7 +35,8 @@ export interface DatasetListItem {
     id: number,
     name: string,
     thumbnailUri?: string,
-    timestamp: number
+    timestamp: number,
+    unfinished: boolean
 }
 
 export interface DatasetClassificationListItem {

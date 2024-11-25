@@ -41,14 +41,15 @@ async function loadDatasets() {
 
     await getDatasets().then((response) => {
         userDatasets.value = [];
-        for (const dataset of response) {
+        for (const dataset of response.filter((d) => !d.unfinished)) {
             userDatasets.value.push({
                 id: dataset.id,
                 name: dataset.name,
                 timestamp: Date.parse(dataset.timestamp)
             } as DatasetListItem);
         }
-    })
+        userDatasets.value = userDatasets.value.sort((a, b) => b.timestamp - a.timestamp);
+    });
 
     await getDatasetsThumbnails().then((response) => {
         for (const item of response) {
@@ -60,9 +61,9 @@ async function loadDatasets() {
                 datasetItem.thumbnailUri = base64ToImageUri(item.thumbnail);
             }
         }
-
-        viewState.isWaitingForResponse = false;
     });
+
+    viewState.isWaitingForResponse = false;
 }
 
 async function handleCompareClick(datasetId: number) {
@@ -100,9 +101,12 @@ async function handleCompareClick(datasetId: number) {
     </div>
     <VButton v-if="!hasCompared" :class="(viewState.isWaitingForResponse ? 'inactive-button ' : '') + 'compare-button'"
             label="Compare with dataset" @click="handleDatasetListClick" />
-    <VSidebar v-model:visible="quantitiesVisible" position="bottom" style="height: auto" class="quantities" header="Counted elements">
+    <VSidebar v-model:visible="quantitiesVisible" position="bottom" style="height: auto"
+            class="quantities" header="Counted elements">
         <div class="difference-notice">
-            <span v-if="Object.values(imageState.comparisonDifference).every(x => x === 0)" class="match">All elements match</span>
+            <span v-if="Object.values(imageState.comparisonDifference).every(x => x === 0)" class="match">
+                All elements match
+            </span>
             <span v-else class="mismatch">Elements mismatch</span>
         </div>
         <div class="quantities-label-notice notice">You can toggle label visibility in the settings</div>
@@ -119,12 +123,9 @@ async function handleCompareClick(datasetId: number) {
     <VDialog v-model:visible="compareDialogVisible" modal header="Select dataset" class="compare-dialog"
             :dismissable-mask="true" :draggable="false">
         <div class="compare-dataset-list">
-            <div v-for="(dataset, index) in userDatasets.sort((a, b) => b.timestamp - a.timestamp)" :key="index">
+            <div v-for="(dataset, index) in userDatasets" :key="index">
                 <DatasetListItemComponent v-bind="dataset" @compare-click="handleCompareClick" />
             </div>
-        </div>
-        <div class="dialog-controls">
-            <VButton outlined label="Cancel" @click="compareDialogVisible = false" />
         </div>
     </VDialog>
 </template>

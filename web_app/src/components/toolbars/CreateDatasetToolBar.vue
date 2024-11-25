@@ -13,11 +13,12 @@ const viewState = useViewStateStore();
 
 
 function handleReturnClick() {
-    viewState.setState(ViewStates.ImageEditPoints);
-    viewState.showBackground = true;
-    viewState.isEditingExistingResult = true;
     imageState.clearResult();
     imageState.selectedLeaderIds = [];
+
+    viewState.showBackground = true;
+    viewState.isEditingExistingResult = true;
+    viewState.setState(ViewStates.ImageEditPoints);
 }
 
 function handleSubmitLeadersClick() {
@@ -28,10 +29,10 @@ async function submitClassificationLeaders() {
     viewState.isWaitingForResponse = true;
 
     await sendLeaders(imageState.imageId, imageState.selectedLeaderIds).then(() => {
-        createDataset("temporary no. " + imageState.imageId).then((response) => {
+        createDataset(`temporary no. ${imageState.imageId}`, true).then((response) => {
             imageState.datasetId = parseInt(response);
 
-            const classifications = imageState.selectedLeaderIds.map((id: any, index: number) => {
+            const classifications = imageState.selectedLeaderIds.map((id: number, index: number) => {
                 return {
                     name: index,
                     leader_id: id
@@ -41,6 +42,7 @@ async function submitClassificationLeaders() {
             addImageToDataset(imageState.datasetId, imageState.imageId, classifications).then((response) => {
                 imageState.clearResult();
                 parseClassificationsFromElementsResponse(response.images[0].elements);
+
                 viewState.setState(ViewStates.ImageViewConfirmDataset);
                 viewState.isWaitingForResponse = false;
             });

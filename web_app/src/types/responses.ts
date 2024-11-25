@@ -41,7 +41,10 @@ export interface GetDatasetResponse {
 export interface GetDatasetsResponse extends Array<{
     id: number,
     name: string,
-    timestamp: string
+    timestamp: string,
+    images: Array<any>,         // TODO: type
+    unfinished: boolean,
+    user: string
 }> { }
 
 export type CreateDatasetResponse = string;
