@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { config } from "@/config";
 import { useSettingsStateStore } from "@/stores/settingsState";
 import VButton from "primevue/button";
 import VDialog from "primevue/dialog";
@@ -71,7 +72,7 @@ onMounted(() => {
                 <div class="settings-item-label">Show certainties</div>
                 <VInputSwitch class="settings-item-switch" v-model="showBoxCertainty" />
             </div>
-            <div class="settings-item">
+            <div v-if="config.showDebugSettings" class="settings-item">
                 <div class="settings-item-label">Show element IDs</div>
                 <VInputSwitch class="settings-item-switch" v-model="showElementIds" />
             </div>

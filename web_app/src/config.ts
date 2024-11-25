@@ -18,8 +18,9 @@ export const config = {
     requirePasswordDigit: true,
     requirePasswordSymbol: true,
 
-    // Other
-    logResponses: true         // Can leak JWT token
+    // Debug
+    logResponses: true,                 // Can leak JWT token
+    showDebugSettings: false
 };
 
 
