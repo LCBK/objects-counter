@@ -3,7 +3,6 @@ import typing
 
 from flask import jsonify, Response, request
 from flask_restx import Namespace, Resource
-from natsort import natsorted
 from werkzeug.exceptions import NotFound, Forbidden
 
 from objects_counter.api.datasets.models import insert_dataset_model, insert_image_model, patch_dataset_model, \

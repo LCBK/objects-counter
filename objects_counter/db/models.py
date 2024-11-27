@@ -116,5 +116,3 @@ class Comparison(db.Model):
             'diff': self.diff,
             'timestamp': self.timestamp
         }
-
-
