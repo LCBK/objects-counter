@@ -12,11 +12,7 @@ export interface SendBackgroundPointsResponse {
     mask: Array<Array<boolean>>
 }
 
-export interface AcceptBackgroundClassifiedResponse {
-    id: number,
-    classifications: Array<ClassificationWithObjects>,
-    count: number
-}
+export type AcceptBackgroundClassifiedResponse = ImageWithClassifications;
 
 export interface AcceptBackgroundNonClassifiedResponse {
     id: number,
@@ -35,14 +31,14 @@ export type SendLeadersResponse = string;
 export interface GetDatasetResponse {
     id: number,
     name: string,
-    images: Array<any>          // TODO: type
+    images: Array<ImageWithClassifications>
 }
 
 export interface GetDatasetsResponse extends Array<{
     id: number,
     name: string,
     timestamp: string,
-    images: Array<any>,         // TODO: type
+    images: Array<ImageWithAllData>,
     unfinished: boolean,
     user: string
 }> { }
@@ -53,17 +49,19 @@ export interface RenameDatasetResponse {
     id: number,
     name: string,
     timestamp: string,
-    images: Array<any>,         // TODO: type
+    images: Array<ImageWithAllData>,
     unfinished: boolean,
     user: string
 }
+
+export type AdjustClassificationsResponse = ImageWithClassifications;
 
 
 // Results
 
 export interface GetResultResponse {
     data: {
-        classifications: Array<any>,        // TODO: type
+        classifications: Array<ClassificationWithObjects>,
         count: number
     },
     id: number,
@@ -105,4 +103,19 @@ export interface ImageElement {
 export interface ClassificationWithObjects {
     name: string,
     objects: Array<ImageElement>
+}
+
+export interface ImageWithClassifications {
+    id: number,
+    classifications: Array<ClassificationWithObjects>,
+    count: number
+}
+
+export interface ImageWithAllData {
+    id: number,
+    background_points: {
+        data: Array<BackgroundPoint>
+    },
+    elements: Array<ImageElement>,
+    timestamp: string
 }

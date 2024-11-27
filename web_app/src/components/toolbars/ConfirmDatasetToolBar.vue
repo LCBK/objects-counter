@@ -141,9 +141,10 @@ function handleCreatedDataset() {
 
 <style scoped>
 .change-categories {
-    margin: 0 auto 5px auto;
+    margin: 5px auto 10px auto;
     display: block;
     padding: 6px 12px;
+    text-decoration: underline;
 }
 
 .assignment-notice {

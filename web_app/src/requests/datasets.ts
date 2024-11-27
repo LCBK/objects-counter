@@ -1,6 +1,7 @@
 import { config, endpoints } from "@/config";
 import { sendRequest } from "@/utils";
 import type {
+    AdjustClassificationsResponse,
     CreateDatasetResponse,
     GetDatasetResponse,
     GetDatasetsResponse,
@@ -125,7 +126,7 @@ export async function adjustClassifications(
     const response = await requestPromise;
 
     if (response.ok) {
-        return response.json();         // TODO: type
+        return response.json() as Promise<AdjustClassificationsResponse>;
     }
     else {
         throw new Error(`Failed to adjust classifications for dataset ${datasetId} image ${imageId}`);
