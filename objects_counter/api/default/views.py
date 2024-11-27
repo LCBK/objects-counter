@@ -176,7 +176,7 @@ class AcceptBackgroundPoints(Resource):
 
 
 @api.route('/images/<int:image_id>/mark-leaders')
-class ClassifyByLeaders(Resource):
+class MarkLeaders(Resource):
     @api.doc(params={'image_id': 'The image ID'})
     @api.expect({'leaders': [int]})
     @api.response(200, "Objects classified")
