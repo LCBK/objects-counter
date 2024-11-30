@@ -4,6 +4,7 @@ import VButton from "primevue/button";
 import VDialog from "primevue/dialog";
 import VSidebar from "primevue/sidebar";
 import QuantitiesEntry from "../QuantitiesEntry.vue";
+import MissingQuantitiesEntry from "../MissingQuantitiesEntry.vue";
 import { useImageStateStore } from "@/stores/imageState";
 import { useViewStateStore, ViewStates } from "@/stores/viewState";
 import { computed, ref } from "vue";
@@ -21,7 +22,12 @@ const datasetDialogVisible = ref<boolean>(false);
 const compareDialogVisible = ref<boolean>(false);
 const hasCompared = ref<boolean>(false);
 const userDatasets = ref<DatasetListItem[]>([]);
+
 const classifications = computed(() => imageState.classifications);
+const missingClassifications = computed(() => {
+    return Object.keys(imageState.comparisonDifference)
+        .filter((key) => !classifications.value.some((c) => c.name === key));
+});
 
 
 function handleReturnClick() {
@@ -81,6 +87,7 @@ async function handleCompareClick(datasetId: number) {
         hasCompared.value = true;
         quantitiesVisible.value = true;
         datasetDialogVisible.value = false;
+        console.log(missingClassifications.value);
     }).finally(() => {
         viewState.isWaitingForResponse = false;
     });
@@ -117,6 +124,7 @@ async function handleCompareClick(datasetId: number) {
         </div>
         <div class="quantities-content">
             <QuantitiesEntry v-for="(quantity, index) in classifications" :key="index" :index="quantity.index" />
+            <MissingQuantitiesEntry v-for="(missing, index) in missingClassifications" :key="index" :name="missing" />
             <div v-if="classifications.length === 0" class="no-elements-notice notice">(no elements found)</div>
         </div>
     </VSidebar>
