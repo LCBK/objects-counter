@@ -120,6 +120,7 @@ export function parseClassificationsFromElementsResponse(elements: Array<ImageEl
         }
     });
 
+    classifications.sort();
     classifications.forEach((classification, index) => {
         const classificationElements = elements.filter((element) => element.classification === classification);
         imageState.classifications.push({
