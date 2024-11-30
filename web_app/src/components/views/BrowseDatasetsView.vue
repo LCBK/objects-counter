@@ -44,7 +44,7 @@ async function loadDatasets() {
                 datasetItem.thumbnailUri = base64ToImageUri(item.thumbnail);
             }
         }
-
+    }).finally(() => {
         viewState.isWaitingForResponse = false;
     });
 }

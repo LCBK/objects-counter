@@ -61,9 +61,9 @@ async function loadDatasets() {
                 datasetItem.thumbnailUri = base64ToImageUri(item.thumbnail);
             }
         }
+    }).finally(() => {
+        viewState.isWaitingForResponse = false;
     });
-
-    viewState.isWaitingForResponse = false;
 }
 
 async function handleCompareClick(datasetId: number) {

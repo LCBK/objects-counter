@@ -100,11 +100,11 @@ async function sendPoints() {
     viewState.isWaitingForResponse = true;
 
     await sendBackgroundPoints(imageState.imageId, imageState.points).then((response) => {
-        viewState.showBackground = true;
-        viewState.isWaitingForResponse = false;
-
         const maskImageData = createMaskImage(response.mask);
         showMaskImage(maskImageData);
+        viewState.showBackground = true;
+    }).finally(() => {
+        viewState.isWaitingForResponse = false;
     });
 }
 

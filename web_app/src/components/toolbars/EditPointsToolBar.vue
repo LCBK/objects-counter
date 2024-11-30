@@ -64,7 +64,6 @@ async function handleConfirmBackground() {
     );
 
     await acceptBackground(imageState.imageId, skipClassification).then((response) => {
-        viewState.isWaitingForResponse = false;
         if (viewState.currentState !== ViewStates.ImageEditPoints) return;
 
         if (response.id) imageState.resultId = response.id;
@@ -89,6 +88,8 @@ async function handleConfirmBackground() {
                 viewState.setState(ViewStates.ImageViewCompareWithDataset);
                 break;
         }
+    }).finally(() => {
+        viewState.isWaitingForResponse = false;
     });
 }
 

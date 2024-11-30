@@ -44,6 +44,7 @@ async function submitClassificationLeaders() {
                 parseClassificationsFromElementsResponse(response.images[0].elements);
 
                 viewState.setState(ViewStates.ImageViewConfirmDataset);
+            }).finally(() => {
                 viewState.isWaitingForResponse = false;
             });
         });

@@ -59,8 +59,9 @@ async function handleResultClick() {
     await getResult(props.id).then((response) => {
         parseClassificationsFromResponse(response.data.classifications);
         imageState.resultId = props.id;
-        viewState.isWaitingForResponse = false;
         viewState.setState(ViewStates.ImageViewCountingResult);
+    }).finally(() => {
+        viewState.isWaitingForResponse = false;
     });
 }
 </script>
