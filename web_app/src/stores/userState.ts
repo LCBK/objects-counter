@@ -1,3 +1,4 @@
+import type { UserLoginResponse } from "@/types/requests";
 import { defineStore } from "pinia";
 
 
@@ -17,15 +18,15 @@ export const useUserStateStore = defineStore("userState", {
             Object.assign(this, defaultState);
         },
 
-        login(username: string, userId: number, userToken: string) {
-            this.username = username;
-            this.userId = userId;
-            this.userToken = userToken;
+        login(data: UserLoginResponse) {
+            this.username = data.username;
+            this.userId = data.id;
+            this.userToken = data.token;
             this.isLoggedIn = true;
 
-            document.cookie = `username=${username}; path=/; secure; sameSite=strict; expires=Fri, 31 Dec 9999 23:59:59 GMT`;
-            document.cookie = `userId=${userId}; path=/; secure; sameSite=strict; expires=Fri, 31 Dec 9999 23:59:59 GMT`;
-            document.cookie = `userToken=${userToken}; path=/; secure; sameSite=strict; expires=Fri, 31 Dec 9999 23:59:59 GMT`;
+            document.cookie = `username=${data.username}; path=/; secure; sameSite=strict; expires=Fri, 31 Dec 9999 23:59:59 GMT`;
+            document.cookie = `userId=${data.id}; path=/; secure; sameSite=strict; expires=Fri, 31 Dec 9999 23:59:59 GMT`;
+            document.cookie = `userToken=${data.token}; path=/; secure; sameSite=strict; expires=Fri, 31 Dec 9999 23:59:59 GMT`;
         },
 
         logout() {

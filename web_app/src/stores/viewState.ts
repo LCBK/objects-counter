@@ -50,7 +50,6 @@ const defaultState = {
     isEditingExistingResult: false,
     isSelectingAssignment: false,
     isAssigningClassifications: false,
-    wereClassificationsAdjusted: false,
     currentlyAssignedClassificationIndex: 0,
     showPoints: true,
     showBackground: false,

@@ -8,9 +8,9 @@ import QuantitiesEntry from "../QuantitiesEntry.vue";
 import { useImageStateStore } from "@/stores/imageState";
 import { useViewStateStore } from "@/stores/viewState";
 import { computed, ref, watch } from "vue";
-import { config, endpoints } from "@/config";
-import { formatClassificationName, sendRequest } from "@/utils";
+import { formatClassificationName } from "@/utils";
 import InfoPopup from "../InfoPopup.vue";
+import { adjustClassifications, renameDataset } from "@/requests/datasets";
 
 
 const imageState = useImageStateStore();
@@ -19,13 +19,13 @@ const viewState = useViewStateStore();
 const quantitiesVisible = ref<boolean>(false);
 const datasetDialogVisible = ref<boolean>(false);
 const datasetName = ref<string>("");
-const classifications = computed(() => imageState.objectClassifications);
+const classifications = computed(() => imageState.classifications);
 const assignedClassificationName = computed(() => {
-    const name = imageState.objectClassifications[viewState.currentlyAssignedClassificationIndex].classificationName;
+    const name = imageState.classifications[viewState.currentlyAssignedClassificationIndex].name;
     return formatClassificationName(name);
 });
 const assignedBoxColor = computed(() => {
-    return imageState.objectClassifications[viewState.currentlyAssignedClassificationIndex].boxColor;
+    return imageState.classifications[viewState.currentlyAssignedClassificationIndex].boxColor;
 });
 
 const popupText = ref<string>("");
@@ -42,16 +42,16 @@ watch(() => viewState.isSelectingAssignment, (newValue) => {
 });
 
 
-function submitDataset() {
-    const classifications = imageState.objectClassifications.map((classification) => {
-        const elements = imageState.imageElements.filter((el) => el.classificationIndex === classification.index)
-        const elementIds = elements.map((el) => el.id);
-
+async function submitDataset() {
+    const classifications = imageState.classifications.map((c) => {
         return {
-            name: classification.classificationName,
-            elements: elementIds
+            name: c.name,
+            elements: imageState.imageElements
+                .filter((el) => el.classificationIndex === c.index)
+                .map((el) => el.id)
         };
     });
+
     if (classifications.some((classification) => classification === null)) {
         popupText.value = "Failed to submit dataset";
         popupHeader.value = "Error";
@@ -59,42 +59,21 @@ function submitDataset() {
         return;
     }
 
-    const changeElementsUri = config.serverUri + endpoints.adjustDatasetClassifications
-        .replace("{dataset_id}", imageState.datasetId.toString())
-        .replace("{image_id}", imageState.imageId.toString());
-    const changeElementsRequestData = JSON.stringify({
-        classifications: classifications
-    });
-
-    const changeElementsRequestPromise = sendRequest(changeElementsUri, changeElementsRequestData, "PATCH");
-    changeElementsRequestPromise.then((changeElementsResponse) => {
-        if (changeElementsResponse.status === 200) {
-            const renameDatasetUri = config.serverUri + endpoints.renameDataset
-                .replace("{dataset_id}", imageState.datasetId.toString());
-            const renameDatasetRequestData = JSON.stringify({
-                name: datasetName.value
-            });
-
-            const renameDatasetRequestPromise = sendRequest(renameDatasetUri, renameDatasetRequestData, "PATCH");
-            renameDatasetRequestPromise.then((renameDatasetResponse) => {
-                if (renameDatasetResponse.status === 200) {
-                    popupText.value = "Dataset submitted successfully";
-                    popupHeader.value = "Success";
-                    popupVisible.value = true;
-                    isSuccessfullyCreated.value = true;
-                }
-                else {
-                    popupText.value = "Failed to submit dataset";
-                    popupHeader.value = "Error";
-                    popupVisible.value = true;
-                }
-            });
-        }
-        else {
+    await adjustClassifications(imageState.datasetId, imageState.imageId, classifications).then(() => {
+        renameDataset(imageState.datasetId, datasetName.value).then(() => {
+            popupText.value = "Dataset submitted successfully";
+            popupHeader.value = "Success";
+            popupVisible.value = true;
+            isSuccessfullyCreated.value = true;
+        }).catch(() => {
             popupText.value = "Failed to submit dataset";
             popupHeader.value = "Error";
             popupVisible.value = true;
-        }
+        });
+    }).catch(() => {
+        popupText.value = "Failed to submit dataset";
+        popupHeader.value = "Error";
+        popupVisible.value = true;
     });
 }
 
@@ -162,9 +141,10 @@ function handleCreatedDataset() {
 
 <style scoped>
 .change-categories {
-    margin: 0 auto 5px auto;
+    margin: 5px auto 10px auto;
     display: block;
     padding: 6px 12px;
+    text-decoration: underline;
 }
 
 .assignment-notice {

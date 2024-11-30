@@ -1,12 +1,12 @@
 <script setup lang="ts">
-import { config, endpoints } from "@/config";
-import { type DatasetClassificationListItem } from "@/types";
-import { formatClassificationName, getClassificationsFromDataset, sendRequest } from "@/utils";
+import { type DatasetClassificationListItem } from "@/types/app";
+import { formatClassificationName, getClassificationsFromDataset } from "@/utils";
 import VDialog from "primevue/dialog";
 import VButton from "primevue/button";
 import VInputText from "primevue/inputtext";
 import { ref } from "vue";
 import { useViewStateStore, ViewStates } from "@/stores/viewState";
+import { deleteDataset, getDataset, renameDataset } from "@/requests/datasets";
 
 
 const props = defineProps({
@@ -42,54 +42,31 @@ const date = new Date(props.timestamp).toISOString().split("T")[0];
 const time = new Date(props.timestamp).toLocaleTimeString();
 
 
-function showDatasetDetails() {
-    const requestUri = config.serverUri + endpoints.getDataset.replace("{dataset_id}", props.id.toString());
-    const requestPromise = sendRequest(requestUri, null, "GET");
-    requestPromise.then((response) => {
-        if (response.status === 200) {
-            classifications.value = getClassificationsFromDataset(response.data);
-            detailsVisible.value = true;
-        }
-        else {
-            console.error("Failed to retrieve dataset details");
-            return;
-        }
-    });
-}
-
 function showRenameDialog() {
     renameNewName.value = props.name;
     renameDialogVisible.value = true;
 }
 
-function confirmRename() {
-    const requestUri = config.serverUri + endpoints.renameDataset.replace("{dataset_id}", props.id.toString());
-    const requestData = JSON.stringify({ "name": renameNewName.value });
-    const requestPromise = sendRequest(requestUri, requestData, "PATCH");
-    requestPromise.then((response) => {
-        if (response.status === 200) {
-            emit("dataChanged");
-            detailsVisible.value = false;
-            renameDialogVisible.value = false;
-        }
-        else {
-            console.error("Failed to rename dataset");
-        }
+async function showDatasetDetails() {
+    await getDataset(props.id).then((response) => {
+        classifications.value = getClassificationsFromDataset(response);
+        detailsVisible.value = true;
     });
 }
 
-function confirmDelete() {
-    const requestUri = config.serverUri + endpoints.deleteDataset.replace("{dataset_id}", props.id.toString());
-    const requestPromise = sendRequest(requestUri, null, "DELETE");
-    requestPromise.then((response) => {
-        if (response.status === 204) {
-            emit("dataChanged");
-            detailsVisible.value = false;
-            deleteDialogVisible.value = false;
-        }
-        else {
-            console.error("Failed to delete dataset");
-        }
+async function handleRename() {
+    await renameDataset(props.id, renameNewName.value).then(() => {
+        emit("dataChanged");
+        detailsVisible.value = false;
+        renameDialogVisible.value = false;
+    });
+}
+
+async function handleDelete() {
+    deleteDataset(props.id).then(() => {
+        emit("dataChanged");
+        detailsVisible.value = false;
+        deleteDialogVisible.value = false;
     });
 }
 </script>
@@ -128,7 +105,7 @@ function confirmDelete() {
         <VInputText v-model="renameNewName" class="rename-input" :placeholder="name" :autofocus="true" />
         <div class="rename-controls">
             <VButton outlined label="Cancel" @click="renameDialogVisible = false" />
-            <VButton label="Rename" @click="confirmRename" />
+            <VButton label="Rename" @click="handleRename" />
         </div>
     </VDialog>
     <VDialog v-model:visible="deleteDialogVisible" modal :dismissable-mask="true" :draggable="false"
@@ -136,7 +113,7 @@ function confirmDelete() {
         <p>Are you sure you want to delete this dataset?</p>
         <div class="delete-controls">
             <VButton outlined label="Cancel" @click="deleteDialogVisible = false" />
-            <VButton label="Delete" @click="confirmDelete" />
+            <VButton label="Delete" @click="handleDelete" />
         </div>
     </VDialog>
 </template>

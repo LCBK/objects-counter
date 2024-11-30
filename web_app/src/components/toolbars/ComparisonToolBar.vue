@@ -4,13 +4,14 @@ import VButton from "primevue/button";
 import VDialog from "primevue/dialog";
 import VSidebar from "primevue/sidebar";
 import QuantitiesEntry from "../QuantitiesEntry.vue";
+import MissingQuantitiesEntry from "../MissingQuantitiesEntry.vue";
 import { useImageStateStore } from "@/stores/imageState";
 import { useViewStateStore, ViewStates } from "@/stores/viewState";
 import { computed, ref } from "vue";
-import { config, endpoints } from "@/config";
-import { base64ToImageUri, parseClassificationsFromElementsResponse, sendRequest, type Response } from "@/utils";
-import { type DatasetListItem } from "@/types";
+import { base64ToImageUri, parseClassificationsFromElementsResponse } from "@/utils";
+import { type DatasetListItem } from "@/types/app";
 import DatasetListItemComponent from "../DatasetListItem.vue";
+import { compareToDataset, getDatasets, getDatasetsThumbnails } from "@/requests/datasets";
 
 
 const imageState = useImageStateStore();
@@ -21,7 +22,12 @@ const datasetDialogVisible = ref<boolean>(false);
 const compareDialogVisible = ref<boolean>(false);
 const hasCompared = ref<boolean>(false);
 const userDatasets = ref<DatasetListItem[]>([]);
-const classifications = computed(() => imageState.objectClassifications);
+
+const classifications = computed(() => imageState.classifications);
+const missingClassifications = computed(() => {
+    return Object.keys(imageState.comparisonDifference)
+        .filter((key) => !classifications.value.some((c) => c.name === key));
+});
 
 
 function handleReturnClick() {
@@ -36,71 +42,53 @@ function handleDatasetListClick() {
     compareDialogVisible.value = true;
 }
 
-function loadDatasets() {
-    const datasetRequestUri = config.serverUri + endpoints.getDatasets;
-    const datasetRequestPromise = sendRequest(datasetRequestUri, null, "GET");
-
-    const thumbnailsRequestUri = config.serverUri + endpoints.getDatasetsThumbnails;
-    const thumbnailsRequestPromise = sendRequest(thumbnailsRequestUri, null, "GET");
-
+async function loadDatasets() {
     viewState.isWaitingForResponse = true;
-    datasetRequestPromise.then((response) => {
-        if (response.status === 200) {
-            userDatasets.value = [];
-            for (const dataset of response.data) {
-                userDatasets.value.push({
-                    id: dataset.id,
-                    name: dataset.name,
-                    timestamp: Date.parse(dataset.timestamp)
-                } as DatasetListItem);
+
+    await getDatasets().then((response) => {
+        userDatasets.value = [];
+        for (const dataset of response.filter((d) => !d.unfinished)) {
+            userDatasets.value.push({
+                id: dataset.id,
+                name: dataset.name,
+                timestamp: Date.parse(dataset.timestamp)
+            } as DatasetListItem);
+        }
+        userDatasets.value = userDatasets.value.sort((a, b) => b.timestamp - a.timestamp);
+    });
+
+    await getDatasetsThumbnails().then((response) => {
+        for (const item of response) {
+            const datasetItem = userDatasets.value.find(
+                (datasetItem) => datasetItem.id == item.id
+            ) as DatasetListItem;
+
+            if (datasetItem) {
+                datasetItem.thumbnailUri = base64ToImageUri(item.thumbnail);
             }
         }
-        else {
-            console.error("Failed to retrieve datasets");
-        }
-    })
-    .then(() => {
-        thumbnailsRequestPromise.then((response: Response) => {
-            if (response.status != 200) {
-                console.error("Failed to load result history thumbnails");
-                return;
-            }
-
-            const responseItems = response.data;
-            for (const item of responseItems) {
-                const datasetItem = userDatasets.value.find((datasetItem) => datasetItem.id == item.id) as DatasetListItem;
-                if (datasetItem) {
-                    datasetItem.thumbnailUri = base64ToImageUri(item.thumbnail);
-                }
-            }
-
-            viewState.isWaitingForResponse = false;
-        });
+    }).finally(() => {
+        viewState.isWaitingForResponse = false;
     });
 }
 
-function handleCompareClick(datasetId: number) {
-    const requestUri = config.serverUri + endpoints.compareToDataset.replace("{dataset_id}", datasetId.toString());
-    const requestData = JSON.stringify({
-        image_ids: [imageState.imageId]
-    });
-    const requestPromise = sendRequest(requestUri, requestData, "POST");
+async function handleCompareClick(datasetId: number) {
+    const imageIds = [imageState.imageId];
 
     viewState.isWaitingForResponse = true;
     compareDialogVisible.value = false;
-    requestPromise.then((response) => {
-        if (response.status === 200) {
-            imageState.clearResult();
-            imageState.comparisonDifference = response.data.diff;
-            parseClassificationsFromElementsResponse(response.data.images[0].elements);
-            hasCompared.value = true;
-            quantitiesVisible.value = true;
-            datasetDialogVisible.value = false;
-        }
-        else {
-            console.error("Comparison failed");
-        }
 
+    await compareToDataset(datasetId, imageIds).then((response) => {
+        imageState.clearResult();
+
+        parseClassificationsFromElementsResponse(response.images[0].elements);
+        imageState.comparisonDifference = response.diff;
+
+        hasCompared.value = true;
+        quantitiesVisible.value = true;
+        datasetDialogVisible.value = false;
+        console.log(missingClassifications.value);
+    }).finally(() => {
         viewState.isWaitingForResponse = false;
     });
 }
@@ -120,9 +108,12 @@ function handleCompareClick(datasetId: number) {
     </div>
     <VButton v-if="!hasCompared" :class="(viewState.isWaitingForResponse ? 'inactive-button ' : '') + 'compare-button'"
             label="Compare with dataset" @click="handleDatasetListClick" />
-    <VSidebar v-model:visible="quantitiesVisible" position="bottom" style="height: auto" class="quantities" header="Counted elements">
+    <VSidebar v-model:visible="quantitiesVisible" position="bottom" style="height: auto"
+            class="quantities" header="Counted elements">
         <div class="difference-notice">
-            <span v-if="Object.values(imageState.comparisonDifference).every(x => x === 0)" class="match">All elements match</span>
+            <span v-if="Object.values(imageState.comparisonDifference).every(x => x === 0)" class="match">
+                All elements match
+            </span>
             <span v-else class="mismatch">Elements mismatch</span>
         </div>
         <div class="quantities-label-notice notice">You can toggle label visibility in the settings</div>
@@ -133,18 +124,16 @@ function handleCompareClick(datasetId: number) {
         </div>
         <div class="quantities-content">
             <QuantitiesEntry v-for="(quantity, index) in classifications" :key="index" :index="quantity.index" />
+            <MissingQuantitiesEntry v-for="(missing, index) in missingClassifications" :key="index" :name="missing" />
             <div v-if="classifications.length === 0" class="no-elements-notice notice">(no elements found)</div>
         </div>
     </VSidebar>
     <VDialog v-model:visible="compareDialogVisible" modal header="Select dataset" class="compare-dialog"
             :dismissable-mask="true" :draggable="false">
         <div class="compare-dataset-list">
-            <div v-for="(dataset, index) in userDatasets.sort((a, b) => b.timestamp - a.timestamp)" :key="index">
+            <div v-for="(dataset, index) in userDatasets" :key="index">
                 <DatasetListItemComponent v-bind="dataset" @compare-click="handleCompareClick" />
             </div>
-        </div>
-        <div class="dialog-controls">
-            <VButton outlined label="Cancel" @click="compareDialogVisible = false" />
         </div>
     </VDialog>
 </template>
