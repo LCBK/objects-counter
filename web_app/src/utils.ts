@@ -179,6 +179,22 @@ export function getClassificationsFromDataset(dataset: GetDatasetResponse): Arra
 }
 
 
+export function processImageFile(imageFile: File): void {
+    const imageState = useImageStateStore();
+
+    const url = window.URL.createObjectURL(imageFile);
+    // TODO: Move to imageBatch along with id and maybe some other data?
+    imageState.imageDataURL = url;           // For displaying the image
+
+    const img = new Image;
+    img.src = url;
+    img.onload = () => {
+        imageState.width = img.width;
+        imageState.height = img.height;
+    };
+}
+
+
 export function base64ToImageUri(base64: string): string {
     return "data:image/png;base64," + base64;
 }

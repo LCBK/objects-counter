@@ -41,8 +41,6 @@ export enum ImageAction {
 }
 
 const defaultState = {
-    isImageUploading: false,
-    isImageUploaded: false,
     isAddingPoint: false,
     isRemovingPoint: false,
     isPointTypePositive: true,

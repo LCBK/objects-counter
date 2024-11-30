@@ -26,10 +26,12 @@ export async function getImageBlob(id: string | number) {
 }
 
 
-export async function uploadImage(data: FormData) {
+export async function uploadImage(imageFile: File) {
     const requestUri = config.serverUri + endpoints.uploadImage;
+    const requestData = new FormData();
+    requestData.append("image", imageFile);
 
-    const requestPromise = sendRequest(requestUri, data, "POST", "multipart/form-data");
+    const requestPromise = sendRequest(requestUri, requestData, "POST", "multipart/form-data");
     const response = await requestPromise;
 
     if (response.ok) {

@@ -45,7 +45,7 @@ async function handleResultClick() {
 
     await getImageBlob(props.imageId).then((blob) => {
         const url = URL.createObjectURL(blob);
-        imageState.url = url;
+        imageState.imageDataURL = url;
         imageState.imageId = props.imageId;
 
         const img = new Image;

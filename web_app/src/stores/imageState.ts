@@ -7,7 +7,7 @@ import { defineStore } from "pinia";
 // Stores data related to user's image, e.g.: dimensions, canvas scale/offset, selection points, bounding boxes
 
 const defaultState = {
-    url: "",
+    imageDataURL: "",
     imageId: 0,
     resultId: 0,
     datasetId: 0,
@@ -25,7 +25,8 @@ const defaultState = {
     points: [] as Array<BackgroundPoint>,
     classifications: [] as Array<ObjectClassification>,
     selectedLeaderIds: [] as Array<number>,
-    comparisonDifference: {} as ComparisonDiff
+    comparisonDifference: {} as ComparisonDiff,
+    imageBatch: [] as Array<number>,        // List of image IDs in the current batch
 }
 
 export const useImageStateStore = defineStore("imageState", {
@@ -38,6 +39,7 @@ export const useImageStateStore = defineStore("imageState", {
             this.classifications = [];
             this.selectedLeaderIds = [];
             this.comparisonDifference = {};
+            this.imageBatch = [];
         },
 
         addPoint(isPositive: boolean, x: number, y: number) {
