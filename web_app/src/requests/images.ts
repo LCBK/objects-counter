@@ -7,7 +7,7 @@ import type {
     SendBackgroundPointsResponse,
     SendLeadersResponse,
     UploadImageResponse
-} from "@/types/responses";
+} from "@/types/requests";
 
 
 export async function getImageBlob(id: string | number) {

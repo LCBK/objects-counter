@@ -1,4 +1,4 @@
-// Type definitions for responses from the API
+// Type definitions for requests and responses from the API
 // Properties are named in snake_case, as they are received from the server
 
 import type { BackgroundPoint } from "./app";
@@ -19,11 +19,18 @@ export interface AcceptBackgroundNonClassifiedResponse {
     background_points: {
         data: Array<BackgroundPoint>
     },
-    elements: Array<ImageElement>,
+    elements: Array<ImageElementResponse>,
     timestamp: string
 }
 
 export type SendLeadersResponse = string;
+
+export interface AdjustClassificationsRequestData extends Array<{
+    name: string,
+    elements: Array<number>
+}> { }
+
+export type AdjustClassificationsResponse = ImageWithClassifications;
 
 
 // Datasets
@@ -31,30 +38,24 @@ export type SendLeadersResponse = string;
 export interface GetDatasetResponse {
     id: number,
     name: string,
-    images: Array<ImageWithClassifications>
-}
-
-export interface GetDatasetsResponse extends Array<{
-    id: number,
-    name: string,
     timestamp: string,
     images: Array<ImageWithAllData>,
     unfinished: boolean,
     user: string
-}> { }
+}
+
+export type GetDatasetsResponse = Array<GetDatasetResponse>;
 
 export type CreateDatasetResponse = string;
 
-export interface RenameDatasetResponse {
-    id: number,
-    name: string,
-    timestamp: string,
-    images: Array<ImageWithAllData>,
-    unfinished: boolean,
-    user: string
-}
+export type RenameDatasetResponse = GetDatasetResponse;
 
-export type AdjustClassificationsResponse = ImageWithClassifications;
+export interface AddImageToDatasetRequestData extends Array<{
+    name: string | number,
+    leader_id: number
+}> { }
+
+export type AddImageToDatasetResponse = GetDatasetResponse;
 
 
 // Results
@@ -71,6 +72,18 @@ export interface GetResultResponse {
 }
 
 export interface GetResultsResponse extends Array<GetResultResponse> { }
+
+
+// Comparisons
+
+export interface ComparisonDiff {
+    [key: string]: number
+}
+
+export interface CompareToDatasetResponse {
+    diff: ComparisonDiff,
+    images: Array<ImageWithAllData>
+}
 
 
 // Users
@@ -92,7 +105,7 @@ export interface GetThumbnailsResponse extends Array<{
 
 // Intermediate types
 
-export interface ImageElement {
+export interface ImageElementResponse {
     id: number,
     top_left: [number, number],
     bottom_right: [number, number],
@@ -102,7 +115,7 @@ export interface ImageElement {
 
 export interface ClassificationWithObjects {
     name: string,
-    objects: Array<ImageElement>
+    objects: Array<ImageElementResponse>
 }
 
 export interface ImageWithClassifications {
@@ -116,6 +129,6 @@ export interface ImageWithAllData {
     background_points: {
         data: Array<BackgroundPoint>
     },
-    elements: Array<ImageElement>,
+    elements: Array<ImageElementResponse>,
     timestamp: string
 }

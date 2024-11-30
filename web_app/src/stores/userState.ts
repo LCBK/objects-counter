@@ -1,4 +1,4 @@
-import type { UserLoginResponse } from "@/types/responses";
+import type { UserLoginResponse } from "@/types/requests";
 import { defineStore } from "pinia";
 
 

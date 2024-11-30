@@ -1,4 +1,5 @@
 import type { BackgroundPoint, ImageElement, ObjectClassification } from "@/types/app";
+import type { ComparisonDiff } from "@/types/requests";
 import { distance } from "@/utils";
 import { defineStore } from "pinia";
 
@@ -24,7 +25,7 @@ const defaultState = {
     points: [] as Array<BackgroundPoint>,
     classifications: [] as Array<ObjectClassification>,
     selectedLeaderIds: [] as Array<number>,
-    comparisonDifference: [] as Array<any>      // TODO: Type
+    comparisonDifference: {} as ComparisonDiff
 }
 
 export const useImageStateStore = defineStore("imageState", {
@@ -36,7 +37,7 @@ export const useImageStateStore = defineStore("imageState", {
             this.points = [];
             this.classifications = [];
             this.selectedLeaderIds = [];
-            this.comparisonDifference = [];
+            this.comparisonDifference = {};
         },
 
         addPoint(isPositive: boolean, x: number, y: number) {
@@ -59,7 +60,7 @@ export const useImageStateStore = defineStore("imageState", {
         clearResult() {
             this.imageElements = [];
             this.classifications = [];
-            this.comparisonDifference = [];
+            this.comparisonDifference = {};
         }
     }
 });

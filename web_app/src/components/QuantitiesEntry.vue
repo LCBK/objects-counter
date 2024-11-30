@@ -46,7 +46,7 @@ const isRenameDisabled = computed(() => {
     );
 });
 const difference = computed(() => {
-    return imageState.comparisonDifference[name.value as any];
+    return imageState.comparisonDifference[name.value];
 });
 const diffClass = computed(() => {
     return difference.value > 0 ? "diff-positive" : difference.value < 0 ? "diff-negative" : '';

@@ -1,6 +1,6 @@
 import { config, endpoints } from "@/config";
 import { sendRequest } from "@/utils";
-import type { UserLoginResponse } from "@/types/responses";
+import type { UserLoginResponse } from "@/types/requests";
 
 
 export async function loginUser(username: string, password: string) {

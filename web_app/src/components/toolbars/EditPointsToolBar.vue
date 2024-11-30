@@ -69,7 +69,6 @@ async function handleConfirmBackground() {
 
         if (response.id) imageState.resultId = response.id;
 
-        // TODO: rewrite?
         if ("classifications" in response) {
             // Otherwise the response contains classifications (for simple counting)
             parseClassificationsFromResponse(response.classifications);

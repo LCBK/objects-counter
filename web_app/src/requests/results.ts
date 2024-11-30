@@ -4,7 +4,7 @@ import type {
     GetResultResponse,
     GetResultsResponse,
     GetThumbnailsResponse
-} from "@/types/responses";
+} from "@/types/requests";
 
 
 export async function getResult(id: string | number) {

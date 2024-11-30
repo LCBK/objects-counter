@@ -57,16 +57,7 @@ class Dataset(Resource):
             if dataset.user_id != current_user.id:
                 log.error("User %s is not authorized to access dataset %s", current_user, dataset_id)
                 return Response('Unauthorized', 403)
-            dataset_dict = {
-                "id": dataset.id,
-                "name": dataset.name,
-                "images": []
-            }
-            for image in dataset.images:
-                image_dict = serialize_image_as_result(image)
-                image_dict["id"] = image.id
-                dataset_dict['images'].append(image_dict)
-            return jsonify(dataset_dict)
+            return jsonify(dataset.as_dict())
         except ValueError as e:
             log.exception("Invalid dataset ID: %s", e)
             return Response("Invalid dataset ID", 400)

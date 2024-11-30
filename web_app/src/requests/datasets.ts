@@ -1,13 +1,17 @@
 import { config, endpoints } from "@/config";
 import { sendRequest } from "@/utils";
 import type {
+    AddImageToDatasetRequestData,
+    AddImageToDatasetResponse,
+    AdjustClassificationsRequestData,
     AdjustClassificationsResponse,
+    CompareToDatasetResponse,
     CreateDatasetResponse,
     GetDatasetResponse,
     GetDatasetsResponse,
     GetThumbnailsResponse,
     RenameDatasetResponse
-} from "@/types/responses";
+} from "@/types/requests";
 
 
 export async function getDataset(id: string | number) {
@@ -112,8 +116,7 @@ export async function deleteDataset(id: string | number) {
 
 
 export async function adjustClassifications(
-    // TODO: type
-    datasetId: string | number, imageId: string | number, classifications: any
+    datasetId: string | number, imageId: string | number, classifications: AdjustClassificationsRequestData
 ) {
     const requestUri = config.serverUri + endpoints.adjustDatasetClassifications
         .replace("{dataset_id}", datasetId.toString())
@@ -135,8 +138,7 @@ export async function adjustClassifications(
 
 
 export async function addImageToDataset(
-    // TODO: type
-    datasetId: string | number, imageId: string | number, classifications: Array<any>
+    datasetId: string | number, imageId: string | number, classifications: AddImageToDatasetRequestData
 ) {
     const requestUri = config.serverUri + endpoints.addImageToDataset
         .replace("{dataset_id}", datasetId.toString());
@@ -150,7 +152,7 @@ export async function addImageToDataset(
     const response = await requestPromise;
 
     if (response.ok) {
-        return response.json();         // TODO: type
+        return response.json() as Promise<AddImageToDatasetResponse>;
     }
     else {
         throw new Error(`Failed to add image ${imageId} to dataset ${datasetId}`);
@@ -167,7 +169,7 @@ export async function compareToDataset(datasetId: string | number, imageIds: Arr
     const response = await requestPromise;
 
     if (response.ok) {
-        return response.json();         // TODO: type
+        return response.json() as Promise<CompareToDatasetResponse>;
     }
     else {
         throw new Error(`Failed to compare dataset ${datasetId}`);
