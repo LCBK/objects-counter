@@ -7,7 +7,9 @@ export interface ImageDetails {
     height: number,
     backgroundMaskDataURL?: string,
     classifications: Array<ObjectClassification>,
-    elements: Array<ImageElement>
+    elements: Array<ImageElement>,
+    selectedLeaderIds: Array<number>,
+    points: Array<BackgroundPoint>
 }
 
 export interface ImageElement {
@@ -23,8 +25,7 @@ export interface ObjectClassification {
     index: number,
     name: string,
     count: number,
-    showBoxes: boolean,
-    boxColor: string
+    showBoxes: boolean
 }
 
 export interface BackgroundPoint {

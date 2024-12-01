@@ -20,7 +20,7 @@ const negativePointButton = ref<HTMLElement>();
 const displayPointTypes = ref<Boolean>();
 
 const allButtonsDisabled = computed(() => viewState.isWaitingForResponse);
-const confirmButtonDisabled = computed(() => imageState.points.length === 0);
+const confirmButtonDisabled = computed(() => imageState.currentImage.points.length === 0);
 
 
 function setPositivePointType() {

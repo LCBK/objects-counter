@@ -84,8 +84,7 @@ export function parseClassificationsFromResponse(classifications: Array<Classifi
             index: index,
             name: classification.name,
             count: classification.objects.length,
-            showBoxes: true,
-            boxColor: boundingBoxColors[index % boundingBoxColors.length]
+            showBoxes: true
         });
 
         classification.objects.forEach((element) => {
@@ -97,7 +96,7 @@ export function parseClassificationsFromResponse(classifications: Array<Classifi
                 classificationIndex: index
             } as ImageElement;
 
-            for (const leaderId of imageState.selectedLeaderIds) {
+            for (const leaderId of imageState.currentImage.selectedLeaderIds) {
                 if (leaderId === element.id) {
                     imageElement.isLeader = true;
                     break;
@@ -127,8 +126,7 @@ export function parseClassificationsFromElementsResponse(elements: Array<ImageEl
             index: index,
             name: classification,
             count: classificationElements.length,
-            showBoxes: true,
-            boxColor: boundingBoxColors[index % boundingBoxColors.length]
+            showBoxes: true
         });
 
         classificationElements.forEach((element) => {
@@ -179,6 +177,14 @@ export function getClassificationsFromDataset(dataset: GetDatasetResponse): Arra
 }
 
 
+export function getBoxColorFromClassificationName(name: string): string {
+    const imageState = useImageStateStore();
+    const globalClassificationIndex = imageState.allClassifications.findIndex(c => c.name === name);
+    if (globalClassificationIndex === -1) return boundingBoxColors[0];
+    return boundingBoxColors[globalClassificationIndex % boundingBoxColors.length];
+}
+
+
 export function processImageData(source: File | Blob, id: number): void {
     const imageState = useImageStateStore();
 
@@ -193,7 +199,9 @@ export function processImageData(source: File | Blob, id: number): void {
             width: img.width,
             height: img.height,
             classifications: [],
-            elements: []
+            elements: [],
+            selectedLeaderIds: [],
+            points: []
         } as ImageDetails;
 
         imageState.images.push(imageDetails);

@@ -4,7 +4,6 @@ import VButton from "primevue/button";
 import { useImageStateStore } from "@/stores/imageState";
 import { useViewStateStore, ViewStates } from "@/stores/viewState";
 import { parseClassificationsFromElementsResponse } from "@/utils";
-import { sendLeaders } from "@/requests/images";
 import { addImageToDataset, createDataset } from "@/requests/datasets";
 import { computed } from "vue";
 
@@ -13,14 +12,14 @@ const imageState = useImageStateStore();
 const viewState = useViewStateStore();
 
 const submitDisabled = computed(() => {
-    return imageState.selectedLeaderIds.length === 0
+    return imageState.currentImage.selectedLeaderIds.length === 0
         && viewState.isAddingMoreImages === false;
 });
 
 
 function handleReturnClick() {
-    imageState.clearResult();
-    imageState.selectedLeaderIds = [];
+    imageState.clearCurrentResult();
+    imageState.currentImage.selectedLeaderIds = [];
 
     viewState.showBackground = true;
     viewState.isEditingExistingResult = true;
@@ -43,7 +42,7 @@ async function submitClassificationLeaders() {
         });
     }
 
-    const classifications = imageState.selectedLeaderIds.map(id => {
+    const classifications = imageState.currentImage.selectedLeaderIds.map(id => {
         return {
             name: viewState.lastAssignedLeaderNumber++,
             leader_id: id
@@ -51,7 +50,7 @@ async function submitClassificationLeaders() {
     });
 
     await addImageToDataset(imageState.datasetId, imageState.currentImage.id, classifications).then((response) => {
-        imageState.clearResult();
+        imageState.clearCurrentResult();
 
         const currentImage = response.images.find((image) => image.id === imageState.currentImage.id);
         if (currentImage !== undefined) {
@@ -73,7 +72,7 @@ async function submitClassificationLeaders() {
                 <span class="element-count-value">{{ imageState.currentImage.elements.length }}</span>
                 <span class="element-count-label">Elements</span>
             </div>
-            <VButton text label="Submit leaders" icon="pi pi-check"
+            <VButton text label="Submit selection" icon="pi pi-check"
                     @click="handleSubmitLeadersClick" :disabled="submitDisabled" />
         </div>
     </div>

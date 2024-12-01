@@ -16,7 +16,7 @@ const overlay = ref<HTMLDivElement>();
 const innerOverlay = ref<HTMLDivElement>();
 
 const elements = computed(() => imageState.currentImage.elements);
-const points = imageState.points;
+const points = imageState.currentImage.points;
 
 const scale = computed(() => imageState.boundingBoxScale);
 const maskVisibility = computed(() => viewState.showBackground ? "block" : "none");
@@ -92,14 +92,14 @@ function showMaskImage(imageData: ImageData) {
 }
 
 async function sendPoints() {
-    if (imageState.points.length === 0) {
+    if (imageState.currentImage.points.length === 0) {
         viewState.showBackground = false;
         return;
     }
 
     viewState.isWaitingForResponse = true;
 
-    await sendBackgroundPoints(imageState.currentImage.id, imageState.points).then((response) => {
+    await sendBackgroundPoints(imageState.currentImage.id, imageState.currentImage.points).then((response) => {
         const maskImageData = createMaskImage(response.mask);
         showMaskImage(maskImageData);
         viewState.showBackground = true;
@@ -115,7 +115,7 @@ function handleOverlayClick(event: MouseEvent) {
     // [x, y] relative to original image size, not scaled
     const x = (event.clientX - bbox.left) / scale.value / imageState.userZoom;
     const y = (event.clientY - bbox.top) / scale.value / imageState.userZoom;
-    const beforePointCount = imageState.points.length;
+    const beforePointCount = imageState.currentImage.points.length;
 
     if (viewState.isAddingPoint) {
         if ((event.target! as HTMLElement).classList.contains("selection-point")) return;
@@ -135,7 +135,7 @@ function handleOverlayClick(event: MouseEvent) {
     }
 
     // If point was added or removed, send the updated points to the server
-    if (beforePointCount !== imageState.points.length) sendPoints();
+    if (beforePointCount !== imageState.currentImage.points.length) sendPoints();
 }
 
 

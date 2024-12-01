@@ -3,6 +3,7 @@ import { boundingBoxColors } from '@/config';
 import { useImageStateStore } from '@/stores/imageState';
 import { useSettingsStateStore } from '@/stores/settingsState';
 import { useViewStateStore, ViewStates } from '@/stores/viewState';
+import { getBoxColorFromClassificationName } from '@/utils';
 import { computed } from 'vue';
 
 
@@ -34,16 +35,14 @@ const props = defineProps({
 });
 
 const boxColor = computed(() => {
-    if (viewState.currentState === ViewStates.ImageViewCreateDataset || props.classificationIndex === undefined) {
-        return boundingBoxColors[0];
+    if (props.classificationIndex !== undefined && viewState.currentState !== ViewStates.ImageViewCreateDataset) {
+        return getBoxColorFromClassificationName(classification.value);
     }
-    else {
-        return imageState.currentImage.classifications[props.classificationIndex].boxColor;
-    }
+    return boundingBoxColors[0];
 });
 
 const isSelectedAsLeader = computed(() => {
-    return imageState.selectedLeaderIds.includes(props.id)
+    return imageState.currentImage.selectedLeaderIds.includes(props.id)
         && (viewState.currentState === ViewStates.ImageViewCreateDataset
             || viewState.currentState === ViewStates.ImageViewConfirmDataset
         );
@@ -62,7 +61,7 @@ const classification = computed(() => {
     if (props.classificationIndex === undefined) {
         return "";
     }
-    else return imageState.currentImage.classifications[props.classificationIndex].name
+    else return imageState.currentImage.classifications[props.classificationIndex].name;
 });
 
 const scale = computed(() => imageState.boundingBoxScale);
@@ -77,11 +76,11 @@ const height = computed(() => (props.bottomRight[1] - props.topLeft[1]) * scale.
 function handleBoundingBoxClick() {
     // If creating dataset, enable leader selection
     if (viewState.currentState === ViewStates.ImageViewCreateDataset) {
-        if (imageState.selectedLeaderIds.includes(props.id)) {
-            imageState.selectedLeaderIds = imageState.selectedLeaderIds.filter(id => id !== props.id);
+        if (imageState.currentImage.selectedLeaderIds.includes(props.id)) {
+            imageState.currentImage.selectedLeaderIds = imageState.currentImage.selectedLeaderIds.filter(id => id !== props.id);
         }
         else {
-            imageState.selectedLeaderIds.push(props.id);
+            imageState.currentImage.selectedLeaderIds.push(props.id);
         }
     }
     // If assigning classifications, enable assignment

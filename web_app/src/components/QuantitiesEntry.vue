@@ -3,7 +3,7 @@ import { adjustClassifications } from "@/requests/datasets";
 import { renameResultClassification } from "@/requests/results";
 import { useImageStateStore } from "@/stores/imageState";
 import { ImageAction, useViewStateStore } from "@/stores/viewState";
-import { formatClassificationName } from "@/utils";
+import { formatClassificationName, getBoxColorFromClassificationName } from "@/utils";
 import VButton from "primevue/button";
 import VDialog from "primevue/dialog";
 import VInputSwitch from "primevue/inputswitch";
@@ -29,7 +29,7 @@ const renameNewLabel = ref<string>("");
 
 const count = computed(() => imageState.currentImage.classifications[props.index].count);
 const name = computed(() => imageState.currentImage.classifications[props.index].name);
-const boxColor = computed(() => imageState.currentImage.classifications[props.index].boxColor);
+const boxColor = computed(() => getBoxColorFromClassificationName(name.value));
 const showBoxes = computed({
     get() {
         return imageState.currentImage.classifications[props.index].showBoxes;
@@ -69,6 +69,7 @@ async function confirmRename() {
     if (isRenameDisabled.value) return;
 
     if (viewState.currentAction === ImageAction.SimpleCounting) {
+        // TODO: as results don't support multiple images yet, fix later
         await renameResultClassification(
             imageState.resultId, renameOldLabel.value, renameNewLabel.value
         ).then(() => {
@@ -77,20 +78,37 @@ async function confirmRename() {
         });
     }
     else {
-        imageState.currentImage.classifications[props.index].name = renameNewLabel.value;
+        const oldName = imageState.currentImage.classifications[props.index].name;
+        const changedImageIds = [] as number[];
 
-        const classifications = imageState.currentImage.classifications.map((c) => {
-            return {
-                name: c.name,
-                elements: imageState.currentImage.elements
-                    .filter((el) => el.classificationIndex === c.index)
-                    .map((el) => el.id)
-            };
+        imageState.images.forEach((image) => {
+            image.classifications.forEach((c) => {
+                if (c.name === oldName) {
+                    c.name = renameNewLabel.value;
+                    if (!changedImageIds.includes(image.id)) {
+                        changedImageIds.push(image.id);
+                    }
+                }
+            });
         });
 
-        await adjustClassifications(imageState.datasetId, imageState.currentImage.id, classifications).then(() => {
-            isRenameDialogVisible.value = false;
+        changedImageIds.forEach((id) => {
+            const image = imageState.images.find((i) => i.id === id);
+            if (image) {
+                const classifications = image.classifications.map((c) => {
+                    return {
+                        name: c.name,
+                        elements: image.elements
+                            .filter((el) => el.classificationIndex === c.index)
+                            .map((el) => el.id)
+                    };
+                });
+
+                adjustClassifications(imageState.datasetId, id, classifications);
+            }
         });
+
+        isRenameDialogVisible.value = false;
     }
 }
 </script>

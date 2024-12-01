@@ -19,7 +19,7 @@ function handleReturnClick() {
     viewState.setState(ViewStates.ImageEditPoints);
     viewState.showBackground = true;
     viewState.isEditingExistingResult = true;
-    imageState.clearResult();
+    imageState.clearCurrentResult();
 }
 </script>
 

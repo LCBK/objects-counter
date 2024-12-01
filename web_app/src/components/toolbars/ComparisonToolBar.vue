@@ -34,7 +34,7 @@ function handleReturnClick() {
     viewState.setState(ViewStates.ImageEditPoints);
     viewState.showBackground = true;
     viewState.isEditingExistingResult = true;
-    imageState.clearResult();
+    imageState.clearCurrentResult();
 }
 
 function handleDatasetListClick() {
@@ -79,7 +79,7 @@ async function handleCompareClick(datasetId: number) {
     compareDialogVisible.value = false;
 
     await compareToDataset(datasetId, imageIds).then((response) => {
-        imageState.clearResult();
+        imageState.clearCurrentResult();
 
         parseClassificationsFromElementsResponse(response.images[0].elements);
         imageState.comparisonDifference = response.diff;

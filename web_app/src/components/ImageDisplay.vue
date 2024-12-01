@@ -7,15 +7,9 @@ import Panzoom from "../../node_modules/@panzoom/panzoom/";
 
 const imageState = useImageStateStore();
 const displayContainer = ref<HTMLDivElement>();
-const displayedImage = ref<HTMLImageElement>();
 
 
 onMounted(() => {
-    if (!displayedImage.value || imageState.currentImage.dataURL === "" ||
-        imageState.currentImage.dataURL === null || imageState.currentImage.dataURL === undefined) return;
-
-    displayedImage.value.src = imageState.currentImage.dataURL;
-
     const panzoom = Panzoom(displayContainer.value!, {
         minScale: 1,
         maxScale: 5,
@@ -24,17 +18,17 @@ onMounted(() => {
         noBind: true            // we are manually binding events below, prevent double binding
     })
 
-    displayContainer.value!.addEventListener('pointerdown', (event) => {
+    displayContainer.value!.addEventListener("pointerdown", (event) => {
         imageState.isPanning = false;
         panzoom.handleDown(event);
     });
 
-    document.addEventListener('pointermove', (event) => {
+    document.addEventListener("pointermove", (event) => {
         imageState.isPanning = true;
         panzoom.handleMove(event);
     });
 
-    document.addEventListener('pointerup', (event) => {
+    document.addEventListener("pointerup", (event) => {
         panzoom.handleUp(event);
     });
 
@@ -42,7 +36,7 @@ onMounted(() => {
         imageState.userZoom = panzoom.getScale();
     });
 
-    displayContainer.value!.parentElement!.addEventListener('wheel', (event) => {
+    displayContainer.value!.parentElement!.addEventListener("wheel", (event) => {
         if (!event.shiftKey) return;
         panzoom.zoomWithWheel(event);
     });
@@ -52,7 +46,7 @@ onMounted(() => {
 
 <template>
     <div class="image-display" ref="displayContainer">
-        <img id="displayed-image" alt="Uploaded image" ref="displayedImage" />
+        <img id="displayed-image" alt="Uploaded image" :src="imageState.currentImage.dataURL" />
         <ImageOverlay />
     </div>
 </template>
