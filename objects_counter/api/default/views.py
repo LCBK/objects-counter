@@ -14,14 +14,13 @@ from werkzeug.exceptions import NotFound
 from werkzeug.utils import secure_filename
 
 from image_segmentation.object_classification.classifier import ObjectClassifier
-from image_segmentation.object_classification.comparison import find_missing_elements
 from image_segmentation.object_classification.feature_extraction import FeatureSimilarity, ColorSimilarity
 from image_segmentation.object_detection.object_segmentation import ObjectSegmentation
 from objects_counter.api.default.models import points_model, accept_model
 from objects_counter.api.utils import authentication_optional, authentication_required, gzip_compress
 from objects_counter.consts import SAM_CHECKPOINT, SAM_MODEL_TYPE
 from objects_counter.db.dataops.image import insert_image, update_background_points, get_image_by_id, \
-    serialize_image_as_result, mark_leaders_in_image
+    serialize_image_as_result
 from objects_counter.db.dataops.result import insert_result
 from objects_counter.db.models import User
 from objects_counter.utils import create_thumbnail
