@@ -28,26 +28,37 @@ function handleSubmitLeadersClick() {
 async function submitClassificationLeaders() {
     viewState.isWaitingForResponse = true;
 
-    await sendLeaders(imageState.currentImage.id, imageState.selectedLeaderIds).then(() => {
-        createDataset(`temporary no. ${imageState.currentImage.id}`, true).then((response) => {
+    await sendLeaders(imageState.currentImage.id, imageState.selectedLeaderIds).catch(() => {
+        viewState.isWaitingForResponse = false;
+        return;
+    });
+
+    if (!viewState.isAddingMoreImages) {
+        await createDataset(`temporary no. ${imageState.currentImage.id}`, true).then((response) => {
             imageState.datasetId = parseInt(response);
-
-            const classifications = imageState.selectedLeaderIds.map((id: number, index: number) => {
-                return {
-                    name: index,
-                    leader_id: id
-                }
-            });
-
-            addImageToDataset(imageState.datasetId, imageState.currentImage.id, classifications).then((response) => {
-                imageState.clearResult();
-                parseClassificationsFromElementsResponse(response.images[0].elements);
-
-                viewState.setState(ViewStates.ImageViewConfirmDataset);
-            }).finally(() => {
-                viewState.isWaitingForResponse = false;
-            });
+        }).catch(() => {
+            viewState.isWaitingForResponse = false;
+            return;
         });
+    }
+
+    const classifications = imageState.selectedLeaderIds.map(id => {
+        return {
+            name: viewState.lastAssignedLeaderNumber++,
+            leader_id: id
+        }
+    });
+
+    await addImageToDataset(imageState.datasetId, imageState.currentImage.id, classifications).then((response) => {
+        imageState.clearResult();
+
+        const currentImage = response.images.find((image) => image.id === imageState.currentImage.id);
+        if (currentImage !== undefined) {
+            parseClassificationsFromElementsResponse(currentImage.elements);
+            viewState.setState(ViewStates.ImageViewConfirmDataset);
+        }
+    }).finally(() => {
+        viewState.isWaitingForResponse = false;
     });
 }
 </script>

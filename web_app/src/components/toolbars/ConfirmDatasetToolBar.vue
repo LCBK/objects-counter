@@ -6,11 +6,12 @@ import VSidebar from "primevue/sidebar";
 import VInputText from "primevue/inputtext";
 import QuantitiesEntry from "../QuantitiesEntry.vue";
 import { useImageStateStore } from "@/stores/imageState";
-import { useViewStateStore } from "@/stores/viewState";
+import { useViewStateStore, ViewStates } from "@/stores/viewState";
 import { computed, ref, watch } from "vue";
-import { formatClassificationName, isUserAgentMobile } from "@/utils";
+import { formatClassificationName, isUserAgentMobile, processImageData } from "@/utils";
 import InfoPopup from "../InfoPopup.vue";
 import { adjustClassifications, renameDataset } from "@/requests/datasets";
+import { uploadImage } from "@/requests/images";
 
 
 const imageState = useImageStateStore();
@@ -59,17 +60,20 @@ async function handleImageUpload(event: Event) {
     const imageFile = (event.target as HTMLInputElement)!.files?.[0];
     if (imageFile === undefined) return;
 
-    // viewState.setState(ViewStates.Uploading);
+    viewState.setState(ViewStates.Uploading);
 
-    // await uploadImage(imageFile).then((imageId) => {
-    //     imageState.imageId = imageId;
-    //     imageState.imageBatch.push(imageId);
-    //     processImageFile(imageFile);
+    await uploadImage(imageFile).then((imageId) => {
+        processImageData(imageFile, imageId);
 
-    //     viewState.setState(ViewStates.ImageEditPoints);
-    // }).catch(() => {
-    //     viewState.setState(ViewStates.MainView);
-    // });
+        // The store state is before the upload, so this length is one less than the actual one
+        imageState.currentImageIndex = imageState.images.length;
+
+        imageState.clearSelections();
+        viewState.isAddingMoreImages = true;
+        viewState.setState(ViewStates.ImageEditPoints);
+    }).catch(() => {
+        viewState.setState(ViewStates.MainView);
+    });
 }
 
 function handleCaptureClick() {

@@ -88,7 +88,7 @@ function showMaskImage(imageData: ImageData) {
         ctx.drawImage(maskImage, 0, 0);
     };
 
-    document.querySelector<HTMLImageElement>("#mask-image")!.src = canvas.toDataURL();
+    imageState.currentImage.backgroundMaskDataURL = canvas.toDataURL();
 }
 
 async function sendPoints() {

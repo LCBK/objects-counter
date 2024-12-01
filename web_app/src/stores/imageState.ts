@@ -16,12 +16,11 @@ const defaultState = {
     overlayOffsetLeft: 0,
     overlayOffsetTop: 0,
     boundingBoxScale: 1,
-    backgroundMaskDataURL: "",
     isPanning: false,
     userZoom: 1,
     points: [] as Array<BackgroundPoint>,
     selectedLeaderIds: [] as Array<number>,
-    comparisonDifference: {} as ComparisonDiff,
+    comparisonDifference: {} as ComparisonDiff
 }
 
 export const useImageStateStore = defineStore("imageState", {
@@ -61,6 +60,11 @@ export const useImageStateStore = defineStore("imageState", {
             this.comparisonDifference = {};
             this.currentImage.elements = [];
             this.currentImage.classifications = [];
+        },
+
+        clearSelections() {
+            this.points = [];
+            this.selectedLeaderIds = [];
         }
     }
 });

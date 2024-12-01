@@ -48,7 +48,9 @@ const defaultState = {
     isEditingExistingResult: false,
     isSelectingAssignment: false,
     isAssigningClassifications: false,
+    isAddingMoreImages: false,
     currentlyAssignedClassificationIndex: 0,
+    lastAssignedLeaderNumber: 0,
     showPoints: true,
     showBackground: false,
     currentNavBarTitle: "",
@@ -90,7 +92,7 @@ export const useViewStateStore = defineStore("viewState", {
                     this.currentImageViewToolBar = shallowRef(EditPointsToolBar);
                     this.currentNavBarTitle = "Select background";
                     this.showPoints = true;
-                    this.showBackground = false;
+                    this.showBackground = true;
                     break;
 
                 case ViewStates.ImageViewCountingResult:
