@@ -46,8 +46,7 @@ export const endpoints = {
     addImageToDataset: "/api/datasets/{dataset_id}/images",
     getDatasetsThumbnails: "/api/datasets/thumbnails",
     adjustDatasetClassifications: "/api/datasets/{dataset_id}/images/{image_id}",
-    compareToDataset: "/api/datasets/{dataset_id}/comparison",
-    sendLeaders: "/api/images/{image_id}/mark-leaders"
+    compareToDataset: "/api/datasets/{dataset_id}/comparison"
 };
 
 

@@ -77,20 +77,3 @@ export async function acceptBackground(id: string | number, skip_classification:
         throw new Error("Failed to accept background");
     }
 }
-
-
-export async function sendLeaders(id: string | number, leaderIds: Array<string | number>) {
-    const requestUri = config.serverUri + endpoints.sendLeaders
-        .replace("{image_id}", id.toString());
-    const requestData = JSON.stringify({ leaders: leaderIds });
-
-    const requestPromise = sendRequest(requestUri, requestData, "POST");
-    const response = await requestPromise;
-
-    if (response.ok) {
-        return response.text() as Promise<SendLeadersResponse>;
-    }
-    else {
-        throw new Error("Failed to send leaders");
-    }
-}
