@@ -2,14 +2,12 @@
 import { ref } from "vue";
 import VButton from "primevue/button";
 import VSelectButton from "primevue/selectbutton";
-import { useImageStateStore } from "@/stores/imageState";
 import { ImageAction, useViewStateStore, ViewStates } from "@/stores/viewState";
-import { isUserAgentMobile, processImageFile } from "@/utils";
+import { isUserAgentMobile, processImageData } from "@/utils";
 import { useUserStateStore } from "@/stores/userState";
 import { uploadImage } from "@/requests/images";
 
 
-const imageState = useImageStateStore();
 const viewState = useViewStateStore();
 const userState = useUserStateStore();
 
@@ -46,10 +44,7 @@ async function handleImageUpload(event: Event) {
     viewState.setState(ViewStates.Uploading);
 
     await uploadImage(imageFile).then((imageId) => {
-        imageState.imageId = imageId;
-        imageState.imageBatch.push(imageId);
-        processImageFile(imageFile);
-
+        processImageData(imageFile, imageId);
         viewState.setState(ViewStates.ImageEditPoints);
     }).catch(() => {
         viewState.setState(ViewStates.MainView);

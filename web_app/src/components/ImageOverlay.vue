@@ -15,7 +15,7 @@ const viewState = useViewStateStore();
 const overlay = ref<HTMLDivElement>();
 const innerOverlay = ref<HTMLDivElement>();
 
-const elements = computed(() => imageState.imageElements);
+const elements = computed(() => imageState.currentImage.elements);
 const points = imageState.points;
 
 const scale = computed(() => imageState.boundingBoxScale);
@@ -33,18 +33,18 @@ function scaleOverlay() {
     const overlayWidth = overlay.value.clientWidth;                     // Overlay element width
     const overlayHeight = overlay.value.clientHeight;                   // Overlay element height
     const overlayRatio = overlayWidth / overlayHeight;                  // Overlay ratio of width/height
-    const srcImageRatio = imageState.width / imageState.height;         // Image ratio of width/height
+    const srcImageRatio = imageState.currentImage.width / imageState.currentImage.height;         // Image ratio of width/height
     let innerImageWidth = 0, innerImageHeight = 0;                      // Dimensions of <img> element (differ from original)
     let destinationHeightFraction = 1, destinationWidthFraction = 1;    // Fractions used for scaling the <img> element dimensions
 
     // Calculate which <img> element dimension to scale
     if (srcImageRatio > overlayRatio) {
         // Original image wider than <img> element
-        destinationHeightFraction = (imageState.height / overlayHeight) / (imageState.width / overlayWidth);
+        destinationHeightFraction = (imageState.currentImage.height / overlayHeight) / (imageState.currentImage.width / overlayWidth);
     }
     else {
         // <img> element wider than original image
-        destinationWidthFraction = (imageState.width / overlayWidth) / (imageState.height / overlayHeight);
+        destinationWidthFraction = (imageState.currentImage.width / overlayWidth) / (imageState.currentImage.height / overlayHeight);
     }
 
     // Scale <img> element to fit overlay
@@ -67,10 +67,10 @@ function scaleOverlay() {
     imageState.overlayOffsetLeft = leftMargin;
     imageState.overlayOffsetTop = topMargin;
     if (srcImageRatio > overlayRatio) {
-        imageState.boundingBoxScale = innerImageWidth / imageState.width;
+        imageState.boundingBoxScale = innerImageWidth / imageState.currentImage.width;
     }
     else {
-        imageState.boundingBoxScale = innerImageHeight / imageState.height;
+        imageState.boundingBoxScale = innerImageHeight / imageState.currentImage.height;
     }
 }
 
@@ -79,8 +79,8 @@ function showMaskImage(imageData: ImageData) {
     const ctx = canvas.getContext("2d");
     if (ctx == undefined) return;
 
-    ctx.canvas.width = imageState.width;
-    ctx.canvas.height = imageState.height;
+    ctx.canvas.width = imageState.currentImage.width;
+    ctx.canvas.height = imageState.currentImage.height;
     ctx.putImageData(imageData, 0, 0);
 
     const maskImage = new Image();
@@ -99,7 +99,7 @@ async function sendPoints() {
 
     viewState.isWaitingForResponse = true;
 
-    await sendBackgroundPoints(imageState.imageId, imageState.points).then((response) => {
+    await sendBackgroundPoints(imageState.currentImage.id, imageState.points).then((response) => {
         const maskImageData = createMaskImage(response.mask);
         showMaskImage(maskImageData);
         viewState.showBackground = true;
@@ -149,7 +149,7 @@ onMounted(() => {
 <template>
     <div class="img-overlay" ref="overlay">
         <div class="inner-overlay" ref="innerOverlay" style="position: absolute" @click="handleOverlayClick">
-            <img id="mask-image" :src="imageState.backgroundMaskDataURL">
+            <img id="mask-image" :src="imageState.currentImage.backgroundMaskDataURL">
             <div class="bounding-boxes">
                 <BoundingBox v-for="([, box], index) in Object.entries(elements)" :key="index" v-bind="box" />
             </div>

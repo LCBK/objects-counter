@@ -27,22 +27,22 @@ const isRenameDialogVisible = ref<boolean>(false);
 const renameOldLabel = ref<string>("");
 const renameNewLabel = ref<string>("");
 
-const count = computed(() => imageState.classifications[props.index].count);
-const name = computed(() => imageState.classifications[props.index].name);
-const boxColor = computed(() => imageState.classifications[props.index].boxColor);
+const count = computed(() => imageState.currentImage.classifications[props.index].count);
+const name = computed(() => imageState.currentImage.classifications[props.index].name);
+const boxColor = computed(() => imageState.currentImage.classifications[props.index].boxColor);
 const showBoxes = computed({
     get() {
-        return imageState.classifications[props.index].showBoxes;
+        return imageState.currentImage.classifications[props.index].showBoxes;
     },
     set(value) {
-        imageState.classifications[props.index].showBoxes = value;
+        imageState.currentImage.classifications[props.index].showBoxes = value;
     }
 });
 const isRenameDisabled = computed(() => {
     return (
         renameNewLabel.value === ""
         || renameNewLabel.value === renameOldLabel.value
-        || imageState.classifications.some((c) => c.name === renameNewLabel.value)
+        || imageState.currentImage.classifications.some((c) => c.name === renameNewLabel.value)
     );
 });
 const difference = computed(() => {
@@ -72,23 +72,23 @@ async function confirmRename() {
         await renameResultClassification(
             imageState.resultId, renameOldLabel.value, renameNewLabel.value
         ).then(() => {
-            imageState.classifications[props.index].name = renameNewLabel.value;
+            imageState.currentImage.classifications[props.index].name = renameNewLabel.value;
             isRenameDialogVisible.value = false;
         });
     }
     else {
-        imageState.classifications[props.index].name = renameNewLabel.value;
+        imageState.currentImage.classifications[props.index].name = renameNewLabel.value;
 
-        const classifications = imageState.classifications.map((c) => {
+        const classifications = imageState.currentImage.classifications.map((c) => {
             return {
                 name: c.name,
-                elements: imageState.imageElements
+                elements: imageState.currentImage.elements
                     .filter((el) => el.classificationIndex === c.index)
                     .map((el) => el.id)
             };
         });
 
-        await adjustClassifications(imageState.datasetId, imageState.imageId, classifications).then(() => {
+        await adjustClassifications(imageState.datasetId, imageState.currentImage.id, classifications).then(() => {
             isRenameDialogVisible.value = false;
         });
     }

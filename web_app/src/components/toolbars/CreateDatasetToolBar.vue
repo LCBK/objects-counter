@@ -28,8 +28,8 @@ function handleSubmitLeadersClick() {
 async function submitClassificationLeaders() {
     viewState.isWaitingForResponse = true;
 
-    await sendLeaders(imageState.imageId, imageState.selectedLeaderIds).then(() => {
-        createDataset(`temporary no. ${imageState.imageId}`, true).then((response) => {
+    await sendLeaders(imageState.currentImage.id, imageState.selectedLeaderIds).then(() => {
+        createDataset(`temporary no. ${imageState.currentImage.id}`, true).then((response) => {
             imageState.datasetId = parseInt(response);
 
             const classifications = imageState.selectedLeaderIds.map((id: number, index: number) => {
@@ -39,7 +39,7 @@ async function submitClassificationLeaders() {
                 }
             });
 
-            addImageToDataset(imageState.datasetId, imageState.imageId, classifications).then((response) => {
+            addImageToDataset(imageState.datasetId, imageState.currentImage.id, classifications).then((response) => {
                 imageState.clearResult();
                 parseClassificationsFromElementsResponse(response.images[0].elements);
 
@@ -58,7 +58,7 @@ async function submitClassificationLeaders() {
         <div class="bar-content tool-bar-content">
             <VButton text label="Adjust" icon="pi pi-pencil" @click="handleReturnClick();" />
             <div class="element-count">
-                <span class="element-count-value">{{ imageState.imageElements.length }}</span>
+                <span class="element-count-value">{{ imageState.currentImage.elements.length }}</span>
                 <span class="element-count-label">Elements</span>
             </div>
             <VButton text label="Submit leaders" icon="pi pi-check"

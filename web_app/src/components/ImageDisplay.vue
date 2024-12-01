@@ -11,10 +11,10 @@ const displayedImage = ref<HTMLImageElement>();
 
 
 onMounted(() => {
-    if (!displayedImage.value || imageState.imageDataURL === "" ||
-        imageState.imageDataURL === null || imageState.imageDataURL === undefined) return;
+    if (!displayedImage.value || imageState.currentImage.dataURL === "" ||
+        imageState.currentImage.dataURL === null || imageState.currentImage.dataURL === undefined) return;
 
-    displayedImage.value.src = imageState.imageDataURL;
+    displayedImage.value.src = imageState.currentImage.dataURL;
 
     const panzoom = Panzoom(displayContainer.value!, {
         minScale: 1,

@@ -1,18 +1,16 @@
-import type { BackgroundPoint, ImageElement, ObjectClassification } from "@/types/app";
+import type { BackgroundPoint, ImageDetails } from "@/types/app";
 import type { ComparisonDiff } from "@/types/requests";
 import { distance } from "@/utils";
 import { defineStore } from "pinia";
 
 
-// Stores data related to user's image, e.g.: dimensions, canvas scale/offset, selection points, bounding boxes
+// Stores data related to user's image, e.g.: canvas data/scale/offset, selection points, bounding boxes
 
 const defaultState = {
-    imageDataURL: "",
-    imageId: 0,
+    images: [] as Array<ImageDetails>,
+    currentImageIndex: 0,
     resultId: 0,
     datasetId: 0,
-    width: 0,
-    height: 0,
     scaledImageWidth: 0,
     scaledImageHeight: 0,
     overlayOffsetLeft: 0,
@@ -21,25 +19,25 @@ const defaultState = {
     backgroundMaskDataURL: "",
     isPanning: false,
     userZoom: 1,
-    imageElements: [] as Array<ImageElement>,
     points: [] as Array<BackgroundPoint>,
-    classifications: [] as Array<ObjectClassification>,
     selectedLeaderIds: [] as Array<number>,
     comparisonDifference: {} as ComparisonDiff,
-    imageBatch: [] as Array<number>,        // List of image IDs in the current batch
 }
 
 export const useImageStateStore = defineStore("imageState", {
     state: () => ({ ...defaultState }),
+    getters: {
+        currentImage(state) {
+            return state.images[state.currentImageIndex];
+        }
+    },
     actions: {
         reset() {
             Object.assign(this, defaultState);
-            this.imageElements = [];
             this.points = [];
-            this.classifications = [];
             this.selectedLeaderIds = [];
             this.comparisonDifference = {};
-            this.imageBatch = [];
+            this.images = [];
         },
 
         addPoint(isPositive: boolean, x: number, y: number) {
@@ -60,9 +58,9 @@ export const useImageStateStore = defineStore("imageState", {
         },
 
         clearResult() {
-            this.imageElements = [];
-            this.classifications = [];
             this.comparisonDifference = {};
+            this.currentImage.elements = [];
+            this.currentImage.classifications = [];
         }
     }
 });

@@ -1,5 +1,15 @@
 // Type definitions exclusively for the web application
 
+export interface ImageDetails {
+    id: number,
+    dataURL: string,
+    width: number,
+    height: number,
+    backgroundMaskDataURL?: string,
+    classifications: Array<ObjectClassification>,
+    elements: Array<ImageElement>
+}
+
 export interface ImageElement {
     id: number,
     topLeft: [number, number],
@@ -19,7 +29,7 @@ export interface ObjectClassification {
 
 export interface BackgroundPoint {
     position: [number, number]
-    positive: boolean,                    // true - positive, false - negative
+    positive: boolean                     // true - positive, false - negative
 }
 
 export interface ResultHistoryItem {

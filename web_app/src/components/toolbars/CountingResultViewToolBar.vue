@@ -12,7 +12,7 @@ const imageState = useImageStateStore();
 const viewState = useViewStateStore();
 
 const quantitiesVisible = ref<boolean>(false);
-const classifications = computed(() => imageState.classifications);
+const classifications = computed(() => imageState.currentImage.classifications);
 
 
 function handleReturnClick() {
@@ -29,7 +29,7 @@ function handleReturnClick() {
         <div class="bar-content tool-bar-content">
             <VButton text label="Adjust" icon="pi pi-pencil" @click="handleReturnClick();" />
             <div class="element-count">
-                <span class="element-count-value">{{ imageState.imageElements.length }}</span>
+                <span class="element-count-value">{{ imageState.currentImage.elements.length }}</span>
                 <span class="element-count-label">Elements</span>
             </div>
             <VButton text label="Details" icon="pi pi-list" @click="quantitiesVisible = true" />

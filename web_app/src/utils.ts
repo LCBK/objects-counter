@@ -2,7 +2,7 @@ import { boundingBoxColors, config } from "./config";
 import { useUserStateStore } from "./stores/userState";
 import { useImageStateStore } from "./stores/imageState";
 import type { ClassificationWithObjects, GetDatasetResponse, ImageElementResponse } from "./types/requests";
-import type { DatasetClassificationListItem, ImageElement } from "./types/app";
+import type { DatasetClassificationListItem, ImageDetails, ImageElement } from "./types/app";
 
 
 export async function sendRequest(
@@ -80,7 +80,7 @@ export function parseClassificationsFromResponse(classifications: Array<Classifi
     const imageState = useImageStateStore();
 
     classifications.forEach((classification, index: number) => {
-        imageState.classifications.push({
+        imageState.currentImage.classifications.push({
             index: index,
             name: classification.name,
             count: classification.objects.length,
@@ -104,7 +104,7 @@ export function parseClassificationsFromResponse(classifications: Array<Classifi
                 }
             }
 
-            imageState.imageElements.push(imageElement);
+            imageState.currentImage.elements.push(imageElement);
         });
     });
 }
@@ -123,7 +123,7 @@ export function parseClassificationsFromElementsResponse(elements: Array<ImageEl
     classifications.sort();
     classifications.forEach((classification, index) => {
         const classificationElements = elements.filter((element) => element.classification === classification);
-        imageState.classifications.push({
+        imageState.currentImage.classifications.push({
             index: index,
             name: classification,
             count: classificationElements.length,
@@ -132,7 +132,7 @@ export function parseClassificationsFromElementsResponse(elements: Array<ImageEl
         });
 
         classificationElements.forEach((element) => {
-            imageState.imageElements.push({
+            imageState.currentImage.elements.push({
                 id: element.id,
                 topLeft: element.top_left,
                 bottomRight: element.bottom_right,
@@ -147,7 +147,7 @@ export function parseClassificationsFromElementsResponse(elements: Array<ImageEl
 export function parseElementsFromResponse(elements: Array<ImageElementResponse>): void {
     const imageState = useImageStateStore();
     for (const element of elements) {
-        imageState.imageElements.push({
+        imageState.currentImage.elements.push({
             id: element.id,
             topLeft: element.top_left,
             bottomRight: element.bottom_right
@@ -179,18 +179,24 @@ export function getClassificationsFromDataset(dataset: GetDatasetResponse): Arra
 }
 
 
-export function processImageFile(imageFile: File): void {
+export function processImageData(source: File | Blob, id: number): void {
     const imageState = useImageStateStore();
 
-    const url = window.URL.createObjectURL(imageFile);
-    // TODO: Move to imageBatch along with id and maybe some other data?
-    imageState.imageDataURL = url;           // For displaying the image
-
+    const url = window.URL.createObjectURL(source);
     const img = new Image;
     img.src = url;
+
     img.onload = () => {
-        imageState.width = img.width;
-        imageState.height = img.height;
+        const imageDetails = {
+            id: id,
+            dataURL: url,
+            width: img.width,
+            height: img.height,
+            classifications: [],
+            elements: []
+        } as ImageDetails;
+
+        imageState.images.push(imageDetails);
     };
 }
 

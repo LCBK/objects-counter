@@ -38,7 +38,7 @@ const boxColor = computed(() => {
         return boundingBoxColors[0];
     }
     else {
-        return imageState.classifications[props.classificationIndex].boxColor;
+        return imageState.currentImage.classifications[props.classificationIndex].boxColor;
     }
 });
 
@@ -62,7 +62,7 @@ const classification = computed(() => {
     if (props.classificationIndex === undefined) {
         return "";
     }
-    else return imageState.classifications[props.classificationIndex].name
+    else return imageState.currentImage.classifications[props.classificationIndex].name
 });
 
 const scale = computed(() => imageState.boundingBoxScale);
@@ -87,11 +87,11 @@ function handleBoundingBoxClick() {
     // If assigning classifications, enable assignment
     else if (viewState.currentState === ViewStates.ImageViewConfirmDataset && viewState.isAssigningClassifications) {
         if (!isSelectedAsLeader.value) {
-            const element = imageState.imageElements.find(el => el.id === props.id);
+            const element = imageState.currentImage.elements.find(el => el.id === props.id);
 
             if (element && element.classificationIndex !== undefined) {
-                imageState.classifications[element.classificationIndex].count--;
-                imageState.classifications[viewState.currentlyAssignedClassificationIndex].count++;
+                imageState.currentImage.classifications[element.classificationIndex].count--;
+                imageState.currentImage.classifications[viewState.currentlyAssignedClassificationIndex].count++;
                 element.classificationIndex = viewState.currentlyAssignedClassificationIndex;
             }
         }
@@ -105,7 +105,7 @@ function handleBoundingBoxClick() {
             v-bind:data-topleft="topLeft[0] + ',' + topLeft[1]"
             v-bind:data-bottomright="bottomRight[0] + ',' + bottomRight[1]"
             v-bind:data-certainty="certainty" v-bind:data-classification="classification"
-            v-if="classificationIndex === undefined || imageState.classifications[classificationIndex].showBoxes"
+            v-if="classificationIndex === undefined || imageState.currentImage.classifications[classificationIndex].showBoxes"
             @click="handleBoundingBoxClick">
         <div>
             <div v-if="settingsState.showBoxCertainty && viewState.currentState !== ViewStates.ImageViewCreateDataset" class="box-certainty">

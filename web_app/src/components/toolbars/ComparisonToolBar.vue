@@ -23,7 +23,7 @@ const compareDialogVisible = ref<boolean>(false);
 const hasCompared = ref<boolean>(false);
 const userDatasets = ref<DatasetListItem[]>([]);
 
-const classifications = computed(() => imageState.classifications);
+const classifications = computed(() => imageState.currentImage.classifications);
 const missingClassifications = computed(() => {
     return Object.keys(imageState.comparisonDifference)
         .filter((key) => !classifications.value.some((c) => c.name === key));
@@ -73,7 +73,7 @@ async function loadDatasets() {
 }
 
 async function handleCompareClick(datasetId: number) {
-    const imageIds = [imageState.imageId];
+    const imageIds = imageState.images.map((image) => image.id);
 
     viewState.isWaitingForResponse = true;
     compareDialogVisible.value = false;
@@ -100,7 +100,7 @@ async function handleCompareClick(datasetId: number) {
         <div class="bar-content tool-bar-content">
             <VButton text label="Adjust" icon="pi pi-pencil" @click="handleReturnClick();" />
             <div class="element-count">
-                <span class="element-count-value">{{ imageState.imageElements.length }}</span>
+                <span class="element-count-value">{{ imageState.currentImage.elements.length }}</span>
                 <span class="element-count-label">Elements</span>
             </div>
             <VButton text label="Details" icon="pi pi-list" @click="quantitiesVisible = true" :disabled="!hasCompared" />

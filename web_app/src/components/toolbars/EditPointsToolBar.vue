@@ -63,7 +63,7 @@ async function handleConfirmBackground() {
         || viewState.currentAction === ImageAction.CompareWithDataset
     );
 
-    await acceptBackground(imageState.imageId, skipClassification).then((response) => {
+    await acceptBackground(imageState.currentImage.id, skipClassification).then((response) => {
         if (viewState.currentState !== ViewStates.ImageEditPoints) return;
 
         if (response.id) imageState.resultId = response.id;
