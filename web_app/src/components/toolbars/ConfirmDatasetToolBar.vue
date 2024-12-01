@@ -12,6 +12,7 @@ import { formatClassificationName, getBoxColorFromClassificationName, isUserAgen
 import InfoPopup from "../InfoPopup.vue";
 import { adjustClassifications, renameDataset } from "@/requests/datasets";
 import { uploadImage } from "@/requests/images";
+import ImageNavigationOverlay from "../ImageNavigationOverlay.vue";
 
 
 const imageState = useImageStateStore();
@@ -39,8 +40,6 @@ const assignedBoxColor = computed(() => {
     const name = imageState.currentImage.classifications[viewState.currentlyAssignedClassificationIndex].name;
     return getBoxColorFromClassificationName(name);
 });
-const imageBackDisabled = computed(() => imageState.currentImageIndex === 0);
-const imageNextDisabled = computed(() => imageState.currentImageIndex === imageState.images.length - 1);
 
 
 // Close quantities sidebar when user starts to assign classifications
@@ -84,18 +83,6 @@ function handleCaptureClick() {
 
 function handleUploadClick() {
     uploadInput.value!.click();
-}
-
-function handleImageBack() {
-    if (imageState.currentImageIndex > 0) {
-        imageState.currentImageIndex--;
-    }
-}
-
-function handleImageNext() {
-    if (imageState.currentImageIndex < imageState.images.length - 1) {
-        imageState.currentImageIndex++;
-    }
 }
 
 async function submitDataset() {
@@ -156,22 +143,7 @@ function handleCreatedDataset() {
             <VButton text label="Create dataset" icon="pi pi-check" @click="createDatasetDialogVisible = true" />
         </div>
     </div>
-    <div class="navigation-overlay">
-        <div class="navigation-overlay-content">
-            <div class="overlay-controls">
-                <VButton text class="nav-button" icon="pi pi-arrow-left"
-                        @click="handleImageBack" :disabled="imageBackDisabled" />
-                <div class="nav-count">
-                    <i class="pi pi-image"></i>
-                    {{ imageState.currentImageIndex + 1 }}
-                    /
-                    {{ imageState.images.length }}
-                </div>
-                <VButton text class="nav-button" icon="pi pi-arrow-right"
-                        @click="handleImageNext" :disabled="imageNextDisabled" />
-            </div>
-        </div>
-    </div>
+    <ImageNavigationOverlay v-if="imageState.images.length > 1" />
     <Transition name="fade">
         <div v-if="viewState.isAssigningClassifications" class="assignment-notice">
             <VButton text icon="pi pi-times" @click="viewState.isAssigningClassifications = false" />
@@ -258,46 +230,6 @@ function handleCreatedDataset() {
     overflow: hidden;
 }
 
-.navigation-overlay {
-    position: fixed;
-    bottom: 90px;
-    width: 100%;
-    background-color: var(--surface-section-transparent);
-    z-index: 100;
-    color: var(--primary-color);
-    font-weight: 600;
-    text-shadow: 1px 1px 2px var(--surface-section);
-}
-
-.navigation-overlay-content {
-    display: flex;
-    justify-content: space-between;
-    max-width: 800px;
-    margin: 0 auto;
-}
-
-.overlay-controls {
-    display: flex;
-    align-items: center;
-    flex-basis: 100%;
-    justify-content: center;
-    max-width: 340px;
-    margin: 0 auto;
-}
-
-.overlay-controls > * {
-    flex-basis: 33%;
-    text-align: center;
-    margin: 0;
-}
-
-@media screen and (min-width: 340px) {
-    .navigation-overlay {
-        bottom: 100px;
-        font-size: 1.2rem;
-    }
-}
-
 @media screen and (min-width: 400px) {
     .assignment-notice-label {
         font-size: 1rem;
@@ -310,12 +242,6 @@ function handleCreatedDataset() {
 
     .assignment-notice-value {
         font-size: 1.2rem;
-    }
-}
-
-@media screen and (min-width: 1200px) {
-    .navigation-overlay-content {
-        max-width: 1200px;
     }
 }
 </style>
@@ -342,21 +268,6 @@ function handleCreatedDataset() {
 
 .image-dialog .p-button-icon {
     font-size: 1.2rem;
-}
-
-.navigation-overlay .pi-image {
-    bottom: -2px;
-    position: relative;
-}
-
-.overlay-controls .p-button {
-    padding: 12px 0;
-}
-
-@media screen and (min-width: 340px) {
-    .navigation-overlay .pi {
-        font-size: 1.25rem;
-    }
 }
 
 @media screen and (min-width: 400px) {
