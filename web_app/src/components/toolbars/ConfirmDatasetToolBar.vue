@@ -8,9 +8,9 @@ import QuantitiesEntry from "../QuantitiesEntry.vue";
 import { useImageStateStore } from "@/stores/imageState";
 import { useViewStateStore } from "@/stores/viewState";
 import { computed, ref, watch } from "vue";
-import { config, endpoints } from "@/config";
-import { formatClassificationName, sendRequest } from "@/utils";
+import { formatClassificationName } from "@/utils";
 import InfoPopup from "../InfoPopup.vue";
+import { adjustClassifications, renameDataset } from "@/requests/datasets";
 
 
 const imageState = useImageStateStore();
@@ -19,18 +19,19 @@ const viewState = useViewStateStore();
 const quantitiesVisible = ref<boolean>(false);
 const datasetDialogVisible = ref<boolean>(false);
 const datasetName = ref<string>("");
-const classifications = computed(() => imageState.objectClassifications);
+const classifications = computed(() => imageState.classifications);
 const assignedClassificationName = computed(() => {
-    const name = imageState.objectClassifications[viewState.currentlyAssignedClassificationIndex].classificationName;
+    const name = imageState.classifications[viewState.currentlyAssignedClassificationIndex].name;
     return formatClassificationName(name);
 });
 const assignedBoxColor = computed(() => {
-    return imageState.objectClassifications[viewState.currentlyAssignedClassificationIndex].boxColor;
+    return imageState.classifications[viewState.currentlyAssignedClassificationIndex].boxColor;
 });
 
 const popupText = ref<string>("");
 const popupHeader = ref<string>("");
 const popupVisible = ref<boolean>(false);
+const isSuccessfullyCreated = ref<boolean>(false);
 
 
 // Close quantities sidebar when user starts to assign classifications
@@ -41,28 +42,16 @@ watch(() => viewState.isSelectingAssignment, (newValue) => {
 });
 
 
-function submitDataset() {
-    const classifications = imageState.objectClassifications.map((classification) => {
-        const elements = imageState.imageElements.filter((el) => el.classificationIndex === classification.index)
-        const elementIds = elements.map((el) => el.id);
-        const leaders = elements.filter((el) => el.isLeader);
-
-        // These checks SHOULD never fail, so we don't need to show an error message
-        if (leaders.length === 0) {
-            console.error("No leader found for classification " + classification.classificationName);
-            return null;
-        }
-        else if (leaders.length > 1) {
-            console.error("Multiple leaders found for classification " + classification.classificationName);
-            return null;
-        }
-
+async function submitDataset() {
+    const classifications = imageState.classifications.map((c) => {
         return {
-            name: classification.classificationName,
-            leader: leaders[0].id,
-            elements: elementIds
+            name: c.name,
+            elements: imageState.imageElements
+                .filter((el) => el.classificationIndex === c.index)
+                .map((el) => el.id)
         };
     });
+
     if (classifications.some((classification) => classification === null)) {
         popupText.value = "Failed to submit dataset";
         popupHeader.value = "Error";
@@ -70,33 +59,31 @@ function submitDataset() {
         return;
     }
 
-    const requestUri = config.serverUri + endpoints.createDataset;
-    const requestData = JSON.stringify({
-        name: datasetName.value,
-        image_id: imageState.imageId,
-        classifications: classifications
-    });
-
-    const requestPromise = sendRequest(requestUri, requestData, "POST");
-    requestPromise.then((response) => {
-        if (response.status === 200) {
-            popupText.value = "Dataset created successfully";
+    await adjustClassifications(imageState.datasetId, imageState.imageId, classifications).then(() => {
+        renameDataset(imageState.datasetId, datasetName.value).then(() => {
+            popupText.value = "Dataset submitted successfully";
             popupHeader.value = "Success";
             popupVisible.value = true;
-        }
-        else {
+            isSuccessfullyCreated.value = true;
+        }).catch(() => {
             popupText.value = "Failed to submit dataset";
             popupHeader.value = "Error";
             popupVisible.value = true;
-        }
+        });
+    }).catch(() => {
+        popupText.value = "Failed to submit dataset";
+        popupHeader.value = "Error";
+        popupVisible.value = true;
     });
 }
 
 
 function handleCreatedDataset() {
     window.setTimeout(() => {
-        viewState.reset();
-        imageState.reset();
+        if (isSuccessfullyCreated.value) {
+            viewState.reset();
+            imageState.reset();
+        }
     }, 500);
 }
 </script>
@@ -154,9 +141,10 @@ function handleCreatedDataset() {
 
 <style scoped>
 .change-categories {
-    margin: 0 auto 5px auto;
+    margin: 5px auto 10px auto;
     display: block;
     padding: 6px 12px;
+    text-decoration: underline;
 }
 
 .assignment-notice {
@@ -179,6 +167,21 @@ function handleCreatedDataset() {
     background-color: v-bind(assignedBoxColor);
     display: inline-block;
     margin-right: 6px;
+}
+
+@media screen and (min-width: 400px) {
+    .assignment-notice-label {
+        font-size: 1rem;
+    }
+
+    .assignment-notice-value::before {
+        width: 12px;
+        height: 12px;
+    }
+
+    .assignment-notice-value {
+        font-size: 1.2rem;
+    }
 }
 </style>
 

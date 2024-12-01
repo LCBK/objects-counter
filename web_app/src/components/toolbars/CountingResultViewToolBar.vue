@@ -12,7 +12,7 @@ const imageState = useImageStateStore();
 const viewState = useViewStateStore();
 
 const quantitiesVisible = ref<boolean>(false);
-const classifications = computed(() => imageState.objectClassifications);
+const classifications = computed(() => imageState.classifications);
 
 
 function handleReturnClick() {

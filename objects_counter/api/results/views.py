@@ -125,7 +125,7 @@ class CompareResults(Resource):
                 log.error("User %s is not authorized to compare result %s with dataset %s",
                           current_user, result_id, dataset_id)
                 return Response('Unauthorized', 403)
-            object_grouper.assign_dataset_categories_to_objects(image, dataset)
+            object_grouper.classify_images_based_on_dataset([image], dataset)
             return jsonify(serialize_image_as_result(image))
         except ValueError as e:
             log.exception("Failed to compare results: %s", e)

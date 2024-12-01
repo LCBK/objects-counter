@@ -12,5 +12,5 @@ points_model = api.model('Points', {
 })
 
 accept_model = api.model('Accept', {
-    'as_dataset': fields.Boolean(required=False, description='Accept as dataset', default=False),
+    'skip_classification': fields.Boolean(required=False, description='Skip classification', default=False),
 })

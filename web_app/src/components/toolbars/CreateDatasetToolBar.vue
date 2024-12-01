@@ -3,8 +3,9 @@ import "./ImageViewToolBar.css";
 import VButton from "primevue/button";
 import { useImageStateStore } from "@/stores/imageState";
 import { useViewStateStore, ViewStates } from "@/stores/viewState";
-import { config, endpoints } from "@/config";
-import { parseClassificationsFromResponse, sendRequest } from "@/utils";
+import { parseClassificationsFromElementsResponse } from "@/utils";
+import { sendLeaders } from "@/requests/images";
+import { addImageToDataset, createDataset } from "@/requests/datasets";
 
 
 const imageState = useImageStateStore();
@@ -12,34 +13,41 @@ const viewState = useViewStateStore();
 
 
 function handleReturnClick() {
-    viewState.setState(ViewStates.ImageEditPoints);
+    imageState.clearResult();
+    imageState.selectedLeaderIds = [];
+
     viewState.showBackground = true;
     viewState.isEditingExistingResult = true;
-    imageState.clearResult();
+    viewState.setState(ViewStates.ImageEditPoints);
 }
 
 function handleSubmitLeadersClick() {
     submitClassificationLeaders();
 }
 
-function submitClassificationLeaders() {
-    const requestUri = config.serverUri + endpoints.classifyByLeaders.replace("{image_id}", imageState.imageId.toString());
-    const requestData = JSON.stringify({
-        leaders: imageState.selectedLeaderIds
-    });
-    const requestPromise = sendRequest(requestUri, requestData, "POST");
-
+async function submitClassificationLeaders() {
     viewState.isWaitingForResponse = true;
-    requestPromise.then((response) => {
-        if (response.status === 200) {
-            imageState.clearResult();
-            parseClassificationsFromResponse(response.data.classifications);
-            viewState.setState(ViewStates.ImageViewConfirmDataset);
-        }
-        else {
-            console.error("Failed to submit dataset leaders");
-        }
-        viewState.isWaitingForResponse = false;
+
+    await sendLeaders(imageState.imageId, imageState.selectedLeaderIds).then(() => {
+        createDataset(`temporary no. ${imageState.imageId}`, true).then((response) => {
+            imageState.datasetId = parseInt(response);
+
+            const classifications = imageState.selectedLeaderIds.map((id: number, index: number) => {
+                return {
+                    name: index,
+                    leader_id: id
+                }
+            });
+
+            addImageToDataset(imageState.datasetId, imageState.imageId, classifications).then((response) => {
+                imageState.clearResult();
+                parseClassificationsFromElementsResponse(response.images[0].elements);
+
+                viewState.setState(ViewStates.ImageViewConfirmDataset);
+            }).finally(() => {
+                viewState.isWaitingForResponse = false;
+            });
+        });
     });
 }
 </script>

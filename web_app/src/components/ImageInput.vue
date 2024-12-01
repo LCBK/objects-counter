@@ -4,9 +4,9 @@ import VButton from "primevue/button";
 import VSelectButton from "primevue/selectbutton";
 import { useImageStateStore } from "@/stores/imageState";
 import { ImageAction, useViewStateStore, ViewStates } from "@/stores/viewState";
-import { isUserAgentMobile, sendRequest } from "@/utils";
-import { config, endpoints } from "@/config";
+import { isUserAgentMobile } from "@/utils";
 import { useUserStateStore } from "@/stores/userState";
+import { uploadImage } from "@/requests/images";
 
 
 const imageState = useImageStateStore();
@@ -18,35 +18,33 @@ const uploadInput = ref<HTMLInputElement>();
 const currentMode = ref<string>("Capture");
 
 
-function triggerImageInput() : void {
+function triggerImageInput() {
     if (!uploadInput.value || !captureInput.value) return;
     if (currentMode.value === "Capture") captureInput.value.click();
     else uploadInput.value.click();
 }
 
-function handleCountingClick() : void {
+function handleCountingClick() {
     triggerImageInput();
     viewState.currentAction = ImageAction.SimpleCounting;
 }
 
-function handleCreateDatasetClick() : void {
+function handleCreateDatasetClick() {
     triggerImageInput();
     viewState.currentAction = ImageAction.CreateDataset;
 }
 
-function handleCompareClick() : void {
+function handleCompareClick() {
     triggerImageInput();
     viewState.currentAction = ImageAction.CompareWithDataset;
 }
 
-function handleImageUpload(event: Event) : void {
+async function handleImageUpload(event: Event) {
     const imageFile = (event.target as HTMLInputElement)!.files?.[0];
     if (imageFile !== undefined) {
-        // Set image URL to display it later on
         const url = window.URL.createObjectURL(imageFile);
-        imageState.url = url;
+        imageState.url = url;           // For displaying the image
 
-        // Get image dimensions
         const img = new Image;
         img.src = url;
         img.onload = () => {
@@ -54,27 +52,19 @@ function handleImageUpload(event: Event) : void {
             imageState.height = img.height;
         };
 
-        // Upload image to server
-        const requestUri = config.serverUri + endpoints.uploadImage;
-        const requestData = new FormData();
-        requestData.append("image", imageFile);
-        const responsePromise = sendRequest(requestUri, requestData, "POST", "multipart/form-data");
+        const imageData = new FormData();
+        imageData.append("image", imageFile);
 
         viewState.isImageUploading = true;
         viewState.setState(ViewStates.Uploading);
 
-        responsePromise.then((response) => {
+        await uploadImage(imageData).then((imageId) => {
             viewState.isImageUploading = false;
             viewState.isImageUploaded = true;
-
-            if (response.status === 201) {
-                imageState.imageId = response.data;
-                viewState.setState(ViewStates.ImageEditPoints);
-            }
-            else {
-                console.error("Failed to upload image");
-                viewState.setState(ViewStates.MainView);
-            }
+            imageState.imageId = imageId;
+            viewState.setState(ViewStates.ImageEditPoints);
+        }).catch(() => {
+            viewState.setState(ViewStates.MainView);
         });
     }
 }

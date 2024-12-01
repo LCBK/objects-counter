@@ -1,5 +1,5 @@
 import logging
-from typing import Tuple, List
+from typing import Tuple, List, Dict
 
 import cv2
 import numpy as np
@@ -17,12 +17,10 @@ class ObjectSegmentation:
     """Handles image segmentation and object detection using the Segment Anything Model (SAM)."""
 
     class ImageCache:
-        def __init__(self, image_mask, points_selected):
-            self.image_mask = image_mask
-            self.points_selected = points_selected
-
-        def is_valid(self, current_points_selected):
-            return self.points_selected == current_points_selected
+        def __init__(self, predictor: SamPredictor):
+            self.features = predictor.features
+            self.original_size = predictor.original_size
+            self.input_size = predictor.input_size
 
     def __init__(self, sam_checkpoint_path, model_type="vit_h"):
         log.info("Creating new Segment Anything Object Counter")
@@ -34,46 +32,33 @@ class ObjectSegmentation:
         self.device = "cuda" if torch.cuda.is_available() else "cpu"
         self.sam = sam_model_registry[model_type](checkpoint=sam_checkpoint_path).to(self.device)
         self.predictor = SamPredictor(self.sam)
-        self.cache = []
+        self.cache: Dict[int, ObjectSegmentation.ImageCache] = {}
         self.current_image_id = None
-
-    def _get_mask_cache(self, image_id, current_points):
-        for cached_image_id, cache_data in self.cache:
-            if cached_image_id == image_id and cache_data.is_valid(current_points):
-                return cache_data.image_mask
-            if cached_image_id == image_id and not cache_data.is_valid(current_points):
-                self.cache.remove([image_id, cache_data])
-                return None
-        return None
-
-    def _add_mask_cache(self, image_id, current_points, cache_data):
-        if (len(self.cache)) > 10:
-            self.cache = self.cache[1:]
-        cache = self.ImageCache(cache_data, current_points)
-        self.cache.append([image_id, cache])
 
     def _set_image(self, image: Image) -> None:
         if self.current_image_id == image.id:
             assert self.predictor.is_image_set is True
             return
+        if image.id in self.cache:
+            self.current_image_id = image.id
+            self.predictor.features = self.cache[image.id].features
+            self.predictor.original_size = self.cache[image.id].original_size
+            self.predictor.input_size = self.cache[image.id].input_size
+            self.predictor.is_image_set = True
+            return
         image_data = cv2.imread(image.filepath)
         self.predictor.set_image(image_data)
         assert self.predictor.is_image_set is True
         self.current_image_id = image.id
+        self.cache[image.id] = ObjectSegmentation.ImageCache(self.predictor)
 
     def calculate_mask(self, image: Image) -> object:
         """Calculates and assigns a mask to the image based on input points."""
-        points = get_background_points(image)
-        cache_data = self._get_mask_cache(image.id, points)
-        if cache_data is not None:
-            return cache_data
-
         self._set_image(image)
         points, labels = get_background_points(image)
         masks, _, _ = self.predictor.predict(point_coords=np.array(points),
                                              point_labels=np.array([1 if label else 0 for label in labels]),
                                              multimask_output=True)
-        self._add_mask_cache(image.id, points, masks[2])
         return masks[2]
 
     def _process_mask(self, mask):

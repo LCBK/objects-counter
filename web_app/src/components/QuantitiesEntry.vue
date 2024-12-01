@@ -1,8 +1,9 @@
 <script setup lang="ts">
-import { config, endpoints } from "@/config";
+import { adjustClassifications } from "@/requests/datasets";
+import { renameResultClassification } from "@/requests/results";
 import { useImageStateStore } from "@/stores/imageState";
 import { ImageAction, useViewStateStore } from "@/stores/viewState";
-import { formatClassificationName, sendRequest } from "@/utils";
+import { formatClassificationName } from "@/utils";
 import VButton from "primevue/button";
 import VDialog from "primevue/dialog";
 import VInputSwitch from "primevue/inputswitch";
@@ -26,23 +27,29 @@ const isRenameDialogVisible = ref<boolean>(false);
 const renameOldLabel = ref<string>("");
 const renameNewLabel = ref<string>("");
 
-const count = computed(() => imageState.objectClassifications[props.index].count);
-const classificationName = computed(() => imageState.objectClassifications[props.index].classificationName);
-const classificationBoxColor = computed(() => imageState.objectClassifications[props.index].boxColor);
+const count = computed(() => imageState.classifications[props.index].count);
+const name = computed(() => imageState.classifications[props.index].name);
+const boxColor = computed(() => imageState.classifications[props.index].boxColor);
 const showBoxes = computed({
     get() {
-        return imageState.objectClassifications[props.index].showBoxes;
+        return imageState.classifications[props.index].showBoxes;
     },
     set(value) {
-        imageState.objectClassifications[props.index].showBoxes = value;
+        imageState.classifications[props.index].showBoxes = value;
     }
 });
 const isRenameDisabled = computed(() => {
     return (
         renameNewLabel.value === ""
         || renameNewLabel.value === renameOldLabel.value
-        || imageState.objectClassifications.some((c) => c.classificationName === renameNewLabel.value)
+        || imageState.classifications.some((c) => c.name === renameNewLabel.value)
     );
+});
+const difference = computed(() => {
+    return imageState.comparisonDifference[name.value];
+});
+const diffClass = computed(() => {
+    return difference.value > 0 ? "diff-positive" : difference.value < 0 ? "diff-negative" : '';
 });
 
 
@@ -58,31 +65,32 @@ function showRenameDialog(oldName: string) {
     isRenameDialogVisible.value = true;
 }
 
-function confirmRename() {
+async function confirmRename() {
     if (isRenameDisabled.value) return;
 
-    // Classifications are final and stored on the server, so the app requests a rename from the server.
-    if (viewState.currentAction !== ImageAction.CreateDataset) {
-        let requestUri = config.serverUri + endpoints.renameClassification
-                .replace("{result_id}", imageState.resultId.toString())
-                .replace("{classification_name}", renameOldLabel.value);
-        const requestData = renameNewLabel.value
-
-        const responsePromise = sendRequest(requestUri, requestData, "POST");
-        responsePromise.then((response) => {
-            if (response.status === 200) {
-                imageState.objectClassifications[props.index].classificationName = renameNewLabel.value;
-            }
-            else {
-                console.error("Failed to rename classification");
-            }
+    if (viewState.currentAction === ImageAction.SimpleCounting) {
+        await renameResultClassification(
+            imageState.resultId, renameOldLabel.value, renameNewLabel.value
+        ).then(() => {
+            imageState.classifications[props.index].name = renameNewLabel.value;
             isRenameDialogVisible.value = false;
         });
     }
-    // When creating a dataset, classifications are final when confirming the dataset, rename locally.
     else {
-        imageState.objectClassifications[props.index].classificationName = renameNewLabel.value;
-        isRenameDialogVisible.value = false;
+        imageState.classifications[props.index].name = renameNewLabel.value;
+
+        const classifications = imageState.classifications.map((c) => {
+            return {
+                name: c.name,
+                elements: imageState.imageElements
+                    .filter((el) => el.classificationIndex === c.index)
+                    .map((el) => el.id)
+            };
+        });
+
+        await adjustClassifications(imageState.datasetId, imageState.imageId, classifications).then(() => {
+            isRenameDialogVisible.value = false;
+        });
     }
 }
 </script>
@@ -90,9 +98,14 @@ function confirmRename() {
 
 <template>
     <div class="quantity">
-        <div class="quantity-count">{{ count }}</div>
-        <div class="quantity-classification" @click="showRenameDialog(classificationName)">
-            {{ formatClassificationName(classificationName) }}
+        <div :class="(viewState.currentAction === ImageAction.CompareWithDataset ? 'diff ' : '') + 'quantity-count'">
+            {{ count }}
+            <span v-if="viewState.currentAction === ImageAction.CompareWithDataset" :class="'diff-value ' + diffClass">
+                ({{ difference }})
+            </span>
+        </div>
+        <div class="quantity-classification" @click="showRenameDialog(name)">
+            {{ formatClassificationName(name) }}
         </div>
         <VInputSwitch v-if="!viewState.isSelectingAssignment" class="quantity-switch" v-model="showBoxes" />
         <VButton v-else class="assign-button" label="Assign" @click="handleAssignClick" />
@@ -128,6 +141,10 @@ function confirmRename() {
     text-align: center;
 }
 
+.quantity-count.diff {
+    flex-basis: 20%;
+}
+
 .quantity-classification {
     flex-basis: 60%;
     font-size: 1rem;
@@ -141,7 +158,7 @@ function confirmRename() {
     content: "";
     width: 10px;
     height: 10px;
-    background-color: v-bind(classificationBoxColor);
+    background-color: v-bind(boxColor);
     display: inline-block;
     margin-right: 6px;
 }
@@ -163,5 +180,18 @@ function confirmRename() {
 .assign-button {
     padding: 5px 10px;
     font-size: 0.85rem;
+}
+
+.diff-value {
+    font-size: 0.9rem;
+    font-weight: 400;
+}
+
+.diff-positive {
+    color: var(--color-success);
+}
+
+.diff-negative {
+    color: var(--color-error);
 }
 </style>
