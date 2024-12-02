@@ -8,18 +8,24 @@ import MissingQuantitiesEntry from "../MissingQuantitiesEntry.vue";
 import { useImageStateStore } from "@/stores/imageState";
 import { useViewStateStore, ViewStates } from "@/stores/viewState";
 import { computed, ref } from "vue";
-import { base64ToImageUri, parseClassificationsFromElementsResponse } from "@/utils";
+import { base64ToImageUri, isUserAgentMobile, parseClassificationsFromElementsResponse, processImageData } from "@/utils";
 import { type DatasetListItem } from "@/types/app";
 import DatasetListItemComponent from "../DatasetListItem.vue";
 import { compareToDataset, getDatasets, getDatasetsThumbnails } from "@/requests/datasets";
+import ImageNavigationOverlay from "../ImageNavigationOverlay.vue";
+import { uploadImage } from "@/requests/images";
 
 
 const imageState = useImageStateStore();
 const viewState = useViewStateStore();
 
+const uploadInput = ref<HTMLInputElement>();
+const captureInput = ref<HTMLInputElement>();
+
 const quantitiesVisible = ref<boolean>(false);
 const datasetDialogVisible = ref<boolean>(false);
 const compareDialogVisible = ref<boolean>(false);
+const addImageDialogVisible = ref<boolean>(false);
 const hasCompared = ref<boolean>(false);
 const userDatasets = ref<DatasetListItem[]>([]);
 
@@ -92,6 +98,41 @@ async function handleCompareClick(datasetId: number) {
         viewState.isWaitingForResponse = false;
     });
 }
+
+async function handleImageUpload(event: Event) {
+    const imageFile = (event.target as HTMLInputElement)!.files?.[0];
+    if (imageFile === undefined) return;
+
+    viewState.setState(ViewStates.Uploading);
+
+    await uploadImage(imageFile).then((imageId) => {
+        processImageData(imageFile, imageId);
+
+        // The store state is before the upload, so this length is one less than the actual one
+        imageState.currentImageIndex = imageState.images.length;
+
+        viewState.isAddingMoreImages = true;
+        viewState.setState(ViewStates.ImageEditPoints);
+    }).catch(() => {
+        viewState.setState(ViewStates.MainView);
+    });
+}
+
+function handleCaptureClick() {
+    captureInput.value!.click();
+}
+
+function handleUploadClick() {
+    uploadInput.value!.click();
+}
+
+function handleAddImage() {
+    if (isUserAgentMobile()) {
+        addImageDialogVisible.value = true;
+    } else {
+        uploadInput.value!.click();
+    }
+}
 </script>
 
 
@@ -99,15 +140,12 @@ async function handleCompareClick(datasetId: number) {
     <div class="image-view-tool-bar bar">
         <div class="bar-content tool-bar-content">
             <VButton text label="Adjust" icon="pi pi-pencil" @click="handleReturnClick();" />
-            <div class="element-count">
-                <span class="element-count-value">{{ imageState.currentImage.elements.length }}</span>
-                <span class="element-count-label">Elements</span>
-            </div>
-            <VButton text label="Details" icon="pi pi-list" @click="quantitiesVisible = true" :disabled="!hasCompared" />
+            <VButton text label="Add next image" icon="pi pi-plus" @click="handleAddImage" />
+            <VButton v-if="hasCompared" text label="Details" icon="pi pi-list" @click="quantitiesVisible = true" />
+            <VButton v-else text label="Select comparison" icon="pi pi-chart-bar" @click="handleDatasetListClick" />
         </div>
     </div>
-    <VButton v-if="!hasCompared" :class="(viewState.isWaitingForResponse ? 'inactive-button ' : '') + 'compare-button'"
-            label="Compare with dataset" @click="handleDatasetListClick" />
+    <ImageNavigationOverlay v-if="imageState.images.length > 1" />
     <VSidebar v-model:visible="quantitiesVisible" position="bottom" style="height: auto"
             class="quantities" header="Counted elements">
         <div class="difference-notice">
@@ -136,6 +174,17 @@ async function handleCompareClick(datasetId: number) {
             </div>
         </div>
     </VDialog>
+    <VDialog v-model:visible="addImageDialogVisible" modal header="Choose source"
+            class="image-dialog input-dialog" :dismissable-mask="true" :draggable="false">
+        <VButton label="Capture image" icon="pi pi-camera" @click="handleCaptureClick" />
+        <VButton label="Upload image" icon="pi pi-upload" @click="handleUploadClick" />
+    </VDialog>
+    <div class="image-inputs">
+        <input type="file" name="image-capture" ref="captureInput"
+            accept="image/*" capture="environment" @change.stop.prevent="handleImageUpload($event)" />
+        <input type="file" name="image-upload" ref="uploadInput"
+            accept="image/*" @change.stop.prevent="handleImageUpload($event)" />
+    </div>
 </template>
 
 
@@ -144,15 +193,6 @@ async function handleCompareClick(datasetId: number) {
     display: flex;
     justify-content: flex-end;
     gap: 12px;
-}
-
-.compare-button {
-    position: fixed;
-    bottom: 130px;
-    left: 50%;
-    transform: translateX(-50%);
-    max-width: 280px;
-    width: 100%;
 }
 
 .compare-dialog .compare-dataset-list {
@@ -167,11 +207,6 @@ async function handleCompareClick(datasetId: number) {
 
 .compare-dialog .compare-dataset-list > div:not(:last-child) {
     border-bottom: 1px solid var(--surface-border);
-}
-
-.inactive-button {
-    pointer-events: none;
-    opacity: 0.5;
 }
 
 .difference-notice {
@@ -193,6 +228,12 @@ async function handleCompareClick(datasetId: number) {
 
 .quantities-count-diff {
     flex-basis: 20%;
+}
+
+.image-inputs input {
+    width: 0px;
+    height: 0px;
+    overflow: hidden;
 }
 </style>
 

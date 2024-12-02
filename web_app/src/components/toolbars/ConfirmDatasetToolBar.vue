@@ -132,10 +132,6 @@ function handleCreatedDataset() {
 
 
 <template>
-    <!-- <div class="outside-count">
-        <div class="count-value">{{ imageState.imageElements.length }}</div>
-        <div class="count-label">elements</div>
-    </div> -->
     <div class="image-view-tool-bar bar">
         <div class="bar-content tool-bar-content">
             <VButton text label="Adjust categories" icon="pi pi-list" @click="quantitiesVisible = true" />
@@ -158,8 +154,9 @@ function handleCreatedDataset() {
         <VButton text label="Assign categories" icon="pi pi-pencil" class="change-categories"
                 @click="viewState.isSelectingAssignment = true" />
         <div class="quantities-label-notice notice">You can toggle label visibility in the settings</div>
-        <div class="quantities-header">
+        <div :class="(imageState.images.length > 1 ? 'quantities-header-multiple ' : '') + 'quantities-header'">
             <div class="quantities-col">Count</div>
+            <div v-if="imageState.images.length > 1" class="quantities-col">Total</div>
             <div class="quantities-col">Label<span class="rename-notice notice">(tap to rename)</span></div>
             <div v-if="!viewState.isSelectingAssignment" class="quantities-col">Show boxes</div>
         </div>
@@ -228,6 +225,27 @@ function handleCreatedDataset() {
     width: 0px;
     height: 0px;
     overflow: hidden;
+}
+
+.quantities-header-multiple .quantities-col:nth-child(1) {
+    flex-basis: 12.5%;
+    text-align: center;
+}
+
+.quantities-header-multiple .quantities-col:nth-child(2) {
+    flex-basis: 12.5%;
+    text-align: center;
+    text-indent: 0;
+}
+
+.quantities-header-multiple .quantities-col:nth-child(3) {
+    flex-basis: 50%;
+    text-align: center;
+}
+
+.quantities-header-multiple .quantities-col:nth-child(4) {
+    flex-basis: 25%;
+    text-align: center;
 }
 
 @media screen and (min-width: 400px) {

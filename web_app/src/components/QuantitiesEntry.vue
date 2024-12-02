@@ -115,7 +115,7 @@ async function confirmRename() {
 
 
 <template>
-    <div class="quantity">
+    <div :class="(imageState.images.length > 1 ? 'quantity-multiple ' : '') + 'quantity'">
         <div :class="(viewState.currentAction === ImageAction.CompareWithDataset ? 'diff ' : '') + 'quantity-count'">
             {{ count }}
             <span v-if="viewState.currentAction === ImageAction.CompareWithDataset" :class="'diff-value ' + diffClass">
