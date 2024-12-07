@@ -12,7 +12,7 @@ from tests.visualization_helper import plot_similarity_heatmap
 
 
 class NoPaddingFeatureSimilarity(FeatureSimilarity):
-    """Feature similarity model with no padding."""
+    """Feature analysis model with no padding."""
 
     def preprocess_image(self, image_path: str) -> torch.Tensor:
         """Preprocess the image with no padding."""
@@ -23,7 +23,7 @@ class NoPaddingFeatureSimilarity(FeatureSimilarity):
 
 
 class SmallPaddingFeatureSimilarity(FeatureSimilarity):
-    """Feature similarity model with small padding."""
+    """Feature analysis model with small padding."""
 
     def preprocess_image(self, image_path: str) -> torch.Tensor:
         """Preprocess the image with small padding."""
@@ -36,7 +36,7 @@ class SmallPaddingFeatureSimilarity(FeatureSimilarity):
 
 
 class SquarePaddingFeatureSimilarity(FeatureSimilarity):
-    """Feature similarity model with square padding."""
+    """Feature analysis model with square padding."""
 
     def preprocess_image(self, image_path: str) -> torch.Tensor:
         """Preprocess the image with square padding."""
@@ -89,7 +89,7 @@ def _process_class_embeddings(paths, feature_model):
 
 
 def calculate_feature_similarity_matrix(embeddings, class_names):
-    """Calculate feature similarity matrix for given embeddings."""
+    """Calculate feature analysis matrix for given embeddings."""
     similarity_matrix = np.zeros((len(class_names), len(class_names)))
     worst_similarity_matrix = np.zeros((len(class_names), len(class_names)))
 

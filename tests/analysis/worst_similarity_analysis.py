@@ -5,11 +5,11 @@ import torch
 from PIL import Image as PILImage
 
 from tests.helpers import organize_images_by_category
-from tests.similarity.feature_similarity_analysis import SquarePaddingFeatureSimilarity, calculate_embeddings
+from tests.analysis.feature_similarity import SquarePaddingFeatureSimilarity, calculate_embeddings
 
 
 def find_worst_similarity_pairs(embeddings, class_names):
-    """Find the worst similarity pairs for each category."""
+    """Find the worst analysis pairs for each category."""
     worst_pairs = {}
     for class_name in class_names:
         embeddings_list = embeddings[class_name]
@@ -32,7 +32,7 @@ def find_worst_similarity_pairs(embeddings, class_names):
 
 
 def display_worst_pairs(image_paths_dict, worst_pairs, output_dir="output"):
-    """Display and save the worst similarity pairs side by side."""
+    """Display and save the worst analysis pairs side by side."""
     os.makedirs(output_dir, exist_ok=True)
 
     for category, ((idx1, idx2), similarity) in worst_pairs.items():
