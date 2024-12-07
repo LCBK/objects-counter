@@ -1,5 +1,4 @@
 from pathlib import Path
-
 import cv2
 import numpy as np
 
@@ -26,21 +25,25 @@ def update_display(window_name, base_image, points):
     cv2.imshow(window_name, image_with_points)
 
 
-def scale_image(image, scale_percent):
+def scale_image_to_fit_screen(image, max_width, max_height):
+    """
+    Scales the image to fit within the specified dimensions while maintaining aspect ratio.
+    """
     height, width = image.shape[:2]
-    new_width = int(width * scale_percent / 100)
-    new_height = int(height * scale_percent / 100)
-    return cv2.resize(image, (new_width, new_height))
+    scale_width = max_width / width
+    scale_height = max_height / height
+    scale = min(scale_width, scale_height, 1)  # Ensure we don't upscale larger images
+    new_width = int(width * scale)
+    new_height = int(height * scale)
+    return cv2.resize(image, (new_width, new_height)), scale
 
 
-def center_window(window_name, width, height):
+def center_window(window_name, image_width, image_height, screen_width=1920, screen_height=1080):
     """
-    Centers the OpenCV window on the screen.
+    Centers the OpenCV window based on the image dimensions and screen resolution.
     """
-    screen_width = 1920
-    screen_height = 1080
-    x_pos = (screen_width - width) // 4
-    y_pos = (screen_height - height) // 4
+    x_pos = (screen_width - image_width) // 2
+    y_pos = (screen_height - image_height) // 2
     cv2.moveWindow(window_name, x_pos, y_pos)
 
 
@@ -70,7 +73,8 @@ def process_images(folder_path, checkpoint_path):
         image = Image(filepath=str(image_file), id=idx)
         background_points = []
 
-        display_image = scale_image(image_data, scale_percent=15)
+        # Scale image to fit screen
+        display_image, scale = scale_image_to_fit_screen(image_data, max_width=1280, max_height=720)
         height, width = display_image.shape[:2]
         center_window(window_name, width, height)
 
@@ -97,11 +101,13 @@ def process_images(folder_path, checkpoint_path):
                     continue
 
                 mask_preview = cv2.bitwise_and(image_data, image_data, mask=np.invert(mask).astype("uint8"))
-                mask_preview = scale_image(mask_preview, scale_percent=15)
+                mask_preview, _ = scale_image_to_fit_screen(mask_preview, max_width=1280, max_height=720)
                 update_display(window_name, mask_preview, [])
 
-                print("Press 'y' to accept mask or any other key to adjust.")
                 preview_key = cv2.waitKey(0)
+
+                print("Press 'y' to accept mask or any other key to adjust.")
+
                 if preview_key == ord("y"):
                     print("Mask accepted.")
                     break
@@ -128,8 +134,8 @@ def process_images(folder_path, checkpoint_path):
 
 
 if __name__ == "__main__":
-    input_folder = ""
-    checkpoint = ""
+    input_folder = "C:\\Users\\Alicja\\Downloads\\Wingspan-dataset"
+    checkpoint = "C:\\Users\\Alicja\\PycharmProjects\\objects-counter\\image_segmentation\\models\\sam_vit_h_4b8939.pth"
 
     try:
         process_images(input_folder, checkpoint)
