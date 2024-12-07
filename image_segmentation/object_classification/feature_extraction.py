@@ -7,7 +7,7 @@ from PIL import Image as PILImage
 from torch import nn
 from torchvision import transforms as tr
 
-from image_segmentation.constants import TEMP_IMAGE_DIR, ISCC_NBS_CENTROIDS_RGB, BW, A, SIGMA
+from image_segmentation.constants import TEMP_IMAGE_DIR, CENTROIDS_RGB, BW, A, SIGMA
 from image_segmentation.utils import crop_element
 from objects_counter.db.dataops.image import get_image_by_id
 from objects_counter.db.models import ImageElement
@@ -62,7 +62,7 @@ class FeatureSimilarity:
     def preprocess_image(self, image_path: str) -> torch.Tensor:
         """Preprocesses the image before embedding extraction."""
         img = PILImage.open(image_path).convert('RGB')
-        transformations = tr.Compose([tr.ToTensor(), tr.Resize((224, 224), tr.InterpolationMode.BICUBIC),
+        transformations = tr.Compose([tr.ToTensor(), tr.Resize((518, 518), tr.InterpolationMode.BICUBIC),
                                       tr.Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225))])
         img = transformations(img).float().unsqueeze_(0).to(self.device)
         return img
@@ -117,12 +117,13 @@ class ColorSimilarity:
 
     @staticmethod
     def __normalize_score(raw_score: float, max_score: float) -> float:
-        """Normalizes the raw similarity score to a percentage."""
+        """Normalizes the raw analysis score to a percentage."""
         return (raw_score / max_score) if max_score != 0 else 0.0
 
     @staticmethod
     def get_histogram(image: PILImage) -> np.ndarray:
         """Computes a color histogram for an image, ignoring white background pixels."""
+        image = image.resize((256, 256))
 
         mask = ColorSimilarity.__get_mask(image)
         image = np.array(image)

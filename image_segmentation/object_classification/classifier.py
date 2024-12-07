@@ -165,9 +165,8 @@ class ObjectClassifier:
             assert best_category is not None
             self.update_element_category(element.id, best_category, best_certainty)
 
-    def assign_categories_based_on_similarity(self, image: Image, threshold: float, color_weight: float) -> None:
         """Assigns elements to categories based on their similarity scores."""
-        elements = image.elements
+    def assign_categories_based_on_similarity(self, elements: List[ImageElement], threshold: float, color_weight: float) -> None:
         num_elements = len(elements)
         analyzed_elements = set()
         category_id = 1

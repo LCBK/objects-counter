@@ -9,7 +9,7 @@ BW = 20
 A = 1.0
 SIGMA = 1.0
 
-ISCC_NBS_CENTROIDS_RGB = np.array([
+CENTROIDS_RGB = np.array([
     [
         [231, 141, 170],    # PINK
         [186, 42, 94],      # RED

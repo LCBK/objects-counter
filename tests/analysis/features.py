@@ -120,8 +120,8 @@ def _compute_pairwise_similarities(embeddings_1, embeddings_2, same_class):
 
 
 def main():
-    image_dir = "C:\\Users\\Alicja\\Desktop\\Train-dataset"
-    categories = ["train", "station", "cylinder"]
+    image_dir = "C:\\Users\\alicj\\Desktop\\Test"
+    categories = ["cube"]
 
     class_dict = organize_images_by_category(image_dir, categories)
     class_names = list(class_dict.keys())
@@ -131,10 +131,10 @@ def main():
     similarity_df, worst_similarity_df = calculate_feature_similarity_matrix(embeddings, class_names)
 
     plot_similarity_heatmap(similarity_df, title="Feature-Based Similarity Between Classes",
-                            subtitle="Mean value (Square Padding)", font="Arial")
+                            subtitle="Mean value (Square Padding)")
 
     plot_similarity_heatmap(worst_similarity_df, title="Feature-Based Similarity Between Classes",
-                            subtitle="Worst value (Square Padding)", font="Arial")
+                            subtitle="Worst value (Square Padding)")
 
 
 if __name__ == "__main__":
