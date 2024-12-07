@@ -5,6 +5,7 @@ import cv2
 import numpy as np
 import torch
 import torchvision
+from PIL import Image as PILImage
 from segment_anything import sam_model_registry, SamPredictor
 
 from objects_counter.db.dataops.image import bulk_set_elements, get_background_points
@@ -41,7 +42,7 @@ class ObjectSegmentation:
             return
         if image.id in self.cache:
             self.current_image_id = image.id
-            self.predictor.features = self.cache[image.id].features
+            self.predictor.y = self.cache[image.id].features
             self.predictor.original_size = self.cache[image.id].original_size
             self.predictor.input_size = self.cache[image.id].input_size
             self.predictor.is_image_set = True
@@ -81,7 +82,7 @@ class ObjectSegmentation:
 
         return binary_image
 
-    def _remove_small_masks(self, image, contours, threshold_fraction = 0.001):
+    def _remove_small_masks(self, image, contours, threshold_fraction=0.001):
         new_contours = []
         image_data = cv2.imread(image.filepath)
         image_pixels = image_data.shape[0] * image_data.shape[1]
@@ -101,7 +102,7 @@ class ObjectSegmentation:
             objects_bounding_boxes.append(((x, y), (x + w, y + h)))
         return objects_bounding_boxes
 
-    def _remove_background_from_image(self, image: Image, contours) -> None:
+    def _remove_background_from_image(self, image: Image, contours) -> PILImage:
         img = cv2.imread(image.filepath)
         fill_color = [255, 255, 255]
         mask_value = 255
@@ -131,4 +132,27 @@ class ObjectSegmentation:
         if contours is None:
             return []
         bounding_boxes = self._extract_bounding_boxes(contours)
+        return bounding_boxes
+
+    def get_image_without_background(self, image: Image, mask: np.ndarray) -> PILImage:
+        binary_image = self._process_mask(mask)
+        contours, _ = cv2.findContours(binary_image, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+        contours = self._remove_small_masks(image, contours)
+
+        img = cv2.imread(image.filepath)
+        fill_color = [255, 255, 255]
+        mask_value = 255
+        stencil = np.zeros(img.shape[:-1]).astype(np.uint8)
+        cv2.fillPoly(stencil, contours, mask_value)
+        sel = stencil != mask_value
+        img[sel] = fill_color
+
+        img_pil = PILImage.fromarray(cv2.cvtColor(img, cv2.COLOR_BGR2RGB))
+        return img_pil
+
+    def get_bounding_boxes(self, image: Image, mask: np.ndarray) -> List[Tuple[Tuple[int, int], Tuple[int, int]]]:
+        binary_image = self._process_mask(mask)
+        contours, _ = cv2.findContours(binary_image, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+        contours = self._remove_small_masks(image, contours)
+        bounding_boxes = self._get_bounding_boxes(contours)
         return bounding_boxes
