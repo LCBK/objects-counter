@@ -3,13 +3,13 @@ import typing
 
 from flask import jsonify, Response, request
 from flask_restx import Namespace, Resource
-from natsort import natsorted
 from werkzeug.exceptions import NotFound, Forbidden
 
 from objects_counter.api.datasets.models import insert_dataset_model, insert_image_model, patch_dataset_model, \
     adjust_classifications_model, images_list_model
 from objects_counter.api.default.views import object_grouper
 from objects_counter.api.utils import authentication_required, get_thumbnails
+from objects_counter.db.dataops.comparison_history import insert_comparison
 from objects_counter.db.dataops.dataset import get_user_datasets_serialized, get_dataset_by_id, delete_dataset_by_id, \
     insert_dataset, add_image_to_dataset, rename_dataset, get_user_datasets, update_unfinished_state
 from objects_counter.db.dataops.image import serialize_image_as_result, get_image_by_id, \
@@ -201,7 +201,7 @@ class AdjustClassifications(Resource):
 
 
 @api.route('/<int:dataset_id>/comparison')
-class CompareWithImage(Resource):
+class CompareImageToDataset(Resource):
     @api.expect(images_list_model)
     @api.response(200, "Comparison successful")
     @api.response(400, "Invalid image or dataset ID")
@@ -232,12 +232,8 @@ class CompareWithImage(Resource):
             for image_id in image_ids:
                 images.append(get_image_by_id(image_id))
             diff = object_grouper.classify_images_based_on_dataset(images, dataset)
-            diff = dict(natsorted(diff.items()))
-            response = {
-                "diff": diff,
-                "images": [image.as_dict() for image in images]
-            }
-            return jsonify(response)
+            comparison = insert_comparison(current_user, dataset, images, diff)
+            return jsonify(comparison.as_dict())
         except NotFound as e:
             log.exception("Image or dataset not found: %s", e)
             return Response("Image or dataset not found", 404)

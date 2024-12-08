@@ -11,7 +11,7 @@ from jwt import DecodeError
 
 from objects_counter.consts import MAX_DB_STRING_LENGTH, MIN_USERNAME_LENGTH
 from objects_counter.db.dataops.user import get_user_by_id
-from objects_counter.db.models import Dataset, Result
+from objects_counter.db.models import Dataset, Result, Comparison
 
 log = logging.getLogger(__name__)
 
@@ -99,7 +99,7 @@ def gzip_compress(data: bytes) -> bytes:
     return buffer.getvalue()
 
 
-def get_thumbnails(collection: list[Dataset | Result]) -> list[dict]:
+def get_thumbnails(collection: list[Dataset | Result | Comparison]) -> list[dict]:
     thumbnails = []
     for item in collection:
         if len(item.images) == 0:
