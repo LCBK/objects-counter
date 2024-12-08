@@ -1,5 +1,5 @@
 import math
-from typing import Dict, List
+from typing import List
 
 import matplotlib.pyplot as plt
 import seaborn as sns
@@ -8,7 +8,7 @@ from PIL import Image
 from tests.helpers import translate_category
 
 
-def plot_similarity_heatmap(similarity_df, title, subtitle, game_name="Gra"):
+def plot_similarity_heatmap(similarity_df, title, subtitle, game_name="Na skrzydłach"):
     """Plot a heatmap of similarity values with improved readability."""
     similarity_df_polish = similarity_df.rename(
         index=lambda x: translate_category(x),
@@ -27,7 +27,7 @@ def plot_similarity_heatmap(similarity_df, title, subtitle, game_name="Gra"):
         vmin=0.0,
         vmax=1.0
     )
-    plt.title(f"{title}\n({subtitle})\n", fontsize=14, fontweight="bold")
+    plt.title(f"{game_name}\n{title}\n({subtitle})\n", fontsize=14, fontweight="bold")
     plt.xticks(rotation=90, ha="right", fontsize=10)
     plt.yticks(rotation=0, fontsize=10)
     plt.tight_layout()
@@ -69,3 +69,4 @@ def display_images_in_grid(images: List[str], category_name: str, image_size=(10
 
     plt.tight_layout()
     plt.show()
+
