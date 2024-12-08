@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { config } from "@/config";
 import { useSettingsStateStore } from "@/stores/settingsState";
 import VButton from "primevue/button";
 import VDialog from "primevue/dialog";
@@ -56,7 +57,8 @@ onMounted(() => {
 <template>
     <div id="settings-widget">
         <VButton text rounded icon="pi pi-cog" @click="visible = true" />
-        <VDialog v-model:visible="visible" modal header="Settings" class="popup" id="settings-popup" :dismissable-mask="true">
+        <VDialog v-model:visible="visible" modal header="Settings" class="popup"
+                id="settings-popup" :dismissable-mask="true">
             <h3 class="settings-heading">Appearance</h3>
             <div class="settings-item">
                 <div class="settings-item-label">Use dark theme</div>
@@ -71,10 +73,12 @@ onMounted(() => {
                 <div class="settings-item-label">Show certainties</div>
                 <VInputSwitch class="settings-item-switch" v-model="showBoxCertainty" />
             </div>
-            <div class="settings-item">
+            <div v-if="config.showDebugSettings" class="settings-item">
                 <div class="settings-item-label">Show element IDs</div>
                 <VInputSwitch class="settings-item-switch" v-model="showElementIds" />
             </div>
+            <VButton outlined label="Reset server address" class="reset-server-address"
+                    @click="settingsState.resetServerAddress" />
         </VDialog>
     </div>
 </template>
@@ -107,6 +111,11 @@ onMounted(() => {
 .settings-item-label {
     font-size: 1rem;
     font-weight: 300;
+}
+
+.reset-server-address {
+    margin-top: 18px;
+    float: left;
 }
 </style>
 

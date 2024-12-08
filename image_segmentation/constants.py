@@ -3,24 +3,23 @@ import os
 import numpy as np
 
 TEMP_IMAGE_DIR = os.path.join("images", "temp")
-DEFAULT_COLOR_WEIGHT = 0.4
+DEFAULT_COLOR_WEIGHT = 1
 
-BW = 20
-A = 1.0
-SIGMA = 1.0
+BW = 60
+SIGMA = 18
 
 ISCC_NBS_CENTROIDS_RGB = np.array([
     [
-        [231, 141, 170],    # PINK
-        [186, 42, 94],      # RED
-        [217, 89, 45],      # ORANGE
-        [131, 75, 44],      # BROWN
-        [215, 182, 74],     # YELLOW
-        [94, 94, 9],        # OLIVE
+        [230, 134, 151],    # PINK
+        [185, 50, 66],      # RED
+        [220, 125, 52],     # ORANGE
+        [127, 72, 41],      # BROWN
+        [217, 180, 81],     # YELLOW
+        [114, 103, 44],     # OLIVE
         [160, 194, 69],     # YELLOW GREEN
-        [73, 193, 114],     # GREEN
-        [66, 114, 195],     # BLUE
-        [158, 66, 189],     # PURPLE
+        [79, 191, 154],     # GREEN
+        [59, 116, 192],     # BLUE
+        [172, 74, 195],     # PURPLE
         [231, 225, 233],    # WHITE
         [147, 142, 147],    # GRAY
         [43, 41, 43],       # BLACK

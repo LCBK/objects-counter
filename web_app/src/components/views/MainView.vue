@@ -7,7 +7,7 @@ import ImageInput from "../ImageInput.vue";
 import InstructionsWidget from "../InstructionsWidget.vue";
 import LoadingSpinner from "../LoadingSpinner.vue";
 import MainViewNavBar from "../navbars/MainViewNavBar.vue";
-import { checkServerStatus } from "@/utils";
+import { checkServerStatus } from "@/requests/other";
 import { onMounted, ref } from "vue";
 import { config } from "@/config";
 
@@ -27,11 +27,11 @@ const serverUseHttps = ref<boolean>(false);
 function performServerCheck() {
     Promise.race([
         checkServerStatus(),
-        new Promise((resolve) => setTimeout(() => {
+        new Promise(resolve => setTimeout(() => {
             resolve(false);
             receivedStatusResponse.value = true;
         }, config.serverIsAliveTimeout))
-    ]).then((status) => {
+    ]).then(status => {
         if (status) {
             isOffline.value = false;
             isOnline.value = true;

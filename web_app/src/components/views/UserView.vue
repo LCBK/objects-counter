@@ -7,9 +7,9 @@ import VPassword from "primevue/password";
 import { useViewStateStore, ViewStates } from "@/stores/viewState";
 import { useUserStateStore } from "@/stores/userState";
 import { computed, ref } from "vue";
-import { config, endpoints } from "@/config";
-import { type Response, sendRequest } from "@/utils";
+import { config } from "@/config";
 import InfoPopup from "../InfoPopup.vue";
+import { loginUser, registerUser } from "@/requests/users";
 
 
 const viewState = useViewStateStore();
@@ -70,64 +70,31 @@ function onLogout() {
     userState.logout();
 }
 
-function submitLoginForm() {
-    loginForm.value!.submit();      // For triggering credential saving in browsers (action set to "javascript:void(0);")
+async function submitLoginForm() {
+    // For triggering credential saving in browsers (action set to "javascript:void(0);")
+    loginForm.value!.submit();
 
-    const requestUri = config.serverUri + endpoints.userLogin;
-    const requestData = JSON.stringify({
-        "username": username.value,
-        "password": password.value
-    });
-
-    const responsePromise = sendRequest(requestUri, requestData, "POST");
-    responsePromise.then((response: Response) => {
-        if (response.status === 200) {
-            viewState.setState(ViewStates.MainView);
-            userState.login(response.data.username, response.data.user_id, response.data.token);
-        } else if (response.status === 404) {
-            errorText.value = "Incorrect user or password";
-            showError.value = true;
-        } else {
-            errorText.value = "Login failed";
-            showError.value = true;
-        }
+    await loginUser(username.value, password.value).then(response => {
+        userState.login(response);
+        viewState.setState(ViewStates.MainView);
+    }).catch((error: Error) => {
+        errorText.value = error.message;
+        showError.value = true;
     });
 }
 
+async function submitRegisterForm() {
+    // For triggering credential saving in browsers (action set to "javascript:void(0);")
+    registerForm.value!.submit();
 
-function submitRegisterForm() {
-    registerForm.value!.submit();   // For triggering credential saving in browsers
-
-    const requestUri = config.serverUri + endpoints.userRegister;
-    const requestData = JSON.stringify({
-        "username": username.value,
-        "password": password.value
-    });
-
-    const responsePromise = sendRequest(requestUri, requestData, "POST");
-    responsePromise.then((response: Response) => {
-        if (response.status === 201) {
+    await registerUser(username.value, password.value).then(() => {
+        loginUser(username.value, password.value).then(response => {
+            userState.login(response);
             viewState.setState(ViewStates.MainView);
-
-            const loginRequestUri = config.serverUri + endpoints.userLogin;
-            const loginRequestData = JSON.stringify({
-                "username": username.value,
-                "password": password.value
-            });
-
-            const loginResponsePromise = sendRequest(loginRequestUri, loginRequestData, "POST");
-            loginResponsePromise.then((response: Response) => {
-                if (response.status === 200) {
-                    userState.login(response.data.username, response.data.user_id, response.data.token);
-                }
-            });
-        } else if (response.status === 400) {
-            errorText.value = "Invalid data or user already exists";
-            showError.value = true;
-        } else {
-            errorText.value = "Registration failed";
-            showError.value = true;
-        }
+        });
+    }).catch((error: Error) => {
+        errorText.value = error.message;
+        showError.value = true;
     });
 }
 </script>

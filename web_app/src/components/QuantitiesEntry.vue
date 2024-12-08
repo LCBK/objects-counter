@@ -1,20 +1,20 @@
 <script setup lang="ts">
-import { config, endpoints } from "@/config";
+import { boundingBoxColors } from "@/config";
+import { adjustClassifications } from "@/requests/datasets";
+import { renameResultClassification } from "@/requests/results";
 import { useImageStateStore } from "@/stores/imageState";
 import { ImageAction, useViewStateStore } from "@/stores/viewState";
-import { formatClassificationName, sendRequest } from "@/utils";
+import { formatClassificationName, getClassificationBoxColor, getImageClassifications } from "@/utils";
 import VButton from "primevue/button";
 import VDialog from "primevue/dialog";
 import VInputSwitch from "primevue/inputswitch";
 import VInputText from "primevue/inputtext";
 import { computed, ref } from "vue";
 
-// This component will change imageState, it will update its parents.
-// That's why we have only an index prop, which we use to access and update object classification properties.
 
 const props = defineProps({
-    index: {
-        type: Number,
+    name: {
+        type: String,
         required: true
     }
 });
@@ -26,27 +26,37 @@ const isRenameDialogVisible = ref<boolean>(false);
 const renameOldLabel = ref<string>("");
 const renameNewLabel = ref<string>("");
 
-const count = computed(() => imageState.objectClassifications[props.index].count);
-const classificationName = computed(() => imageState.objectClassifications[props.index].classificationName);
-const classificationBoxColor = computed(() => imageState.objectClassifications[props.index].boxColor);
-const showBoxes = computed({
-    get() {
-        return imageState.objectClassifications[props.index].showBoxes;
-    },
-    set(value) {
-        imageState.objectClassifications[props.index].showBoxes = value;
-    }
+const classification = computed(() => {
+    return imageState.classifications.find(c => c.name === props.name);
 });
+
+const count = computed(() => {
+    let count = 0;
+    imageState.images.forEach(image => {
+        count += image.elements.filter(el => el.classificationName === props.name).length;
+    });
+    return count
+});
+
+const boxColor = computed(() => {
+    if (props.name) {
+        return getClassificationBoxColor(props.name);
+    }
+    return boundingBoxColors[0];
+});
+
 const isRenameDisabled = computed(() => {
     return (
         renameNewLabel.value === ""
         || renameNewLabel.value === renameOldLabel.value
-        || imageState.objectClassifications.some((c) => c.classificationName === renameNewLabel.value)
+        || imageState.classifications.some(c => c.name === renameNewLabel.value)
     );
 });
+
 const difference = computed(() => {
-    return imageState.comparisonDifference[classificationName.value as any];
+    return imageState.comparisonDifference[props.name];
 });
+
 const diffClass = computed(() => {
     return difference.value > 0 ? "diff-positive" : difference.value < 0 ? "diff-negative" : '';
 });
@@ -55,7 +65,7 @@ const diffClass = computed(() => {
 function handleAssignClick() {
     viewState.isSelectingAssignment = false;
     viewState.isAssigningClassifications = true;
-    viewState.currentlyAssignedClassificationIndex = props.index;
+    viewState.currentlyAssignedClassificationName = props.name;
 }
 
 function showRenameDialog(oldName: string) {
@@ -64,66 +74,93 @@ function showRenameDialog(oldName: string) {
     isRenameDialogVisible.value = true;
 }
 
-function confirmRename() {
+async function confirmRename() {
     if (isRenameDisabled.value) return;
 
-    // Classifications are final and stored on the server, so the app requests a rename from the server.
-    if (viewState.currentAction !== ImageAction.CreateDataset) {
-        let requestUri = config.serverUri + endpoints.renameClassification
-                .replace("{result_id}", imageState.resultId.toString())
-                .replace("{classification_name}", renameOldLabel.value);
-        const requestData = renameNewLabel.value
+    const oldName = renameOldLabel.value;
+    const newName = renameNewLabel.value;
 
-        const responsePromise = sendRequest(requestUri, requestData, "POST");
-        responsePromise.then((response) => {
-            if (response.status === 200) {
-                imageState.objectClassifications[props.index].classificationName = renameNewLabel.value;
-            }
-            else {
-                console.error("Failed to rename classification");
-            }
+    imageState.classificationRenameMap.forEach(mapping => {
+        if (mapping.newName === oldName) mapping.newName = newName;
+    });
+
+    if (viewState.currentAction === ImageAction.SimpleCounting) {
+        // TODO: as results don't support multiple images yet, fix later
+        await renameResultClassification(
+            imageState.resultId, oldName, newName
+        ).then(() => {
+            classification.value!.name = newName;
+            imageState.images.forEach(image => {
+                image.elements.forEach(el => {
+                    if (el.classificationName === oldName) {
+                        el.classificationName = newName;
+                    }
+                });
+            });
+
             isRenameDialogVisible.value = false;
         });
     }
-    // When creating a dataset, classifications are final when confirming the dataset, rename locally.
     else {
-        imageState.objectClassifications[props.index].classificationName = renameNewLabel.value;
+        const changedImageIds = [] as number[];
 
-        const adjustClassificationsUri = config.serverUri + endpoints.adjustDatasetClassifications
-                .replace("{dataset_id}", imageState.datasetId.toString())
-                .replace("{image_id}", imageState.imageId.toString());
-        const adjustClassificationsRequestData = JSON.stringify({
-            classifications: imageState.objectClassifications.map((c) => {
-                return {
-                    name: c.classificationName,
-                    elements: imageState.imageElements.filter((el) => el.classificationIndex === c.index).map((el) => el.id)
-                };
-            })
+        imageState.classifications.forEach(c => {
+            if (c.name === oldName) c.name = newName;
         });
-        const adjustClassificationsRequestPromise = sendRequest(adjustClassificationsUri, adjustClassificationsRequestData, "PATCH");
-        adjustClassificationsRequestPromise.then((response) => {
-            if (response.status !== 200) {
-                console.error("Failed to adjust classifications");
+
+        imageState.images.forEach(image => {
+            image.elements.forEach(el => {
+                if (el.classificationName === oldName) {
+                    el.classificationName = newName;
+                }
+            });
+
+            const imageClassifications = getImageClassifications(image.id);
+            imageClassifications.forEach(c => {
+                if (c.name === newName) {
+                    if (!changedImageIds.includes(image.id)) {
+                        changedImageIds.push(image.id);
+                    }
+                }
+            });
+        });
+
+        changedImageIds.forEach(id => {
+            const imageClassifications = getImageClassifications(id);
+            const image = imageState.images.find(i => i.id === id);
+
+            if (imageClassifications.length !== 0 && image) {
+                const requestClassifications = imageClassifications.map(c => {
+                    return {
+                        name: c.name,
+                        elements: image.elements
+                            .filter(el => el.classificationName === c.name)
+                            .map(el => el.id)
+                    };
+                });
+
+                adjustClassifications(imageState.datasetId, id, requestClassifications);
             }
-            isRenameDialogVisible.value = false;
         });
+
+        isRenameDialogVisible.value = false;
     }
 }
 </script>
 
 
 <template>
-    <div class="quantity">
+    <div :class="(imageState.images.length > 1 ? 'quantity-multiple ' : '') + 'quantity'">
         <div :class="(viewState.currentAction === ImageAction.CompareWithDataset ? 'diff ' : '') + 'quantity-count'">
             {{ count }}
             <span v-if="viewState.currentAction === ImageAction.CompareWithDataset" :class="'diff-value ' + diffClass">
                 ({{ difference }})
             </span>
         </div>
-        <div class="quantity-classification" @click="showRenameDialog(classificationName)">
-            {{ formatClassificationName(classificationName) }}
+        <div class="quantity-classification" @click="showRenameDialog(name)">
+            {{ formatClassificationName(name) }}
         </div>
-        <VInputSwitch v-if="!viewState.isSelectingAssignment" class="quantity-switch" v-model="showBoxes" />
+        <VInputSwitch v-if="!viewState.isSelectingAssignment" class="quantity-switch" v-model="classification!.showBoxes" />
         <VButton v-else class="assign-button" label="Assign" @click="handleAssignClick" />
         <VDialog v-model:visible="isRenameDialogVisible" modal :dismissable-mask="true" :draggable="false"
                 header="Change label" class="rename-dialog">
@@ -174,7 +211,7 @@ function confirmRename() {
     content: "";
     width: 10px;
     height: 10px;
-    background-color: v-bind(classificationBoxColor);
+    background-color: v-bind(boxColor);
     display: inline-block;
     margin-right: 6px;
 }

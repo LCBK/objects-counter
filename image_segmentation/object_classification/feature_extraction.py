@@ -7,7 +7,7 @@ from PIL import Image as PILImage
 from torch import nn
 from torchvision import transforms as tr
 
-from image_segmentation.constants import TEMP_IMAGE_DIR, ISCC_NBS_CENTROIDS_RGB, BW, A, SIGMA
+from image_segmentation.constants import TEMP_IMAGE_DIR, ISCC_NBS_CENTROIDS_RGB, BW, SIGMA
 from image_segmentation.utils import crop_element
 from objects_counter.db.dataops.image import get_image_by_id
 from objects_counter.db.models import ImageElement
@@ -82,10 +82,7 @@ class ColorSimilarity:
     @staticmethod
     def compute_color_similarity(hist1: np.ndarray, hist2: np.ndarray) -> float:
         """Computes the RGWHI similarity between two histograms."""
-        raw_score = ColorSimilarity.__calculate_histogram_intersection(hist1, hist2)
-        max_score = ColorSimilarity.__calculate_histogram_intersection(hist1, hist1)
-
-        return ColorSimilarity.__normalize_score(raw_score, max_score)
+        return ColorSimilarity.__calculate_histogram_intersection(hist1, hist2)
 
     @staticmethod
     def __calculate_histogram_intersection(hist_model: np.ndarray, hist_target: np.ndarray) -> float:
@@ -95,11 +92,15 @@ class ColorSimilarity:
 
         for i in range(num_bins):
             for j in range(num_bins):
-                distance = ColorSimilarity.__color_distance(ColorSimilarity.ISCC_NBS_CENTROIDS_LUV[i],
-                                                            ColorSimilarity.ISCC_NBS_CENTROIDS_LUV[j])
-                weight = ColorSimilarity.__weight_function(distance)
+                weight = 0.0
+                if i == j:
+                    weight = 1.0
+                elif j > i:
+                    distance = ColorSimilarity.__color_distance(ColorSimilarity.ISCC_NBS_CENTROIDS_LUV[i],
+                                                                ColorSimilarity.ISCC_NBS_CENTROIDS_LUV[j])
+                    weight = ColorSimilarity.__weight_function(distance)
                 if weight > 0:
-                    intersection_score += min(hist_model[i], hist_target[j]) * weight
+                    intersection_score += (min(hist_model[i], hist_target[j]) * weight)
 
         return intersection_score
 
@@ -112,13 +113,8 @@ class ColorSimilarity:
     def __weight_function(distance: float) -> float:
         """Applies a weight based on color distance, using a Gaussian function."""
         if distance <= BW:
-            return (A / (np.sqrt(2 * np.pi) * SIGMA)) * np.exp(-distance ** 2 / (2 * SIGMA ** 2))
+            return (1 / (np.sqrt(2 * np.pi) * SIGMA)) * np.exp(-(distance ** 2) / (2 * SIGMA ** 2))
         return 0.0
-
-    @staticmethod
-    def __normalize_score(raw_score: float, max_score: float) -> float:
-        """Normalizes the raw similarity score to a percentage."""
-        return (raw_score / max_score) if max_score != 0 else 0.0
 
     @staticmethod
     def get_histogram(image: PILImage) -> np.ndarray:

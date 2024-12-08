@@ -2,12 +2,12 @@
 import VButton from "primevue/button";
 import { useViewStateStore, ViewStates } from "@/stores/viewState";
 import { default as ResultHistoryItemComponent } from "../ResultHistoryItem.vue";
-import type { ResultHistoryItem } from "@/types";
-import { config, endpoints } from "@/config";
-import { base64ToImageUri, sendRequest, type Response } from "@/utils";
+import type { ResultHistoryItem } from "@/types/app";
+import { base64ToImageUri } from "@/utils";
 import SettingsWidget from "../SettingsWidget.vue";
 import LoadingSpinner from "../LoadingSpinner.vue";
 import { onMounted, ref } from "vue";
+import { getResults, getResultsThumbnails } from "@/requests/results";
 
 
 // todo: pagination
@@ -26,44 +26,30 @@ function onBack() {
 onMounted(async () => {
     viewState.isWaitingForResponse = true;
 
-    const resultsRequestUri = config.serverUri + endpoints.getResults;
-    const resultsRequestPromise = sendRequest(resultsRequestUri, null, "GET");
-    resultsRequestPromise.then((response: Response) => {
-        if (response.status === 200) {
-            const responseItems = response.data;
-            for (const item of responseItems) {
-                const historyItem: ResultHistoryItem = {
-                    id: item.id,
-                    imageId: item.image_id,
-                    timestamp: Date.parse(item.timestamp),
-                    classificationCount: item.data.classifications.length,
-                    elementCount: item.data.count
-                };
+    await getResults().then(response => {
+        for (const item of response) {
+            const historyItem: ResultHistoryItem = {
+                id: item.id,
+                imageId: item.image_id,
+                timestamp: Date.parse(item.timestamp),
+                classificationCount: item.data.classifications.length,
+                elementCount: item.data.count
+            };
 
-                historyItems.value.push(historyItem);
-            }
+            historyItems.value.push(historyItem);
         }
-        else {
-            console.error("Failed to load result history items");
-            viewState.setState(ViewStates.UserView);
-        }
+    }).catch(() => {
+        viewState.setState(ViewStates.UserView);
     });
 
-    const thumbnailsRequestUri = config.serverUri + endpoints.getResultsThumbnails;
-    const thumbnailsRequestPromise = sendRequest(thumbnailsRequestUri, null, "GET");
-    thumbnailsRequestPromise.then((response: Response) => {
-        if (response.status === 200) {
-            const responseItems = response.data;
-            for (const item of responseItems) {
-                const historyItem = historyItems.value.find((historyItem) => historyItem.id == item.id);
-                if (historyItem) {
-                    historyItem.thumbnailUri = base64ToImageUri(item.thumbnail);
-                }
+    await getResultsThumbnails().then(response => {
+        for (const item of response) {
+            const historyItem = historyItems.value.find(historyItem => historyItem.id == item.id);
+            if (historyItem) {
+                historyItem.thumbnailUri = base64ToImageUri(item.thumbnail);
             }
         }
-        else {
-            console.error("Failed to load result history thumbnails");
-        }
+    }).finally(() => {
         viewState.isWaitingForResponse = false;
     });
 });

@@ -1,65 +1,100 @@
-import type { BackgroundPoint, ImageElement, ObjectClassification } from "@/types";
+import type { BackgroundPoint, ImageDetails, ObjectClassification, RenameMapping } from "@/types/app";
+import type { ComparisonDiff } from "@/types/requests";
 import { distance } from "@/utils";
 import { defineStore } from "pinia";
 
 
-// Stores data related to user's image, e.g.: dimensions, canvas scale/offset, selection points, bounding boxes
+// Stores data related to user's image, e.g.: canvas data/scale/offset, selection points, bounding boxes
 
 const defaultState = {
-    url: "",
-    imageId: 0,
+    images: [] as Array<ImageDetails>,
+    classifications: [] as Array<ObjectClassification>,
+    classificationRenameMap: [] as Array<RenameMapping>,
+    currentImageIndex: 0,
     resultId: 0,
     datasetId: 0,
-    width: 0,
-    height: 0,
     scaledImageWidth: 0,
     scaledImageHeight: 0,
     overlayOffsetLeft: 0,
     overlayOffsetTop: 0,
     boundingBoxScale: 1,
-    backgroundMaskDataURL: "",
     isPanning: false,
     userZoom: 1,
-    imageElements: [] as Array<ImageElement>,
-    points: [] as Array<BackgroundPoint>,
-    objectClassifications: [] as Array<ObjectClassification>,
-    selectedLeaderIds: [] as Array<number>,
-    comparisonDifference: [] as Array<any>      // TODO: Type
+    comparisonDifference: {} as ComparisonDiff
 }
 
 export const useImageStateStore = defineStore("imageState", {
     state: () => ({ ...defaultState }),
+    getters: {
+        currentImage(state) {
+            return state.images[state.currentImageIndex];
+        },
+
+        allElements(state) {
+            return state.images.flatMap(image => image.elements);
+        }
+    },
     actions: {
         reset() {
             Object.assign(this, defaultState);
-            this.imageElements = [];
-            this.points = [];
-            this.objectClassifications = [];
-            this.selectedLeaderIds = [];
-            this.comparisonDifference = [];
+            this.images = [];
+            this.classifications = [];
+            this.classificationRenameMap = [];
+            this.comparisonDifference = {};
         },
 
         addPoint(isPositive: boolean, x: number, y: number) {
-            this.points.push({ positive: isPositive, position: [x, y] } as BackgroundPoint);
+            this.currentImage.points.push({ positive: isPositive, position: [x, y] } as BackgroundPoint);
         },
 
         removeNearbyPoint(x: number, y: number, tolerance: number = 60) {
-            if (this.points.length === 0) return;
+            if (this.currentImage.points.length === 0) return;
 
-            const closestPoint = this.points.reduce((a, b) =>
+            const closestPoint = this.currentImage.points.reduce((a, b) =>
                 distance(a.position[0], a.position[1], x, y) < distance(b.position[0], b.position[1], x, y) ? a : b
             );
 
             if (distance(closestPoint.position[0], closestPoint.position[1], x, y) < tolerance) {
-                const pointIndex = this.points.findIndex((p) => p == closestPoint);
-                this.points.splice(pointIndex, 1);
+                const pointIndex = this.currentImage.points.findIndex(p => p == closestPoint);
+                this.currentImage.points.splice(pointIndex, 1);
             }
         },
 
-        clearResult() {
-            this.imageElements = [];
-            this.objectClassifications = [];
-            this.comparisonDifference = [];
-        }
+        addClassification(name: string) {
+            this.classifications.push({
+                name: name,
+                showBoxes: true
+            });
+
+            this.classificationRenameMap.push({
+                originalName: name,
+                newName: name
+            });
+        },
+
+        clearAllResults() {
+            this.classifications = [];
+            this.classificationRenameMap = [];
+            this.comparisonDifference = {};
+            this.images.forEach(image => {
+                image.elements = [];
+            });
+        },
+
+        clearCurrentResult() {
+            this.currentImage.elements = [];
+        },
+
+        clearAllSelections() {
+            this.images.forEach(image => {
+                image.points = [];
+                image.selectedLeaderIds = [];
+            });
+        },
+
+        clearCurrentSelections() {
+            this.currentImage.points = [];
+            this.currentImage.selectedLeaderIds = [];
+        },
     }
 });

@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import { config, endpoints } from "@/config";
+import { getImageBlob } from "@/requests/images";
+import { getResult } from "@/requests/results";
 import { useImageStateStore } from "@/stores/imageState";
 import { useViewStateStore, ViewStates } from "@/stores/viewState";
-import { parseClassificationsFromResponse, sendRequest } from "@/utils";
-import { type Response } from "@/utils";
+import { parseClassificationsFromResponse, processImageData } from "@/utils";
 
 
 const props = defineProps({
@@ -40,46 +40,19 @@ const date = new Date(props.timestamp).toISOString().split("T")[0];
 const time = new Date(props.timestamp).toLocaleTimeString();
 
 
-function handleResultClick() {
-    const imageRequestUri = config.serverUri + endpoints.getImage.replace("{image_id}", props.imageId.toString());
-    const imageRequestPromise = sendRequest(imageRequestUri, null, "GET", "application/json", false);
-
+async function handleResultClick() {
     viewState.isWaitingForResponse = true;
-    imageRequestPromise.then((imageResponse: Response) => {
-        if (imageResponse.status != 200) {
-            console.error("Failed to load image for result history item");
-            return;
-        }
 
-        imageResponse.data.blob()
-            .then((blob: Blob) => { return URL.createObjectURL(blob); })
-            .then((url: string) => {
-                imageState.url = url;
-                imageState.imageId = props.imageId;
-
-                const img = new Image;
-                img.src = url;
-                img.onload = () => {
-                    imageState.width = img.width;
-                    imageState.height = img.height;
-                };
-            });
+    await getImageBlob(props.imageId).then(blob => {
+        processImageData(blob, props.imageId);
     });
 
-    const resultRequestUri = config.serverUri + endpoints.getResult.replace("{result_id}", props.id.toString());
-    const resultRequestPromise = sendRequest(resultRequestUri, null, "GET");
-
-    resultRequestPromise.then((resultResponse: Response) => {
-        if (resultResponse.status != 200) {
-            console.error("Failed to load result for result history item");
-            return;
-        }
-
-        const resultData = resultResponse.data.data;
-        parseClassificationsFromResponse(resultData.classifications);
+    await getResult(props.id).then(response => {
+        parseClassificationsFromResponse(response.data.classifications);
         imageState.resultId = props.id;
-        viewState.isWaitingForResponse = false;
         viewState.setState(ViewStates.ImageViewCountingResult);
+    }).finally(() => {
+        viewState.isWaitingForResponse = false;
     });
 }
 </script>

@@ -57,16 +57,7 @@ class Dataset(Resource):
             if dataset.user_id != current_user.id:
                 log.error("User %s is not authorized to access dataset %s", current_user, dataset_id)
                 return Response('Unauthorized', 403)
-            dataset_dict = {
-                "id": dataset.id,
-                "name": dataset.name,
-                "images": []
-            }
-            for image in dataset.images:
-                image_dict = serialize_image_as_result(image)
-                image_dict["id"] = image.id
-                dataset_dict['images'].append(image_dict)
-            return jsonify(dataset_dict)
+            return jsonify(dataset.as_dict())
         except ValueError as e:
             log.exception("Invalid dataset ID: %s", e)
             return Response("Invalid dataset ID", 400)
@@ -162,8 +153,6 @@ class DatasetImages(Resource):
             classifications = data.get('classifications', [])
             if not image_id or image_id < 0:
                 raise ValueError("Invalid image ID")
-            if not classifications:
-                raise ValueError("No classifications provided")
             dataset = add_image_to_dataset(dataset, image_id, classifications, object_classifier=object_grouper)
             return jsonify(dataset.as_dict())
         except ValueError as e:
@@ -199,7 +188,7 @@ class AdjustClassifications(Resource):
                 return Response("Image does not belong to dataset", 400)
             classifications = data.get('classifications', [])
             bulk_update_element_classification_by_id(classifications)
-            return Response(serialize_image_as_result(image), 200)
+            return jsonify(serialize_image_as_result(image))
         except ValueError as e:
             log.exception("Invalid dataset ID %s or image ID %s: %s", dataset_id, image_id, e)
             return Response("Invalid dataset ID or image ID", 400)

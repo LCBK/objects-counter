@@ -1,24 +1,19 @@
 {
-  "name": "LCBK Object Counter",
+  "name": "ACOI Object Counter",
   "description": "User-friendly application for counting and grouping objects.",
   "icons": [
     {
-      "src": "icons/512.png",
+      "src": "icons/acoi-512.png",
       "type": "image/png",
       "sizes": "512x512"
     },
     {
-      "src": "icons/192.png",
+      "src": "icons/acoi-192.png",
       "type": "image/png",
       "sizes": "192x192"
     },
     {
-      "src": "icons/128.png",
-      "type": "image/png",
-      "sizes": "128x128"
-    },
-    {
-      "src": "icons/32.png",
+      "src": "icons/acoi-32.png",
       "type": "image/png",
       "sizes": "32x32"
     }

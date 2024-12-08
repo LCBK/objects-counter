@@ -18,9 +18,11 @@ export const config = {
     requirePasswordDigit: true,
     requirePasswordSymbol: true,
 
-    // Other
-    logResponses: true         // Can leak JWT token
+    // Debug
+    logResponses: true,                 // Can leak JWT token
+    showDebugSettings: false
 };
+
 
 export const endpoints = {
     isAlive: "/api/is-alive",
@@ -44,13 +46,22 @@ export const endpoints = {
     addImageToDataset: "/api/datasets/{dataset_id}/images",
     getDatasetsThumbnails: "/api/datasets/thumbnails",
     adjustDatasetClassifications: "/api/datasets/{dataset_id}/images/{image_id}",
-    compareToDataset: "/api/datasets/{dataset_id}/comparison",
-    markLeaders: "/api/images/{image_id}/mark-leaders"
+    compareToDataset: "/api/datasets/{dataset_id}/comparison"
 };
 
+
 export const boundingBoxColors = [
-    "#ff595e", "#ff924c", "#ffca3a", "#c5ca30", "#8ac926", "#52a675", "#1982c4", "#4267ac", "#6a4c93"
+    "#ff595e",
+    "#ff924c",
+    "#ffca3a",
+    "#c5ca30",
+    "#8ac926",
+    "#52a675",
+    "#1982c4",
+    "#4267ac",
+    "#6a4c93"
 ];
+
 
 export const themeUrls = {
     dark: "https://cdn.jsdelivr.net/npm/primevue@3.50.x/resources/themes/aura-dark-blue/theme.css",
