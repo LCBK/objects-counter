@@ -5,6 +5,7 @@ from collections import defaultdict
 element_translation = {
     "egg": ("Jajko", "n"),
     "cube": ("Kostka", "ż"),
+    "token": ("Żeton", "n")
 }
 
 color_translation = {
@@ -16,6 +17,12 @@ color_translation = {
     "brown": {"m": "Brązowy", "ż": "Brązowa", "n": "Brązowe"},
     "pink": {"m": "Różowy", "ż": "Różowa", "n": "Różowe"},
     "white": {"m": "Biały", "ż": "Biała", "n": "Białe"},
+    # Token values
+    "wheat": {"n": "Pszenicy"},
+    "fish": {"n": "Ryby"},
+    "worm": {"n": "Glizdy"},
+    "berry": {"n": "Jagód"},
+    "rat": {"n": "Gryzoni"}
 }
 
 
@@ -25,7 +32,7 @@ def translate_category(category):
         element, color = category.split("-")
         translated_element, gender = element_translation.get(element, (element.capitalize(), "n"))
         translated_color = color_translation.get(color, {}).get(gender, color.capitalize())
-        return f"{translated_color} {translated_element.lower()}"
+        return f"{translated_element} {translated_color.lower()}"
     except ValueError:
         return category
 

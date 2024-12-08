@@ -2,13 +2,15 @@ import os
 from typing import List, Dict
 
 import cv2
+import numpy as np
+import pandas as pd
 from PIL import Image as PILImage
 
 from image_segmentation.object_classification.classifier import ObjectClassifier
 from objects_counter import app
 from objects_counter.api.default.views import feature_similarity_model, color_similarity_model, sam
 from objects_counter.db.dataops.image import insert_element, get_image_by_id, insert_image
-from tests.visualization_helper import display_images_in_grid
+from tests.visualization_helper import display_images_in_grid, plot_similarity_heatmap
 
 ELEMENT_TYPES = ["cube", "egg", "token"]
 ELEMENT_COLORS = ["black", "red", "brown", "orange", "yellow", "green", "blue", "purple", "white", "gray"]
@@ -92,7 +94,7 @@ def validate_classifications(classifications):
     return results
 
 
-def analyze_results(validation_results):
+def analyze_results(validation_results, categories: List[str]):
     """Analyze and report classification performance."""
     type_correct = sum(res["is_correct_type"] for res in validation_results)
     color_correct = sum(res["is_correct_color"] for res in validation_results)
@@ -102,19 +104,38 @@ def analyze_results(validation_results):
     print(f"Poprawna klasyfikacja typu: {type_correct}/{total} ({type_correct / total:.2%})")
     print(f"Poprawna klasyfikacja koloru: {color_correct}/{total} ({color_correct / total:.2%})")
 
-    # Detailed analysis per category and color
-    category_analysis = {}
-    for res in validation_results:
-        key = (res["actual_type"], res["actual_color"])
-        if key not in category_analysis:
-            category_analysis[key] = {"total": 0, "correct": 0}
-        category_analysis[key]["total"] += 1
-        if res["is_correct_type"] and res["is_correct_color"]:
-            category_analysis[key]["correct"] += 1
+    category_correctness = np.zeros((len(categories), len(categories)))
 
-    for (element_type, color), stats in category_analysis.items():
-        print(f"Kategoria: {element_type}-{color}: "
-              f"{stats['correct']}/{stats['total']} poprawnych ({stats['correct'] / stats['total']:.2%})")
+    category_to_index = {category: idx for idx, category in enumerate(categories)}
+
+    for result in validation_results:
+        predicted = f"{result['predicted_type']}-{result['predicted_color']}"
+        actual = f"{result['actual_type']}-{result['actual_color']}"
+
+        if predicted in category_to_index and actual in category_to_index:
+            actual_idx = category_to_index[actual]
+            predicted_idx = category_to_index[predicted]
+
+            category_correctness[actual_idx, predicted_idx] += 1
+
+    row_sums = category_correctness.sum(axis=1, keepdims=True)
+    normalized_matrix = np.divide(
+        category_correctness,
+        row_sums,
+        out=np.zeros_like(category_correctness),
+        where=row_sums != 0
+    )
+
+    result_df = pd.DataFrame(
+        normalized_matrix, index=categories, columns=categories
+    )
+
+    plot_similarity_heatmap(
+        result_df,
+        title="Poprawność zaklasyfikowania",
+        subtitle="Prosta klasyfikacja",
+        game_name="Na skrzydłach"
+    )
 
 
 def main():
@@ -139,7 +160,16 @@ def main():
 
         validation_results = validate_classifications(classification_results)
 
-        analyze_results(validation_results)
+        categories = []
+        for result in validation_results:
+            actual = f"{result["actual_type"]}-{result["actual_color"]}"
+            predicted = f"{result["predicted_type"]}-{result["predicted_color"]}"
+            if actual not in categories:
+                categories.append(actual)
+            if predicted not in categories:
+                categories.append(predicted)
+
+        analyze_results(validation_results, categories)
 
 
 if __name__ == "__main__":
