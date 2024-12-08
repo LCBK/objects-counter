@@ -23,9 +23,9 @@ function onBack() {
 async function loadDatasets() {
     viewState.isWaitingForResponse = true;
 
-    await getDatasets().then((response) => {
+    await getDatasets().then(response => {
         userDatasets.value = [];
-        for (const dataset of response.filter((d) => !d.unfinished)) {
+        for (const dataset of response.filter(d => !d.unfinished)) {
             userDatasets.value.push({
                 id: dataset.id,
                 name: dataset.name,
@@ -35,10 +35,10 @@ async function loadDatasets() {
         userDatasets.value = userDatasets.value.sort((a, b) => b.timestamp - a.timestamp);
     })
 
-    await getDatasetsThumbnails().then((response) => {
+    await getDatasetsThumbnails().then(response => {
         for (const item of response) {
             const datasetItem = userDatasets.value
-                .find((datasetItem) => datasetItem.id == item.id) as DatasetListItem;
+                .find(datasetItem => datasetItem.id == item.id) as DatasetListItem;
 
             if (datasetItem) {
                 datasetItem.thumbnailUri = base64ToImageUri(item.thumbnail);

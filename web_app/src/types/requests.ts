@@ -102,9 +102,6 @@ export interface GetThumbnailsResponse extends Array<{
     thumbnail: string
 }> { }
 
-
-// Intermediate types
-
 export interface ImageElementResponse {
     id: number,
     top_left: [number, number],

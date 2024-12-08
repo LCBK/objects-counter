@@ -4,7 +4,7 @@ import { sendRequest } from "@/utils";
 
 
 export function checkServerStatus() : Promise<boolean> {
-    return new Promise((resolve) => {
+    return new Promise(resolve => {
         sendRequest(config.serverUri + endpoints.isAlive, null, "GET")
             .then(response => {
                 if (response.status === 200) {

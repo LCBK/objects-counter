@@ -26,7 +26,7 @@ function onBack() {
 onMounted(async () => {
     viewState.isWaitingForResponse = true;
 
-    await getResults().then((response) => {
+    await getResults().then(response => {
         for (const item of response) {
             const historyItem: ResultHistoryItem = {
                 id: item.id,
@@ -42,9 +42,9 @@ onMounted(async () => {
         viewState.setState(ViewStates.UserView);
     });
 
-    await getResultsThumbnails().then((response) => {
+    await getResultsThumbnails().then(response => {
         for (const item of response) {
-            const historyItem = historyItems.value.find((historyItem) => historyItem.id == item.id);
+            const historyItem = historyItems.value.find(historyItem => historyItem.id == item.id);
             if (historyItem) {
                 historyItem.thumbnailUri = base64ToImageUri(item.thumbnail);
             }

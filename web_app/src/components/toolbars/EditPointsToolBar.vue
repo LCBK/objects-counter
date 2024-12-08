@@ -3,7 +3,7 @@ import "./ImageViewToolBar.css";
 import VButton from "primevue/button";
 import { ImageAction, useViewStateStore, ViewStates } from "@/stores/viewState";
 import { useImageStateStore } from "@/stores/imageState";
-import { parseClassificationsFromResponse, parseElementsFromResponse } from "@/utils";
+import { parseClassificationsFromResponse, parseElementsToImage } from "@/utils";
 import { computed, onMounted, ref } from "vue";
 import { useUserStateStore } from "@/stores/userState";
 import { deleteResult } from "@/requests/results";
@@ -20,7 +20,7 @@ const negativePointButton = ref<HTMLElement>();
 const displayPointTypes = ref<Boolean>();
 
 const allButtonsDisabled = computed(() => viewState.isWaitingForResponse);
-const confirmButtonDisabled = computed(() => imageState.points.length === 0);
+const confirmButtonDisabled = computed(() => imageState.currentImage.points.length === 0);
 
 
 function setPositivePointType() {
@@ -48,6 +48,7 @@ function handleRemoveClick() {
 async function handleConfirmBackground() {
     viewState.isWaitingForResponse = true;
 
+    // If the user is editing an existing result, delete the old one before accepting the new one
     if (viewState.isEditingExistingResult
         && viewState.currentAction !== ImageAction.CreateDataset
         && viewState.currentAction !== ImageAction.CompareWithDataset) {
@@ -63,18 +64,18 @@ async function handleConfirmBackground() {
         || viewState.currentAction === ImageAction.CompareWithDataset
     );
 
-    await acceptBackground(imageState.imageId, skipClassification).then((response) => {
+    await acceptBackground(imageState.currentImage.id, skipClassification).then(response => {
         if (viewState.currentState !== ViewStates.ImageEditPoints) return;
 
         if (response.id) imageState.resultId = response.id;
 
         if ("classifications" in response) {
-            // Otherwise the response contains classifications (for simple counting)
+            // The response contains classifications (for simple counting)
             parseClassificationsFromResponse(response.classifications);
         }
         else {
             // Backend responds with elements without classifications, for leader selection or comparison
-            parseElementsFromResponse(response.elements);
+            parseElementsToImage(imageState.currentImage.id, response.elements);
         }
 
         switch (viewState.currentAction) {

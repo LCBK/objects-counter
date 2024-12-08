@@ -74,7 +74,7 @@ async function submitLoginForm() {
     // For triggering credential saving in browsers (action set to "javascript:void(0);")
     loginForm.value!.submit();
 
-    await loginUser(username.value, password.value).then((response) => {
+    await loginUser(username.value, password.value).then(response => {
         userState.login(response);
         viewState.setState(ViewStates.MainView);
     }).catch((error: Error) => {
@@ -88,7 +88,7 @@ async function submitRegisterForm() {
     registerForm.value!.submit();
 
     await registerUser(username.value, password.value).then(() => {
-        loginUser(username.value, password.value).then((response) => {
+        loginUser(username.value, password.value).then(response => {
             userState.login(response);
             viewState.setState(ViewStates.MainView);
         });

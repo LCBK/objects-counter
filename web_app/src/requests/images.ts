@@ -26,10 +26,12 @@ export async function getImageBlob(id: string | number) {
 }
 
 
-export async function uploadImage(data: FormData) {
+export async function uploadImage(imageFile: File) {
     const requestUri = config.serverUri + endpoints.uploadImage;
+    const requestData = new FormData();
+    requestData.append("image", imageFile);
 
-    const requestPromise = sendRequest(requestUri, data, "POST", "multipart/form-data");
+    const requestPromise = sendRequest(requestUri, requestData, "POST", "multipart/form-data");
     const response = await requestPromise;
 
     if (response.ok) {
@@ -73,22 +75,5 @@ export async function acceptBackground(id: string | number, skip_classification:
     }
     else {
         throw new Error("Failed to accept background");
-    }
-}
-
-
-export async function sendLeaders(id: string | number, leaderIds: Array<string | number>) {
-    const requestUri = config.serverUri + endpoints.sendLeaders
-        .replace("{image_id}", id.toString());
-    const requestData = JSON.stringify({ leaders: leaderIds });
-
-    const requestPromise = sendRequest(requestUri, requestData, "POST");
-    const response = await requestPromise;
-
-    if (response.ok) {
-        return response.text() as Promise<SendLeadersResponse>;
-    }
-    else {
-        throw new Error("Failed to send leaders");
     }
 }

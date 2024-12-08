@@ -2,14 +2,12 @@
 import { ref } from "vue";
 import VButton from "primevue/button";
 import VSelectButton from "primevue/selectbutton";
-import { useImageStateStore } from "@/stores/imageState";
 import { ImageAction, useViewStateStore, ViewStates } from "@/stores/viewState";
-import { isUserAgentMobile } from "@/utils";
+import { isUserAgentMobile, processImageData } from "@/utils";
 import { useUserStateStore } from "@/stores/userState";
 import { uploadImage } from "@/requests/images";
 
 
-const imageState = useImageStateStore();
 const viewState = useViewStateStore();
 const userState = useUserStateStore();
 
@@ -41,32 +39,16 @@ function handleCompareClick() {
 
 async function handleImageUpload(event: Event) {
     const imageFile = (event.target as HTMLInputElement)!.files?.[0];
-    if (imageFile !== undefined) {
-        const url = window.URL.createObjectURL(imageFile);
-        imageState.url = url;           // For displaying the image
+    if (imageFile === undefined) return;
 
-        const img = new Image;
-        img.src = url;
-        img.onload = () => {
-            imageState.width = img.width;
-            imageState.height = img.height;
-        };
+    viewState.setState(ViewStates.Uploading);
 
-        const imageData = new FormData();
-        imageData.append("image", imageFile);
-
-        viewState.isImageUploading = true;
-        viewState.setState(ViewStates.Uploading);
-
-        await uploadImage(imageData).then((imageId) => {
-            viewState.isImageUploading = false;
-            viewState.isImageUploaded = true;
-            imageState.imageId = imageId;
-            viewState.setState(ViewStates.ImageEditPoints);
-        }).catch(() => {
-            viewState.setState(ViewStates.MainView);
-        });
-    }
+    await uploadImage(imageFile).then(imageId => {
+        processImageData(imageFile, imageId);
+        viewState.setState(ViewStates.ImageEditPoints);
+    }).catch(() => {
+        viewState.setState(ViewStates.MainView);
+    });
 }
 </script>
 

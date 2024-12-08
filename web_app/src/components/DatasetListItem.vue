@@ -48,7 +48,7 @@ function showRenameDialog() {
 }
 
 async function showDatasetDetails() {
-    await getDataset(props.id).then((response) => {
+    await getDataset(props.id).then(response => {
         classifications.value = getClassificationsFromDataset(response);
         detailsVisible.value = true;
     });

@@ -1,8 +1,8 @@
 import { boundingBoxColors, config } from "./config";
 import { useUserStateStore } from "./stores/userState";
 import { useImageStateStore } from "./stores/imageState";
-import type { ClassificationWithObjects, GetDatasetResponse, ImageElementResponse } from "./types/requests";
-import type { DatasetClassificationListItem, ImageElement } from "./types/app";
+import type { ClassificationWithObjects, GetDatasetResponse, ImageElementResponse, ImageWithAllData } from "./types/requests";
+import type { DatasetClassificationListItem, ImageDetails, ImageElement, ObjectClassification } from "./types/app";
 
 
 export async function sendRequest(
@@ -76,83 +76,106 @@ export function createMaskImage(mask: Array<Array<boolean>>): ImageData {
 }
 
 
+export function getImageClassifications(id: number): Array<ObjectClassification> {
+    const imageState = useImageStateStore();
+    const classifications = [] as Array<ObjectClassification>;
+    const image = imageState.images.find(image => image.id === id);
+
+    if (!image) return classifications;
+
+    for (const element of image.elements) {
+        if (element.classificationName) {
+            if (!classifications.find(c => c.name === element.classificationName)) {
+                classifications.push({
+                    name: element.classificationName,
+                    showBoxes: true
+                });
+            }
+        }
+    }
+
+    return classifications;
+}
+
+
+export function getClassificationBoxColor(name: string): string {
+    const imageState = useImageStateStore();
+    const classificationIndex = imageState.classifications.findIndex(c => c.name === name);
+
+    if (classificationIndex === -1) return boundingBoxColors[0];
+    return boundingBoxColors[classificationIndex];
+}
+
+
+// TODO: Merge with parseClassificationsFromResponse when implementing multiple images on simple counting
+export function parseMultipleClassificationsFromResponse(images: Array<ImageWithAllData>): void {
+    const imageState = useImageStateStore();
+
+    images.forEach(image => parseElementsToImage(image.id, image.elements));
+
+    imageState.classifications.sort((a, b) => a.name.localeCompare(b.name));
+}
+
+
 export function parseClassificationsFromResponse(classifications: Array<ClassificationWithObjects>): void {
     const imageState = useImageStateStore();
 
-    classifications.forEach((classification, index: number) => {
-        imageState.classifications.push({
-            index: index,
-            name: classification.name,
-            count: classification.objects.length,
-            showBoxes: true,
-            boxColor: boundingBoxColors[index % boundingBoxColors.length]
-        });
+    classifications.forEach(classification => {
+        if (!imageState.classifications.find(c => c.name === classification.name)) {
+            // If received classification name is found in the rename map, use the new name
+            const mapping = imageState.classificationRenameMap.find(c => c.originalName === classification.name);
+            if (mapping) classification.name = mapping.newName;
+            else imageState.addClassification(classification.name);
+        }
 
-        classification.objects.forEach((element) => {
+        classification.objects.forEach(element => {
             const imageElement = {
                 id: element.id,
                 topLeft: element.top_left,
                 bottomRight: element.bottom_right,
                 certainty: element.certainty,
-                classificationIndex: index
+                classificationName: classification.name
             } as ImageElement;
 
-            for (const leaderId of imageState.selectedLeaderIds) {
+            for (const leaderId of imageState.currentImage.selectedLeaderIds) {
                 if (leaderId === element.id) {
                     imageElement.isLeader = true;
                     break;
                 }
             }
 
-            imageState.imageElements.push(imageElement);
+            imageState.currentImage.elements.push(imageElement);
         });
     });
+
+    imageState.classifications.sort((a, b) => a.name.localeCompare(b.name));
 }
 
 
-export function parseClassificationsFromElementsResponse(elements: Array<ImageElementResponse>): void {
+export function parseElementsToImage(imageId: number, elements: Array<ImageElementResponse>): void {
     const imageState = useImageStateStore();
-    const classifications = [] as Array<string>;
 
-    elements.forEach((element) => {
-        if (element.classification && !classifications.includes(element.classification)) {
-            classifications.push(element.classification);
+    const image = imageState.images.find(image => image.id === imageId);
+    if (!image) return;
+
+    elements.forEach(element => {
+        if (element.classification && !imageState.classifications.find(c => c.name === element.classification)) {
+            // If received classification name is found in the rename map, use the new name
+            const mapping = imageState.classificationRenameMap.find(c => c.originalName === element.classification);
+            if (mapping) element.classification = mapping.newName;
+            else imageState.addClassification(element.classification);
         }
-    });
 
-    classifications.sort();
-    classifications.forEach((classification, index) => {
-        const classificationElements = elements.filter((element) => element.classification === classification);
-        imageState.classifications.push({
-            index: index,
-            name: classification,
-            count: classificationElements.length,
-            showBoxes: true,
-            boxColor: boundingBoxColors[index % boundingBoxColors.length]
-        });
-
-        classificationElements.forEach((element) => {
-            imageState.imageElements.push({
-                id: element.id,
-                topLeft: element.top_left,
-                bottomRight: element.bottom_right,
-                certainty: element.certainty,
-                classificationIndex: index
-            });
-        });
-    });
-}
-
-
-export function parseElementsFromResponse(elements: Array<ImageElementResponse>): void {
-    const imageState = useImageStateStore();
-    for (const element of elements) {
-        imageState.imageElements.push({
+        image.elements.push({
             id: element.id,
             topLeft: element.top_left,
-            bottomRight: element.bottom_right
+            bottomRight: element.bottom_right,
+            certainty: element.certainty,
+            classificationName: element.classification
         });
-    }
+    });
+
+    imageState.classifications.sort((a, b) => a.name.localeCompare(b.name));
 }
 
 
@@ -176,6 +199,29 @@ export function getClassificationsFromDataset(dataset: GetDatasetResponse): Arra
     });
 
     return classificationItems;
+}
+
+
+export function processImageData(source: File | Blob, id: number): void {
+    const imageState = useImageStateStore();
+
+    const url = window.URL.createObjectURL(source);
+    const img = new Image;
+    img.src = url;
+
+    img.onload = () => {
+        const imageDetails = {
+            id: id,
+            dataURL: url,
+            width: img.width,
+            height: img.height,
+            elements: [],
+            selectedLeaderIds: [],
+            points: []
+        } as ImageDetails;
+
+        imageState.images.push(imageDetails);
+    };
 }
 
 
