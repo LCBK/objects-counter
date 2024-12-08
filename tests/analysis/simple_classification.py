@@ -1,11 +1,12 @@
+import os
 from typing import List, Dict
 
+import cv2
 from PIL import Image as PILImage
 
 from image_segmentation.object_classification.classifier import ObjectClassifier
-from image_segmentation.object_classification.feature_extraction import ColorSimilarity, FeatureSimilarity
-from image_segmentation.object_detection.object_segmentation import ObjectSegmentation
-from objects_counter.consts import SAM_CHECKPOINT, SAM_MODEL_TYPE
+from objects_counter import app
+from objects_counter.api.default.views import feature_similarity_model, color_similarity_model, sam
 from objects_counter.db.dataops.image import insert_element, get_image_by_id, insert_image
 from tests.visualization_helper import display_images_in_grid
 
@@ -17,8 +18,8 @@ TOKEN_SUBCATEGORIES = ["wheat", "worm", "rat", "fish", "berry"]
 def parse_filename_for_attributes(filename):
     """Extract type and color from filename."""
     parts = filename.split("-")
-    element_type = parts[2]
-    color = parts[3]
+    element_type = parts[3]
+    color = parts[4]
     return element_type, color
 
 
@@ -28,6 +29,8 @@ def map_elements_to_filenames(elements_path: List[str]) -> Dict[int, str]:
 
     for element_path in elements_path:
         image_element = insert_image(element_path, element_path)
+        cv2.imwrite(image_element.filepath[:-4] + "_processed.bmp", cv2.imread(element_path))
+
         pil_image = PILImage.open(element_path)
         insert_element(image_element, (0, 0), (pil_image.width, pil_image.height))
 
@@ -38,23 +41,20 @@ def map_elements_to_filenames(elements_path: List[str]) -> Dict[int, str]:
 
 def perform_classification(elements: Dict[int, str], threshold: float, color_weight: float):
     """Perform classification based on similarity."""
-    sam = ObjectSegmentation(SAM_CHECKPOINT, model_type=SAM_MODEL_TYPE)
-    feature_similarity_model = FeatureSimilarity()
-    color_similarity_model = ColorSimilarity()
-
+    classifier = ObjectClassifier(sam, feature_similarity_model, color_similarity_model)
     single_elements = []
     for element_id, element_path in elements.items():
         element = get_image_by_id(element_id)
-        single_elements.append(element.elements)
+        classifier.process_image_elements(element)
+        single_elements.append(element.elements[0])
 
-    classifier = ObjectClassifier(sam, feature_similarity_model, color_similarity_model)
     classifier.assign_categories_based_on_similarity(single_elements, threshold, color_weight)
 
 
 def get_user_input_for_category(images, category_name):
     """Display images and get user input for type and color."""
     print(f"Displaying images for category: {category_name}")
-    display_images_in_grid(images, title=f"Kategoria: {category_name}")
+    display_images_in_grid(images, category_name)
 
     element_type = input(f"Podaj typ elementu (Opcje: {ELEMENT_TYPES}): ").strip()
 
@@ -118,27 +118,28 @@ def analyze_results(validation_results):
 
 
 def main():
-    image_dir = "C:\\Users\\alicj\\Desktop\\Test"
-    filenames = [os.path.join(image_dir, f) for f in os.listdir(image_dir) if f.endswith(".jpg")]
+    with app.app.app_context():
+        image_dir = "/home/shairys/objects/objects-counter/tests/test_data"
+        filenames = [os.path.join(image_dir, f) for f in os.listdir(image_dir) if f.endswith(".jpg")]
 
-    elements = map_elements_to_filenames(filenames)
+        elements = map_elements_to_filenames(filenames)
 
-    perform_classification(elements, threshold=0.7, color_weight=0.5)
+        perform_classification(elements, threshold=0.7, color_weight=0.5)
 
-    classification_results = {}
-    for element_id, element_path in elements.items():
-        image = get_image_by_id(element_id)
-        element = image.elements[0]
+        classification_results = {}
+        for element_id, element_path in elements.items():
+            image = get_image_by_id(element_id)
+            element = image.elements[0]
 
-        classification = element.classification
+            classification = element.classification
 
-        if classification not in classification_results:
-            classification_results[classification] = []
-        classification_results[classification].append(element_path)
+            if classification not in classification_results:
+                classification_results[classification] = []
+            classification_results[classification].append(element_path)
 
-    validation_results = validate_classifications(classification_results)
+        validation_results = validate_classifications(classification_results)
 
-    analyze_results(validation_results)
+        analyze_results(validation_results)
 
 
 if __name__ == "__main__":

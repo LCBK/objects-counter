@@ -34,48 +34,36 @@ def plot_similarity_heatmap(similarity_df, title, subtitle, game_name="Gra"):
     plt.show()
 
 
-def display_images_in_grid(classifications: Dict[str, List[str]], image_size=(100, 100), grid_width=5):
+def display_images_in_grid(images: List[str], category_name: str, image_size=(100, 100), grid_width=5):
     """
     Display images in a grid format with classifications as titles.
-
-    :param classifications: A dictionary with classification as keys and lists of file paths as values.
-    :param image_size: Tuple specifying the size (width, height) to resize each image.
-    :param grid_width: Number of images per row in the grid.
     """
-    # Count total number of images
-    total_images = sum(len(paths) for paths in classifications.values())
+    total_images = len(images)
 
-    # Calculate number of rows needed
     num_rows = math.ceil(total_images / grid_width)
 
-    # Create a figure for the grid
     fig, axes = plt.subplots(num_rows, grid_width, figsize=(grid_width * 3, num_rows * 3))
-    axes = axes.flatten()  # Flatten the axes for easy indexing
+    axes = axes.flatten()
 
-    # Track the current image index
     current_index = 0
 
-    for classification, file_paths in classifications.items():
-        for file_path in file_paths:
-            if current_index >= len(axes):
-                break
+    for file_path in images:
+        if current_index >= len(axes):
+            break
 
-            ax = axes[current_index]
-            current_index += 1
+        ax = axes[current_index]
+        current_index += 1
 
-            try:
-                # Open and resize the image
-                img = Image.open(file_path).resize(image_size)
+        try:
+            img = Image.open(file_path).resize(image_size)
 
-                # Display the image
-                ax.imshow(img)
-                ax.axis('off')  # Hide axes
-                ax.set_title(classification, fontsize=8)  # Add classification as title
-            except Exception as e:
-                print(f"Error loading image {file_path}: {e}")
-                ax.axis('off')  # If error, keep the grid slot empty
+            ax.imshow(img)
+            ax.axis('off')
+            ax.set_title(f"Klasyfikacja: {category_name}", fontsize=8)
+        except Exception as e:
+            print(f"Error loading image {file_path}: {e}")
+            ax.axis('off')
 
-    # Hide unused axes
     for ax in axes[current_index:]:
         ax.axis('off')
 
