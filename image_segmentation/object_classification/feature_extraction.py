@@ -4,7 +4,6 @@ import cv2
 import numpy as np
 import torch
 from PIL import Image as PILImage
-from matplotlib import pyplot as plt
 from torch import nn
 from torchvision import transforms as tr
 
