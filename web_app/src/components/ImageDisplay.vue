@@ -15,20 +15,20 @@ onMounted(() => {
         maxScale: 5,
         step: 0.5,
         duration: 0,
-        noBind: true            // we are manually binding events below, prevent double binding
+        noBind: true        // we are manually binding events below, this is to prevent double binding
     })
 
-    displayContainer.value!.addEventListener("pointerdown", (event) => {
+    displayContainer.value!.addEventListener("pointerdown", event => {
         imageState.isPanning = false;
         panzoom.handleDown(event);
     });
 
-    document.addEventListener("pointermove", (event) => {
+    document.addEventListener("pointermove", event => {
         imageState.isPanning = true;
         panzoom.handleMove(event);
     });
 
-    document.addEventListener("pointerup", (event) => {
+    document.addEventListener("pointerup", event => {
         panzoom.handleUp(event);
     });
 
@@ -36,7 +36,7 @@ onMounted(() => {
         imageState.userZoom = panzoom.getScale();
     });
 
-    displayContainer.value!.parentElement!.addEventListener("wheel", (event) => {
+    displayContainer.value!.parentElement!.addEventListener("wheel", event => {
         if (!event.shiftKey) return;
         panzoom.zoomWithWheel(event);
     });

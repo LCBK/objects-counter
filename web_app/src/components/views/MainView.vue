@@ -27,11 +27,11 @@ const serverUseHttps = ref<boolean>(false);
 function performServerCheck() {
     Promise.race([
         checkServerStatus(),
-        new Promise((resolve) => setTimeout(() => {
+        new Promise(resolve => setTimeout(() => {
             resolve(false);
             receivedStatusResponse.value = true;
         }, config.serverIsAliveTimeout))
-    ]).then((status) => {
+    ]).then(status => {
         if (status) {
             isOffline.value = false;
             isOnline.value = true;

@@ -1,4 +1,4 @@
-import type { BackgroundPoint, ImageDetails, ObjectClassification } from "@/types/app";
+import type { BackgroundPoint, ImageDetails, ObjectClassification, RenameMapping } from "@/types/app";
 import type { ComparisonDiff } from "@/types/requests";
 import { distance } from "@/utils";
 import { defineStore } from "pinia";
@@ -8,6 +8,8 @@ import { defineStore } from "pinia";
 
 const defaultState = {
     images: [] as Array<ImageDetails>,
+    classifications: [] as Array<ObjectClassification>,
+    classificationRenameMap: [] as Array<RenameMapping>,
     currentImageIndex: 0,
     resultId: 0,
     datasetId: 0,
@@ -29,31 +31,16 @@ export const useImageStateStore = defineStore("imageState", {
         },
 
         allElements(state) {
-            return state.images.flatMap((image) => image.elements);
-        },
-
-        allClassifications(state) {
-            const allClassifications = [] as Array<ObjectClassification>;
-
-            state.images.forEach((image) => {
-                image.classifications.forEach((classification) => {
-                    const existingClassification = allClassifications.find((c) => c.name === classification.name);
-                    if (existingClassification) {
-                        existingClassification.count += classification.count;
-                    } else {
-                        allClassifications.push({ ...classification });
-                    }
-                });
-            });
-
-            return allClassifications;
+            return state.images.flatMap(image => image.elements);
         }
     },
     actions: {
         reset() {
             Object.assign(this, defaultState);
-            this.comparisonDifference = {};
             this.images = [];
+            this.classifications = [];
+            this.classificationRenameMap = [];
+            this.comparisonDifference = {};
         },
 
         addPoint(isPositive: boolean, x: number, y: number) {
@@ -68,27 +55,38 @@ export const useImageStateStore = defineStore("imageState", {
             );
 
             if (distance(closestPoint.position[0], closestPoint.position[1], x, y) < tolerance) {
-                const pointIndex = this.currentImage.points.findIndex((p) => p == closestPoint);
+                const pointIndex = this.currentImage.points.findIndex(p => p == closestPoint);
                 this.currentImage.points.splice(pointIndex, 1);
             }
         },
 
+        addClassification(name: string) {
+            this.classifications.push({
+                name: name,
+                showBoxes: true
+            });
+
+            this.classificationRenameMap.push({
+                originalName: name,
+                newName: name
+            });
+        },
+
         clearAllResults() {
+            this.classifications = [];
+            this.classificationRenameMap = [];
             this.comparisonDifference = {};
-            this.images.forEach((image) => {
+            this.images.forEach(image => {
                 image.elements = [];
-                image.classifications = [];
             });
         },
 
         clearCurrentResult() {
-            this.comparisonDifference = {};
             this.currentImage.elements = [];
-            this.currentImage.classifications = [];
         },
 
         clearAllSelections() {
-            this.images.forEach((image) => {
+            this.images.forEach(image => {
                 image.points = [];
                 image.selectedLeaderIds = [];
             });

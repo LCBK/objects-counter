@@ -3,7 +3,7 @@ import "./ImageViewToolBar.css";
 import VButton from "primevue/button";
 import { useImageStateStore } from "@/stores/imageState";
 import { useViewStateStore, ViewStates } from "@/stores/viewState";
-import { parseClassificationsFromElementsResponse } from "@/utils";
+import { parseElementsToImage } from "@/utils";
 import { addImageToDataset, createDataset } from "@/requests/datasets";
 import { computed } from "vue";
 
@@ -49,12 +49,12 @@ async function submitClassificationLeaders() {
         }
     });
 
-    await addImageToDataset(imageState.datasetId, imageState.currentImage.id, classifications).then((response) => {
+    await addImageToDataset(imageState.datasetId, imageState.currentImage.id, classifications).then(response => {
         imageState.clearCurrentResult();
 
-        const currentImage = response.images.find((image) => image.id === imageState.currentImage.id);
+        const currentImage = response.images.find(image => image.id === imageState.currentImage.id);
         if (currentImage !== undefined) {
-            parseClassificationsFromElementsResponse(currentImage.elements);
+            parseElementsToImage(imageState.currentImage.id, currentImage.elements);
             viewState.setState(ViewStates.ImageViewConfirmDataset);
         }
     }).finally(() => {

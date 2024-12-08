@@ -49,7 +49,7 @@ const defaultState = {
     isSelectingAssignment: false,
     isAssigningClassifications: false,
     isAddingMoreImages: false,
-    currentlyAssignedClassificationIndex: 0,
+    currentlyAssignedClassificationName: "",
     lastAssignedLeaderNumber: 0,
     showPoints: true,
     showBackground: false,

@@ -8,7 +8,12 @@ import QuantitiesEntry from "../QuantitiesEntry.vue";
 import { useImageStateStore } from "@/stores/imageState";
 import { useViewStateStore, ViewStates } from "@/stores/viewState";
 import { computed, ref, watch } from "vue";
-import { formatClassificationName, getBoxColorFromClassificationName, isUserAgentMobile, processImageData } from "@/utils";
+import {
+    formatClassificationName,
+    getClassificationBoxColor,
+    isUserAgentMobile,
+    processImageData
+} from "@/utils";
 import InfoPopup from "../InfoPopup.vue";
 import { adjustClassifications, renameDataset } from "@/requests/datasets";
 import { uploadImage } from "@/requests/images";
@@ -31,19 +36,17 @@ const popupHeader = ref<string>("");
 const popupVisible = ref<boolean>(false);
 const isSuccessfullyCreated = ref<boolean>(false);
 
-const classifications = computed(() => imageState.currentImage.classifications);
 const assignedClassificationName = computed(() => {
-    const name = imageState.currentImage.classifications[viewState.currentlyAssignedClassificationIndex].name;
-    return formatClassificationName(name);
+    return formatClassificationName(viewState.currentlyAssignedClassificationName);
 });
+
 const assignedBoxColor = computed(() => {
-    const name = imageState.currentImage.classifications[viewState.currentlyAssignedClassificationIndex].name;
-    return getBoxColorFromClassificationName(name);
+    return getClassificationBoxColor(viewState.currentlyAssignedClassificationName);
 });
 
 
 // Close quantities sidebar when user starts to assign classifications
-watch(() => viewState.isSelectingAssignment, (newValue) => {
+watch(() => viewState.isSelectingAssignment, newValue => {
     if (!newValue) {
         quantitiesVisible.value = false;
     }
@@ -64,13 +67,13 @@ async function handleImageUpload(event: Event) {
 
     viewState.setState(ViewStates.Uploading);
 
-    await uploadImage(imageFile).then((imageId) => {
+    await uploadImage(imageFile).then(imageId => {
         processImageData(imageFile, imageId);
 
         // The store state is before the upload, so this length is one less than the actual one
         imageState.currentImageIndex = imageState.images.length;
-
         viewState.isAddingMoreImages = true;
+
         viewState.setState(ViewStates.ImageEditPoints);
     }).catch(() => {
         viewState.setState(ViewStates.MainView);
@@ -86,33 +89,24 @@ function handleUploadClick() {
 }
 
 async function submitDataset() {
-    const classifications = imageState.currentImage.classifications.map((c) => {
-        return {
-            name: c.name,
-            elements: imageState.currentImage.elements
-                .filter((el) => el.classificationIndex === c.index)
-                .map((el) => el.id)
-        };
+    imageState.images.forEach(image => {
+        const classifications = imageState.classifications.map(c => {
+            return {
+                name: c.name,
+                elements: image.elements
+                    .filter((el) => el.classificationName === c.name)
+                    .map((el) => el.id)
+            };
+        });
+
+        adjustClassifications(imageState.datasetId, image.id, classifications);
     });
 
-    if (classifications.some((classification) => classification === null)) {
-        popupText.value = "Failed to submit dataset";
-        popupHeader.value = "Error";
+    await renameDataset(imageState.datasetId, datasetName.value).then(() => {
+        popupText.value = "Dataset submitted successfully";
+        popupHeader.value = "Success";
         popupVisible.value = true;
-        return;
-    }
-
-    await adjustClassifications(imageState.datasetId, imageState.currentImage.id, classifications).then(() => {
-        renameDataset(imageState.datasetId, datasetName.value).then(() => {
-            popupText.value = "Dataset submitted successfully";
-            popupHeader.value = "Success";
-            popupVisible.value = true;
-            isSuccessfullyCreated.value = true;
-        }).catch(() => {
-            popupText.value = "Failed to submit dataset";
-            popupHeader.value = "Error";
-            popupVisible.value = true;
-        });
+        isSuccessfullyCreated.value = true;
     }).catch(() => {
         popupText.value = "Failed to submit dataset";
         popupHeader.value = "Error";
@@ -161,8 +155,11 @@ function handleCreatedDataset() {
             <div v-if="!viewState.isSelectingAssignment" class="quantities-col">Show boxes</div>
         </div>
         <div class="quantities-content">
-            <QuantitiesEntry v-for="(quantity, index) in classifications" :key="index" :index="quantity.index" />
-            <div v-if="classifications.length === 0" class="no-elements-notice notice">(no elements found)</div>
+            <QuantitiesEntry v-for="(classification, index) in imageState.classifications"
+                    :key="index" :name="classification.name" />
+            <div v-if="imageState.classifications.length === 0" class="no-elements-notice notice">
+                (no elements found)
+            </div>
         </div>
     </VSidebar>
     <VDialog v-model:visible="addImageDialogVisible" modal header="Choose source"
@@ -202,7 +199,7 @@ function handleCreatedDataset() {
 .assignment-notice {
     display: flex;
     position: absolute;
-    bottom: 120px;
+    bottom: 150px;
     left: 10px;
 }
 
@@ -248,7 +245,14 @@ function handleCreatedDataset() {
     text-align: center;
 }
 
+@media screen and (min-width: 340px) {
+    .assignment-notice {
+        bottom: 160px;
+    }
+}
+
 @media screen and (min-width: 400px) {
+
     .assignment-notice-label {
         font-size: 1rem;
     }

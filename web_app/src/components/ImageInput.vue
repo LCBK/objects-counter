@@ -43,7 +43,7 @@ async function handleImageUpload(event: Event) {
 
     viewState.setState(ViewStates.Uploading);
 
-    await uploadImage(imageFile).then((imageId) => {
+    await uploadImage(imageFile).then(imageId => {
         processImageData(imageFile, imageId);
         viewState.setState(ViewStates.ImageEditPoints);
     }).catch(() => {

@@ -43,11 +43,11 @@ const time = new Date(props.timestamp).toLocaleTimeString();
 async function handleResultClick() {
     viewState.isWaitingForResponse = true;
 
-    await getImageBlob(props.imageId).then((blob) => {
+    await getImageBlob(props.imageId).then(blob => {
         processImageData(blob, props.imageId);
     });
 
-    await getResult(props.id).then((response) => {
+    await getResult(props.id).then(response => {
         parseClassificationsFromResponse(response.data.classifications);
         imageState.resultId = props.id;
         viewState.setState(ViewStates.ImageViewCountingResult);

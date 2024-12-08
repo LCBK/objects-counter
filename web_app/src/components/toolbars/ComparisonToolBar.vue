@@ -8,7 +8,12 @@ import MissingQuantitiesEntry from "../MissingQuantitiesEntry.vue";
 import { useImageStateStore } from "@/stores/imageState";
 import { useViewStateStore, ViewStates } from "@/stores/viewState";
 import { computed, ref } from "vue";
-import { base64ToImageUri, isUserAgentMobile, parseClassificationsFromElementsResponse, processImageData } from "@/utils";
+import {
+    base64ToImageUri,
+    isUserAgentMobile,
+    parseMultipleClassificationsFromResponse,
+    processImageData
+} from "@/utils";
 import { type DatasetListItem } from "@/types/app";
 import DatasetListItemComponent from "../DatasetListItem.vue";
 import { compareToDataset, getDatasets, getDatasetsThumbnails } from "@/requests/datasets";
@@ -29,10 +34,9 @@ const addImageDialogVisible = ref<boolean>(false);
 const hasCompared = ref<boolean>(false);
 const userDatasets = ref<DatasetListItem[]>([]);
 
-const classifications = computed(() => imageState.currentImage.classifications);
 const missingClassifications = computed(() => {
     return Object.keys(imageState.comparisonDifference)
-        .filter((key) => !classifications.value.some((c) => c.name === key));
+        .filter(key => !imageState.classifications.some(c => c.name === key));
 });
 
 
@@ -51,9 +55,9 @@ function handleDatasetListClick() {
 async function loadDatasets() {
     viewState.isWaitingForResponse = true;
 
-    await getDatasets().then((response) => {
+    await getDatasets().then(response => {
         userDatasets.value = [];
-        for (const dataset of response.filter((d) => !d.unfinished)) {
+        for (const dataset of response.filter(d => !d.unfinished)) {
             userDatasets.value.push({
                 id: dataset.id,
                 name: dataset.name,
@@ -63,10 +67,10 @@ async function loadDatasets() {
         userDatasets.value = userDatasets.value.sort((a, b) => b.timestamp - a.timestamp);
     });
 
-    await getDatasetsThumbnails().then((response) => {
+    await getDatasetsThumbnails().then(response => {
         for (const item of response) {
             const datasetItem = userDatasets.value.find(
-                (datasetItem) => datasetItem.id == item.id
+                datasetItem => datasetItem.id == item.id
             ) as DatasetListItem;
 
             if (datasetItem) {
@@ -79,21 +83,20 @@ async function loadDatasets() {
 }
 
 async function handleCompareClick(datasetId: number) {
-    const imageIds = imageState.images.map((image) => image.id);
+    const imageIds = imageState.images.map(image => image.id);
 
     viewState.isWaitingForResponse = true;
     compareDialogVisible.value = false;
 
-    await compareToDataset(datasetId, imageIds).then((response) => {
+    await compareToDataset(datasetId, imageIds).then(response => {
         imageState.clearCurrentResult();
 
-        parseClassificationsFromElementsResponse(response.images[0].elements);
+        parseMultipleClassificationsFromResponse(response.images);
         imageState.comparisonDifference = response.diff;
 
         hasCompared.value = true;
         quantitiesVisible.value = true;
         datasetDialogVisible.value = false;
-        console.log(missingClassifications.value);
     }).finally(() => {
         viewState.isWaitingForResponse = false;
     });
@@ -105,7 +108,7 @@ async function handleImageUpload(event: Event) {
 
     viewState.setState(ViewStates.Uploading);
 
-    await uploadImage(imageFile).then((imageId) => {
+    await uploadImage(imageFile).then(imageId => {
         processImageData(imageFile, imageId);
 
         // The store state is before the upload, so this length is one less than the actual one
@@ -161,9 +164,12 @@ function handleAddImage() {
             <div class="quantities-col">Show boxes</div>
         </div>
         <div class="quantities-content">
-            <QuantitiesEntry v-for="(quantity, index) in classifications" :key="index" :index="quantity.index" />
+            <QuantitiesEntry v-for="(classification, index) in imageState.classifications"
+                    :key="index" :name="classification.name" />
             <MissingQuantitiesEntry v-for="(missing, index) in missingClassifications" :key="index" :name="missing" />
-            <div v-if="classifications.length === 0" class="no-elements-notice notice">(no elements found)</div>
+            <div v-if="imageState.classifications.length === 0" class="no-elements-notice notice">
+                (no elements found)
+            </div>
         </div>
     </VSidebar>
     <VDialog v-model:visible="compareDialogVisible" modal header="Select dataset" class="compare-dialog"

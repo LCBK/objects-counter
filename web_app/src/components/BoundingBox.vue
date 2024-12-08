@@ -3,7 +3,7 @@ import { boundingBoxColors } from '@/config';
 import { useImageStateStore } from '@/stores/imageState';
 import { useSettingsStateStore } from '@/stores/settingsState';
 import { useViewStateStore, ViewStates } from '@/stores/viewState';
-import { getBoxColorFromClassificationName } from '@/utils';
+import { getClassificationBoxColor } from '@/utils';
 import { computed } from 'vue';
 
 
@@ -28,15 +28,22 @@ const props = defineProps({
         type: Number,
         required: false
     },
-    classificationIndex: {
-        type: Number,
+    classificationName: {
+        type: String,
         required: false
     }
 });
 
+const classification = computed(() => {
+    if (props.classificationName) {
+        return imageState.classifications.find(c => c.name === props.classificationName);
+    }
+    return undefined;
+});
+
 const boxColor = computed(() => {
-    if (props.classificationIndex !== undefined && viewState.currentState !== ViewStates.ImageViewCreateDataset) {
-        return getBoxColorFromClassificationName(classification.value);
+    if (props.classificationName) {
+        return getClassificationBoxColor(props.classificationName);
     }
     return boundingBoxColors[0];
 });
@@ -55,13 +62,6 @@ const selectedBoxColor = computed(() => {
     else {
         return boxColor.value;
     }
-});
-
-const classification = computed(() => {
-    if (props.classificationIndex === undefined) {
-        return "";
-    }
-    else return imageState.currentImage.classifications[props.classificationIndex].name;
 });
 
 const scale = computed(() => imageState.boundingBoxScale);
@@ -88,10 +88,8 @@ function handleBoundingBoxClick() {
         if (!isSelectedAsLeader.value) {
             const element = imageState.currentImage.elements.find(el => el.id === props.id);
 
-            if (element && element.classificationIndex !== undefined) {
-                imageState.currentImage.classifications[element.classificationIndex].count--;
-                imageState.currentImage.classifications[viewState.currentlyAssignedClassificationIndex].count++;
-                element.classificationIndex = viewState.currentlyAssignedClassificationIndex;
+            if (element && element.classificationName !== undefined) {
+                element.classificationName = viewState.currentlyAssignedClassificationName;
             }
         }
     }
@@ -104,14 +102,14 @@ function handleBoundingBoxClick() {
             v-bind:data-topleft="topLeft[0] + ',' + topLeft[1]"
             v-bind:data-bottomright="bottomRight[0] + ',' + bottomRight[1]"
             v-bind:data-certainty="certainty" v-bind:data-classification="classification"
-            v-if="classificationIndex === undefined || imageState.currentImage.classifications[classificationIndex].showBoxes"
+            v-if="classification === undefined || classification.showBoxes"
             @click="handleBoundingBoxClick">
         <div>
             <div v-if="settingsState.showBoxCertainty && viewState.currentState !== ViewStates.ImageViewCreateDataset" class="box-certainty">
                 {{ certainty ? Math.round(certainty * 100) / 100 : "" }}
             </div>
             <div v-if="settingsState.showBoxLabel && viewState.currentState !== ViewStates.ImageViewCreateDataset" class="box-classification">
-                {{ classification }}
+                {{ classificationName }}
             </div>
             <div v-if="settingsState.showElementIds" class="box-ids">{{ id }}</div>
         </div>

@@ -6,7 +6,6 @@ export interface ImageDetails {
     width: number,
     height: number,
     backgroundMaskDataURL?: string,
-    classifications: Array<ObjectClassification>,
     elements: Array<ImageElement>,
     selectedLeaderIds: Array<number>,
     points: Array<BackgroundPoint>
@@ -16,15 +15,13 @@ export interface ImageElement {
     id: number,
     topLeft: [number, number],
     bottomRight: [number, number],
+    classificationName?: string,
     certainty?: number,
-    classificationIndex?: number,
     isLeader?: boolean
 }
 
 export interface ObjectClassification {
-    index: number,
     name: string,
-    count: number,
     showBoxes: boolean
 }
 
@@ -53,4 +50,9 @@ export interface DatasetListItem {
 export interface DatasetClassificationListItem {
     name: string,
     count: number
+}
+
+export interface RenameMapping {
+    originalName: string,
+    newName: string
 }
