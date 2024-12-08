@@ -9,18 +9,13 @@ const viewState = useViewStateStore();
 
 
 function onBack() {
-    if (viewState.currentState === ViewStates.ImageViewConfirmDataset) {
-        viewState.setState(ViewStates.ImageViewCreateDataset);
+    useImageStateStore().reset();
+
+    if (viewState.previousState === ViewStates.BrowseResultHistory) {
+        viewState.setState(ViewStates.BrowseResultHistory);
     }
     else {
-        useImageStateStore().reset();
-
-        if (viewState.previousState === ViewStates.BrowseResultHistory) {
-            viewState.setState(ViewStates.BrowseResultHistory);
-        }
-        else {
-            viewState.reset();
-        }
+        viewState.reset();
     }
 }
 </script>

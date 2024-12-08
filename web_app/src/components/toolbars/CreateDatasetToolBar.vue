@@ -3,18 +3,23 @@ import "./ImageViewToolBar.css";
 import VButton from "primevue/button";
 import { useImageStateStore } from "@/stores/imageState";
 import { useViewStateStore, ViewStates } from "@/stores/viewState";
-import { parseClassificationsFromElementsResponse } from "@/utils";
-import { sendLeaders } from "@/requests/images";
+import { parseElementsToImage } from "@/utils";
 import { addImageToDataset, createDataset } from "@/requests/datasets";
+import { computed } from "vue";
 
 
 const imageState = useImageStateStore();
 const viewState = useViewStateStore();
 
+const submitDisabled = computed(() => {
+    return imageState.currentImage.selectedLeaderIds.length === 0
+        && viewState.isAddingMoreImages === false;
+});
+
 
 function handleReturnClick() {
-    imageState.clearResult();
-    imageState.selectedLeaderIds = [];
+    imageState.clearCurrentResult();
+    imageState.currentImage.selectedLeaderIds = [];
 
     viewState.showBackground = true;
     viewState.isEditingExistingResult = true;
@@ -28,26 +33,32 @@ function handleSubmitLeadersClick() {
 async function submitClassificationLeaders() {
     viewState.isWaitingForResponse = true;
 
-    await sendLeaders(imageState.imageId, imageState.selectedLeaderIds).then(() => {
-        createDataset(`temporary no. ${imageState.imageId}`, true).then((response) => {
+    if (!viewState.isAddingMoreImages) {
+        await createDataset(`temporary no. ${imageState.currentImage.id}`, true).then((response) => {
             imageState.datasetId = parseInt(response);
-
-            const classifications = imageState.selectedLeaderIds.map((id: number, index: number) => {
-                return {
-                    name: index,
-                    leader_id: id
-                }
-            });
-
-            addImageToDataset(imageState.datasetId, imageState.imageId, classifications).then((response) => {
-                imageState.clearResult();
-                parseClassificationsFromElementsResponse(response.images[0].elements);
-
-                viewState.setState(ViewStates.ImageViewConfirmDataset);
-            }).finally(() => {
-                viewState.isWaitingForResponse = false;
-            });
+        }).catch(() => {
+            viewState.isWaitingForResponse = false;
+            return;
         });
+    }
+
+    const classifications = imageState.currentImage.selectedLeaderIds.map(id => {
+        return {
+            name: viewState.lastAssignedLeaderNumber++,
+            leader_id: id
+        }
+    });
+
+    await addImageToDataset(imageState.datasetId, imageState.currentImage.id, classifications).then(response => {
+        imageState.clearCurrentResult();
+
+        const currentImage = response.images.find(image => image.id === imageState.currentImage.id);
+        if (currentImage !== undefined) {
+            parseElementsToImage(imageState.currentImage.id, currentImage.elements);
+            viewState.setState(ViewStates.ImageViewConfirmDataset);
+        }
+    }).finally(() => {
+        viewState.isWaitingForResponse = false;
     });
 }
 </script>
@@ -58,11 +69,11 @@ async function submitClassificationLeaders() {
         <div class="bar-content tool-bar-content">
             <VButton text label="Adjust" icon="pi pi-pencil" @click="handleReturnClick();" />
             <div class="element-count">
-                <span class="element-count-value">{{ imageState.imageElements.length }}</span>
+                <span class="element-count-value">{{ imageState.currentImage.elements.length }}</span>
                 <span class="element-count-label">Elements</span>
             </div>
-            <VButton text label="Submit leaders" icon="pi pi-check"
-                    @click="handleSubmitLeadersClick" :disabled="imageState.selectedLeaderIds.length === 0" />
+            <VButton text label="Submit selection" icon="pi pi-check"
+                    @click="handleSubmitLeadersClick" :disabled="submitDisabled" />
         </div>
     </div>
 </template>

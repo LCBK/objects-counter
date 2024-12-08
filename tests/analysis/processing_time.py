@@ -1,11 +1,11 @@
 import os
 import time
+
 import matplotlib.pyplot as plt
 from PIL import Image as PILImage
-from image_segmentation.object_classification.feature_extraction import FeatureSimilarity, ColorSimilarity
 
-feature_extractor = FeatureSimilarity()
-color_extractor = ColorSimilarity()
+from objects_counter import app
+from objects_counter.api.default.views import feature_similarity_model, color_similarity_model
 
 
 def resize_image(image_path, resolution):
@@ -15,12 +15,12 @@ def resize_image(image_path, resolution):
     return resized_img
 
 
-def compute_feature_vector(image):
+def compute_feature_vector(image_path):
     """Compute feature vector and measure processing time."""
-    image_tensor = feature_extractor.preprocess_image(image)
+    image_tensor = feature_similarity_model.preprocess_image(image_path)
 
     start = time.perf_counter()
-    feature_vector = feature_extractor.get_embedding(image_tensor)
+    feature_vector = feature_similarity_model.get_embedding(image_tensor)
     end = time.perf_counter()
     return feature_vector, end - start
 
@@ -28,7 +28,7 @@ def compute_feature_vector(image):
 def compute_histogram(image):
     """Compute histogram and measure processing time."""
     start = time.perf_counter()
-    histogram = color_extractor.get_histogram(image)
+    histogram = color_similarity_model.get_histogram(image)
     end = time.perf_counter()
     return histogram, end - start
 
@@ -40,10 +40,17 @@ def analyze_resolution_influence(image_paths, resolutions):
     for resolution in resolutions:
         for image_path in image_paths:
             resized_image = resize_image(image_path, resolution)
-            _, feature_time = compute_feature_vector(resized_image)
-            _, histogram_time = compute_histogram(resized_image)
-            results[resolution]["Feature Times"].append(feature_time)
-            results[resolution]["Histogram Times"].append(histogram_time)
+            try:
+                resized_image.save(image_path[:-4] + "_resized.jpg")
+
+                _, feature_time = compute_feature_vector(image_path[:-4] + "_resized.jpg")
+                _, histogram_time = compute_histogram(resized_image)
+                results[resolution]["Feature Times"].append(feature_time)
+                results[resolution]["Histogram Times"].append(histogram_time)
+
+                os.remove(image_path[:-4] + "_resized.jpg")
+            except FileNotFoundError:
+                continue
 
     return results
 
@@ -66,15 +73,15 @@ def plot_processing_times(results):
     plt.xlabel("Rozdzielczość (px)")
     plt.ylabel("Średni czas przetwarzania (s)")
     plt.title("Wpływ rozdzielczości obrazów na czas przetwarzania")
-    plt.legend()
     plt.grid(True)
     plt.show()
 
 
 if __name__ == "__main__":
-    image_dir = "C:\\Users\\alicj\\Desktop\\Test"
-    image_paths = [os.path.join(image_dir, file) for file in os.listdir(image_dir) if file.endswith(".jpg")]
-    resolutions = [(64, 64), (128, 128), (256, 256), (512, 512), (1024, 1024)]
+    with app.app.app_context():
+        image_dir = "/home/shairys/objects/objects-counter/tests/elements/diffused"
+        image_paths = [os.path.join(image_dir, file) for file in os.listdir(image_dir) if file.endswith(".jpg")]
+        resolutions = [(16, 16), (32, 32), (64, 64), (128, 128), (224, 224), (518, 518)]
 
-    results = analyze_resolution_influence(image_paths, resolutions)
-    plot_processing_times(results)
+        results = analyze_resolution_influence(image_paths, resolutions)
+        plot_processing_times(results)

@@ -1,25 +1,33 @@
 // Type definitions exclusively for the web application
 
+export interface ImageDetails {
+    id: number,
+    dataURL: string,
+    width: number,
+    height: number,
+    backgroundMaskDataURL?: string,
+    elements: Array<ImageElement>,
+    selectedLeaderIds: Array<number>,
+    points: Array<BackgroundPoint>
+}
+
 export interface ImageElement {
     id: number,
     topLeft: [number, number],
     bottomRight: [number, number],
+    classificationName?: string,
     certainty?: number,
-    classificationIndex?: number,
     isLeader?: boolean
 }
 
 export interface ObjectClassification {
-    index: number,
     name: string,
-    count: number,
-    showBoxes: boolean,
-    boxColor: string
+    showBoxes: boolean
 }
 
 export interface BackgroundPoint {
     position: [number, number]
-    positive: boolean,                    // true - positive, false - negative
+    positive: boolean                     // true - positive, false - negative
 }
 
 export interface ResultHistoryItem {
@@ -42,4 +50,9 @@ export interface DatasetListItem {
 export interface DatasetClassificationListItem {
     name: string,
     count: number
+}
+
+export interface RenameMapping {
+    originalName: string,
+    newName: string
 }

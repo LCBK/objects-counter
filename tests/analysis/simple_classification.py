@@ -10,6 +10,7 @@ from image_segmentation.object_classification.classifier import ObjectClassifier
 from objects_counter import app
 from objects_counter.api.default.views import feature_similarity_model, color_similarity_model, sam
 from objects_counter.db.dataops.image import insert_element, get_image_by_id, insert_image
+from tests.analysis.colors import ConfigurableCentroidsColorSimilarity, CENTROIDS_RGB_LEVEL_2
 from tests.visualization_helper import display_images_in_grid, plot_similarity_heatmap
 
 ELEMENT_TYPES = ["cube", "egg", "token"]
@@ -43,7 +44,11 @@ def map_elements_to_filenames(elements_path: List[str]) -> Dict[int, str]:
 
 def perform_classification(elements: Dict[int, str], threshold: float, color_weight: float):
     """Perform classification based on similarity."""
-    classifier = ObjectClassifier(sam, feature_similarity_model, color_similarity_model)
+    classifier = ObjectClassifier(
+        sam,
+        feature_similarity_model,
+        ConfigurableCentroidsColorSimilarity(CENTROIDS_RGB_LEVEL_2))
+
     single_elements = []
     for element_id, element_path in elements.items():
         element = get_image_by_id(element_id)
@@ -122,7 +127,6 @@ def analyze_results(validation_results, categories: List[str]):
     normalized_matrix = np.divide(
         category_correctness,
         row_sums,
-        out=np.zeros_like(category_correctness),
         where=row_sums != 0
     )
 
@@ -132,20 +136,20 @@ def analyze_results(validation_results, categories: List[str]):
 
     plot_similarity_heatmap(
         result_df,
-        title="Poprawność zaklasyfikowania",
-        subtitle="Prosta klasyfikacja",
+        title="Poprawność zaklasyfikowania elementów",
+        subtitle="Prosta klasyfikacja - oświetlenie bezpośrednie",
         game_name="Na skrzydłach"
     )
 
 
 def main():
     with app.app.app_context():
-        image_dir = "/home/shairys/objects/objects-counter/tests/test_data"
+        image_dir = "/home/shairys/objects/objects-counter/tests/elements/direct"
         filenames = [os.path.join(image_dir, f) for f in os.listdir(image_dir) if f.endswith(".jpg")]
 
         elements = map_elements_to_filenames(filenames)
 
-        perform_classification(elements, threshold=0.7, color_weight=0.5)
+        perform_classification(elements, threshold=0.7, color_weight=0.4)
 
         classification_results = {}
         for element_id, element_path in elements.items():
@@ -162,8 +166,8 @@ def main():
 
         categories = []
         for result in validation_results:
-            actual = f"{result["actual_type"]}-{result["actual_color"]}"
-            predicted = f"{result["predicted_type"]}-{result["predicted_color"]}"
+            actual = f"{result['actual_type']}-{result['actual_color']}"
+            predicted = f"{result['predicted_type']}-{result['predicted_color']}"
             if actual not in categories:
                 categories.append(actual)
             if predicted not in categories:

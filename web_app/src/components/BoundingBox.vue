@@ -3,6 +3,7 @@ import { boundingBoxColors } from '@/config';
 import { useImageStateStore } from '@/stores/imageState';
 import { useSettingsStateStore } from '@/stores/settingsState';
 import { useViewStateStore, ViewStates } from '@/stores/viewState';
+import { getClassificationBoxColor } from '@/utils';
 import { computed } from 'vue';
 
 
@@ -27,23 +28,28 @@ const props = defineProps({
         type: Number,
         required: false
     },
-    classificationIndex: {
-        type: Number,
+    classificationName: {
+        type: String,
         required: false
     }
 });
 
+const classification = computed(() => {
+    if (props.classificationName) {
+        return imageState.classifications.find(c => c.name === props.classificationName);
+    }
+    return undefined;
+});
+
 const boxColor = computed(() => {
-    if (viewState.currentState === ViewStates.ImageViewCreateDataset || props.classificationIndex === undefined) {
-        return boundingBoxColors[0];
+    if (props.classificationName) {
+        return getClassificationBoxColor(props.classificationName);
     }
-    else {
-        return imageState.classifications[props.classificationIndex].boxColor;
-    }
+    return boundingBoxColors[0];
 });
 
 const isSelectedAsLeader = computed(() => {
-    return imageState.selectedLeaderIds.includes(props.id)
+    return imageState.currentImage.selectedLeaderIds.includes(props.id)
         && (viewState.currentState === ViewStates.ImageViewCreateDataset
             || viewState.currentState === ViewStates.ImageViewConfirmDataset
         );
@@ -58,13 +64,6 @@ const selectedBoxColor = computed(() => {
     }
 });
 
-const classification = computed(() => {
-    if (props.classificationIndex === undefined) {
-        return "";
-    }
-    else return imageState.classifications[props.classificationIndex].name
-});
-
 const scale = computed(() => imageState.boundingBoxScale);
 
 // CSS properties
@@ -77,22 +76,20 @@ const height = computed(() => (props.bottomRight[1] - props.topLeft[1]) * scale.
 function handleBoundingBoxClick() {
     // If creating dataset, enable leader selection
     if (viewState.currentState === ViewStates.ImageViewCreateDataset) {
-        if (imageState.selectedLeaderIds.includes(props.id)) {
-            imageState.selectedLeaderIds = imageState.selectedLeaderIds.filter(id => id !== props.id);
+        if (imageState.currentImage.selectedLeaderIds.includes(props.id)) {
+            imageState.currentImage.selectedLeaderIds = imageState.currentImage.selectedLeaderIds.filter(id => id !== props.id);
         }
         else {
-            imageState.selectedLeaderIds.push(props.id);
+            imageState.currentImage.selectedLeaderIds.push(props.id);
         }
     }
     // If assigning classifications, enable assignment
     else if (viewState.currentState === ViewStates.ImageViewConfirmDataset && viewState.isAssigningClassifications) {
         if (!isSelectedAsLeader.value) {
-            const element = imageState.imageElements.find(el => el.id === props.id);
+            const element = imageState.currentImage.elements.find(el => el.id === props.id);
 
-            if (element && element.classificationIndex !== undefined) {
-                imageState.classifications[element.classificationIndex].count--;
-                imageState.classifications[viewState.currentlyAssignedClassificationIndex].count++;
-                element.classificationIndex = viewState.currentlyAssignedClassificationIndex;
+            if (element && element.classificationName !== undefined) {
+                element.classificationName = viewState.currentlyAssignedClassificationName;
             }
         }
     }
@@ -105,14 +102,14 @@ function handleBoundingBoxClick() {
             v-bind:data-topleft="topLeft[0] + ',' + topLeft[1]"
             v-bind:data-bottomright="bottomRight[0] + ',' + bottomRight[1]"
             v-bind:data-certainty="certainty" v-bind:data-classification="classification"
-            v-if="classificationIndex === undefined || imageState.classifications[classificationIndex].showBoxes"
+            v-if="classification === undefined || classification.showBoxes"
             @click="handleBoundingBoxClick">
         <div>
             <div v-if="settingsState.showBoxCertainty && viewState.currentState !== ViewStates.ImageViewCreateDataset" class="box-certainty">
                 {{ certainty ? Math.round(certainty * 100) / 100 : "" }}
             </div>
             <div v-if="settingsState.showBoxLabel && viewState.currentState !== ViewStates.ImageViewCreateDataset" class="box-classification">
-                {{ classification }}
+                {{ classificationName }}
             </div>
             <div v-if="settingsState.showElementIds" class="box-ids">{{ id }}</div>
         </div>

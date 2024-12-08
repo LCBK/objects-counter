@@ -41,8 +41,6 @@ export enum ImageAction {
 }
 
 const defaultState = {
-    isImageUploading: false,
-    isImageUploaded: false,
     isAddingPoint: false,
     isRemovingPoint: false,
     isPointTypePositive: true,
@@ -50,7 +48,9 @@ const defaultState = {
     isEditingExistingResult: false,
     isSelectingAssignment: false,
     isAssigningClassifications: false,
-    currentlyAssignedClassificationIndex: 0,
+    isAddingMoreImages: false,
+    currentlyAssignedClassificationName: "",
+    lastAssignedLeaderNumber: 0,
     showPoints: true,
     showBackground: false,
     currentNavBarTitle: "",
@@ -92,7 +92,7 @@ export const useViewStateStore = defineStore("viewState", {
                     this.currentImageViewToolBar = shallowRef(EditPointsToolBar);
                     this.currentNavBarTitle = "Select background";
                     this.showPoints = true;
-                    this.showBackground = false;
+                    this.showBackground = true;
                     break;
 
                 case ViewStates.ImageViewCountingResult:

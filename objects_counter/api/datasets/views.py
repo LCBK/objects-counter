@@ -153,8 +153,6 @@ class DatasetImages(Resource):
             classifications = data.get('classifications', [])
             if not image_id or image_id < 0:
                 raise ValueError("Invalid image ID")
-            if not classifications:
-                raise ValueError("No classifications provided")
             dataset = add_image_to_dataset(dataset, image_id, classifications, object_classifier=object_grouper)
             return jsonify(dataset.as_dict())
         except ValueError as e:

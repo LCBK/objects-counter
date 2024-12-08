@@ -3,7 +3,7 @@ import { getImageBlob } from "@/requests/images";
 import { getResult } from "@/requests/results";
 import { useImageStateStore } from "@/stores/imageState";
 import { useViewStateStore, ViewStates } from "@/stores/viewState";
-import { parseClassificationsFromResponse } from "@/utils";
+import { parseClassificationsFromResponse, processImageData } from "@/utils";
 
 
 const props = defineProps({
@@ -43,20 +43,11 @@ const time = new Date(props.timestamp).toLocaleTimeString();
 async function handleResultClick() {
     viewState.isWaitingForResponse = true;
 
-    await getImageBlob(props.imageId).then((blob) => {
-        const url = URL.createObjectURL(blob);
-        imageState.url = url;
-        imageState.imageId = props.imageId;
-
-        const img = new Image;
-        img.src = url;
-        img.onload = () => {
-            imageState.width = img.width;
-            imageState.height = img.height;
-        };
+    await getImageBlob(props.imageId).then(blob => {
+        processImageData(blob, props.imageId);
     });
 
-    await getResult(props.id).then((response) => {
+    await getResult(props.id).then(response => {
         parseClassificationsFromResponse(response.data.classifications);
         imageState.resultId = props.id;
         viewState.setState(ViewStates.ImageViewCountingResult);
