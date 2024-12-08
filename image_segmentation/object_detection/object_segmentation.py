@@ -52,7 +52,7 @@ class ObjectSegmentation:
         self.current_image_id = image.id
         self.cache[image.id] = ObjectSegmentation.ImageCache(self.predictor)
 
-    def calculate_mask(self, image: Image) -> object:
+    def calculate_mask(self, image: Image) -> np.ndarray:
         """Calculates and assigns a mask to the image based on input points."""
         self._set_image(image)
         points, labels = get_background_points(image)
