@@ -84,6 +84,7 @@ async function handleCompareClick(datasetId: number) {
 
         parseMultipleClassificationsFromResponse(response.images);
         imageState.comparisonDifference = response.diff;
+        imageState.comparisonDatasetName = response.dataset.name;
 
         datasetDialogVisible.value = false;
         viewState.setState(ViewStates.ImageViewComparisonResult);

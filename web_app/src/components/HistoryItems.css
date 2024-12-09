@@ -24,6 +24,20 @@
     text-align: center;
 }
 
+.item-image-count {
+    position: absolute;
+    bottom: 12px;
+    left: 8px;
+    color: white;
+    mix-blend-mode: difference;
+}
+
+.item-image-count > span {
+    font-size: 1rem;
+    bottom: 1px;
+    position: relative;
+}
+
 .item-date {
     font-size: 1rem;
     font-weight: 500;

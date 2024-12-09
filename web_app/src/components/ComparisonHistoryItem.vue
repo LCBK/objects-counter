@@ -29,6 +29,10 @@ const props = defineProps({
     timestamp: {
         type: Number,
         required: true
+    },
+    datasetName: {
+        type: String,
+        required: true
     }
 });
 
@@ -54,6 +58,7 @@ async function handleItemClick() {
     }
 
     imageState.comparisonDifference = props.diff;
+    imageState.comparisonDatasetName = props.datasetName;
 
     viewState.isWaitingForResponse = false;
     viewState.currentAction = ImageAction.CompareWithDataset;
@@ -64,7 +69,13 @@ async function handleItemClick() {
 
 <template>
     <div class="result-history-item history-item" @click="handleItemClick()">
-        <img :src="props.thumbnailUri" alt="No thumbnail" class="item-image" />
+        <div style="position: relative;">
+            <img :src="props.thumbnailUri" alt="No thumbnail" class="item-image" />
+            <div class="item-image-count">
+                <i class="pi pi-image"></i>
+                <span>{{ images.length }}</span>
+            </div>
+        </div>
         <div class="item-date">{{ date }}</div>
         <div class="item-time">{{ time }}</div>
         <div class="item-counts">

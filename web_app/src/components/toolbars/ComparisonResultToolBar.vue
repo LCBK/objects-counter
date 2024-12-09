@@ -93,6 +93,10 @@ async function handleCompareClick(datasetId: number) {
             <VButton text label="Change comparison" icon="pi pi-chart-bar" @click="handleDatasetListClick" />
         </div>
     </div>
+    <div class="dataset-name">
+        <div class="dataset-name-label">Comparing with:</div>
+        <div class="dataset-name-value">{{ imageState.comparisonDatasetName }}</div>
+    </div>
     <ImageNavigationOverlay v-if="imageState.images.length > 1" />
     <VSidebar v-model:visible="quantitiesVisible" position="bottom" style="height: auto"
             class="quantities" header="Counted elements">
@@ -149,6 +153,28 @@ async function handleCompareClick(datasetId: number) {
     border-bottom: 1px solid var(--surface-border);
 }
 
+.dataset-name {
+    display: flex;
+    flex-direction: column;
+    position: absolute;
+    top: 70px;
+    left: 12px;
+    mix-blend-mode: difference;
+}
+
+.dataset-name-label {
+    font-size: 0.85rem;
+    line-height: 1.2rem;
+    color: #aaa;
+}
+
+.dataset-name-value {
+    font-size: 1.2rem;
+    font-weight: 500;
+    line-height: 1.6rem;
+    color: #f0f0f0;
+}
+
 .difference-notice {
     display: flex;
     justify-content: center;
@@ -176,6 +202,12 @@ async function handleCompareClick(datasetId: number) {
 
 .quantities-col:nth-child(2) {
     flex-basis: 55%;
+}
+
+@media screen and (min-width: 340px) {
+    .dataset-name {
+        top: 80px;
+    }
 }
 </style>
 

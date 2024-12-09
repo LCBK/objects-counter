@@ -61,7 +61,13 @@ async function handleResultClick() {
 
 <template>
     <div class="result-history-item history-item" @click="handleResultClick()">
-        <img :src="props.thumbnailUri" alt="No thumbnail" class="item-image" />
+        <div style="position: relative;">
+            <img :src="props.thumbnailUri" alt="No thumbnail" class="item-image" />
+            <div class="item-image-count">
+                <i class="pi pi-image"></i>
+                <span>{{ 1 }}</span>
+            </div>
+        </div>
         <div class="item-date">{{ date }}</div>
         <div class="item-time">{{ time }}</div>
         <div class="item-counts">

@@ -20,7 +20,8 @@ const defaultState = {
     boundingBoxScale: 1,
     isPanning: false,
     userZoom: 1,
-    comparisonDifference: {} as ComparisonDiff
+    comparisonDifference: {} as ComparisonDiff,
+    comparisonDatasetName: "",
 }
 
 export const useImageStateStore = defineStore("imageState", {

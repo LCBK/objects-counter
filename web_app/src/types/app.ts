@@ -46,7 +46,8 @@ export interface ComparisonHistoryItem {
     images: Array<ImageWithAllData>,
     thumbnailUri?: string,
     timestamp: number,
-    diff: { [key: string]: number }
+    diff: { [key: string]: number },
+    datasetName: string
 }
 
 export interface DatasetListItem {

@@ -139,7 +139,7 @@ function handleCreatedDataset() {
             <VButton text icon="pi pi-times" @click="viewState.isAssigningClassifications = false" />
             <div>
                 <div class="assignment-notice-label">Currently assigning</div>
-                <div class="assignment-notice-value">{{ assignedClassificationName }}</div>
+                <div class="assignment-notice-value"><span>{{ assignedClassificationName }}</span></div>
             </div>
         </div>
     </Transition>
@@ -206,6 +206,13 @@ function handleCreatedDataset() {
     font-size: 0.8rem;
     color: var(--text-color-secondary);
     line-height: 1.1rem;
+    color: #aaa;
+    mix-blend-mode: difference;
+}
+
+.assignment-notice-value > span {
+    color: #f0f0f0;
+    mix-blend-mode: difference;
 }
 
 .assignment-notice-value::before {

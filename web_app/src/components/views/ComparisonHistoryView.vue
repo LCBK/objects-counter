@@ -30,7 +30,8 @@ onMounted(async () => {
                 id: item.id,
                 images: item.images,
                 timestamp: Date.parse(item.timestamp),
-                diff: item.diff
+                diff: item.diff,
+                datasetName: item.dataset.name
             };
 
             historyItems.value.push(historyItem);
