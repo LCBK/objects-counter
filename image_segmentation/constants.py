@@ -3,7 +3,7 @@ import os
 import numpy as np
 
 TEMP_IMAGE_DIR = os.path.join("images", "temp")
-DEFAULT_COLOR_WEIGHT = 1
+DEFAULT_COLOR_WEIGHT = 0.3
 
 BW = 60
 SIGMA = 18
