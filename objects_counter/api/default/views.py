@@ -97,7 +97,9 @@ class ImageApi(Resource):
     def get(self, current_user: User, image_id: int) -> typing.Any:
         try:
             image = get_image_by_id(image_id)
-            if image.result.user_id != current_user.id:
+            # Original: if image.result.user_id != current_user.id:
+            # Workaround, as images from comparisons don't have a result assigned
+            if image.result and image.result.user_id != current_user.id:
                 log.error("User %s is not authorized to access image %s", current_user.id, image_id)
                 return 'Forbidden', 403
         except NotFound as e:
