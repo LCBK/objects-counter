@@ -2,7 +2,7 @@
 import "./ImageViewToolBar.css";
 import VButton from "primevue/button";
 import { useImageStateStore } from "@/stores/imageState";
-import { useViewStateStore, ViewStates } from "@/stores/viewState";
+import { ImageAction, useViewStateStore, ViewStates } from "@/stores/viewState";
 import { parseElementsToImage } from "@/utils";
 import { addImageToDataset, createDataset } from "@/requests/datasets";
 import { computed } from "vue";
@@ -55,7 +55,10 @@ async function submitClassificationLeaders() {
         const currentImage = response.images.find(image => image.id === imageState.currentImage.id);
         if (currentImage !== undefined) {
             parseElementsToImage(imageState.currentImage.id, currentImage.elements);
-            viewState.setState(ViewStates.ImageViewConfirmDataset);
+
+            if (viewState.currentAction === ImageAction.CreateDataset) {
+                viewState.setState(ViewStates.ImageViewConfirmDataset);
+            }
         }
     }).finally(() => {
         viewState.isWaitingForResponse = false;

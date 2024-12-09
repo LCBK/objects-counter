@@ -2,12 +2,9 @@
 import "./ImageViewToolBar.css";
 import VButton from "primevue/button";
 import VDialog from "primevue/dialog";
-import VSidebar from "primevue/sidebar";
-import QuantitiesEntry from "../QuantitiesEntry.vue";
-import MissingQuantitiesEntry from "../MissingQuantitiesEntry.vue";
 import { useImageStateStore } from "@/stores/imageState";
 import { useViewStateStore, ViewStates } from "@/stores/viewState";
-import { computed, ref } from "vue";
+import { ref } from "vue";
 import {
     base64ToImageUri,
     isUserAgentMobile,
@@ -28,17 +25,10 @@ const viewState = useViewStateStore();
 const uploadInput = ref<HTMLInputElement>();
 const captureInput = ref<HTMLInputElement>();
 
-const quantitiesVisible = ref<boolean>(false);
 const datasetDialogVisible = ref<boolean>(false);
 const compareDialogVisible = ref<boolean>(false);
 const addImageDialogVisible = ref<boolean>(false);
-const hasCompared = ref<boolean>(false);
 const userDatasets = ref<DatasetListItem[]>([]);
-
-const missingClassifications = computed(() => {
-    return Object.keys(imageState.comparisonDifference)
-        .filter(key => !imageState.classifications.some(c => c.name === key));
-});
 
 
 function handleReturnClick() {
@@ -95,9 +85,8 @@ async function handleCompareClick(datasetId: number) {
         parseMultipleClassificationsFromResponse(response.images);
         imageState.comparisonDifference = response.diff;
 
-        hasCompared.value = true;
-        quantitiesVisible.value = true;
         datasetDialogVisible.value = false;
+        viewState.setState(ViewStates.ImageViewComparisonResult);
     }).finally(() => {
         viewState.isWaitingForResponse = false;
     });
@@ -145,34 +134,10 @@ function handleAddImage() {
         <div class="bar-content tool-bar-content">
             <VButton text label="Adjust" icon="pi pi-pencil" @click="handleReturnClick();" />
             <VButton text label="Add next image" icon="pi pi-plus" @click="handleAddImage" />
-            <VButton v-if="hasCompared" text label="Details" icon="pi pi-list" @click="quantitiesVisible = true" />
-            <VButton v-else text label="Select comparison" icon="pi pi-chart-bar" @click="handleDatasetListClick" />
+            <VButton text label="Select comparison" icon="pi pi-chart-bar" @click="handleDatasetListClick" />
         </div>
     </div>
     <ImageNavigationOverlay v-if="imageState.images.length > 1" />
-    <VSidebar v-model:visible="quantitiesVisible" position="bottom" style="height: auto"
-            class="quantities" header="Counted elements">
-        <div class="difference-notice">
-            <span v-if="Object.values(imageState.comparisonDifference).every(x => x === 0)" class="match">
-                All elements match
-            </span>
-            <span v-else class="mismatch">Elements mismatch</span>
-        </div>
-        <div class="quantities-label-notice notice">You can toggle label visibility in the settings</div>
-        <div class="quantities-header">
-            <div class="quantities-col quantities-count-diff">Count</div>
-            <div class="quantities-col">Label<span class="rename-notice notice">(tap to rename)</span></div>
-            <div class="quantities-col">Show boxes</div>
-        </div>
-        <div class="quantities-content">
-            <QuantitiesEntry v-for="(classification, index) in imageState.classifications"
-                    :key="index" :name="classification.name" />
-            <MissingQuantitiesEntry v-for="(missing, index) in missingClassifications" :key="index" :name="missing" />
-            <div v-if="imageState.classifications.length === 0" class="no-elements-notice notice">
-                (no elements found)
-            </div>
-        </div>
-    </VSidebar>
     <VDialog v-model:visible="compareDialogVisible" modal header="Select dataset" class="compare-dialog"
             :dismissable-mask="true" :draggable="false">
         <div class="compare-dataset-list">
@@ -214,27 +179,6 @@ function handleAddImage() {
 
 .compare-dialog .compare-dataset-list > div:not(:last-child) {
     border-bottom: 1px solid var(--surface-border);
-}
-
-.difference-notice {
-    display: flex;
-    justify-content: center;
-    margin-bottom: 8px;
-    font-weight: 500;
-    font-size: 1.2rem;
-    user-select: none;
-}
-
-.mismatch {
-    color: var(--color-error);
-}
-
-.match {
-    color: var(--color-success);
-}
-
-.quantities-count-diff {
-    flex-basis: 20%;
 }
 
 .image-inputs input {

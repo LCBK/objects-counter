@@ -6,6 +6,7 @@ import type { ImageWithAllData } from "@/types/requests";
 import { parseElementsToImage, processImageData } from "@/utils";
 import type { ComparisonDiff } from "@/types/requests";
 import type { PropType } from "vue";
+import { useImageStateStore } from "@/stores/imageState";
 
 
 const props = defineProps({
@@ -31,6 +32,7 @@ const props = defineProps({
     }
 });
 
+const imageState = useImageStateStore();
 const viewState = useViewStateStore();
 
 const date = new Date(props.timestamp).toISOString().split("T")[0];
@@ -50,6 +52,8 @@ async function handleItemClick() {
             });
         });
     }
+
+    imageState.comparisonDifference = props.diff;
 
     viewState.isWaitingForResponse = false;
     viewState.currentAction = ImageAction.CompareWithDataset;
@@ -114,6 +118,10 @@ async function handleItemClick() {
 </style>
 
 <style>
+.diff-ok .pi {
+    font-weight: 600;
+}
+
 @media screen and (min-width: 400px) {
     .result-counts .diff-ok .pi {
         font-size: 1.2rem;
