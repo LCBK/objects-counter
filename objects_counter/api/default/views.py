@@ -168,11 +168,10 @@ class AcceptBackgroundPoints(Resource):
                 return response
             return jsonify(response_dict)
 
-        else:
-            if not current_user:
-                log.error("User must be logged in")
-                return Response('You must be logged in', 401)
-            return jsonify(image.as_dict())
+        if not current_user:
+            log.error("User must be logged in")
+            return Response('You must be logged in', 401)
+        return jsonify(image.as_dict())
 
 
 

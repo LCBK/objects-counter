@@ -3,7 +3,7 @@ import logging
 from sqlalchemy.exc import DatabaseError
 from werkzeug.exceptions import Forbidden
 
-from objects_counter.db.dataops.image import get_image_by_id, serialize_image_as_result
+from objects_counter.db.dataops.image import serialize_image_as_result
 from objects_counter.db.models import Result, db, User, Image
 
 log = logging.getLogger(__name__)
