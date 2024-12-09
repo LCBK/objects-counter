@@ -21,7 +21,7 @@ log = logging.getLogger(__name__)
 
 
 @api.route('/')
-class GetResults(Resource):
+class Results(Resource):
     @authentication_required
     def get(self, current_user: User) -> typing.Any:
         return jsonify(get_user_results_serialized(current_user))
