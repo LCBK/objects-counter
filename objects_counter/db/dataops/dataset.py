@@ -60,7 +60,7 @@ def get_dataset_by_id(dataset_id: int) -> Dataset:
 
 def rename_dataset(dataset_id: int, new_name: str, user: User) -> Dataset:
     dataset = get_dataset_by_id(dataset_id)
-    if dataset.user_id != user.id:
+    if dataset.user != user:
         log.error('User %s is not authorized to rename dataset %s', user, dataset_id)
         raise Forbidden(f'User {user} is not authorized to rename dataset {dataset_id}')
     if not new_name:
@@ -78,7 +78,7 @@ def rename_dataset(dataset_id: int, new_name: str, user: User) -> Dataset:
 
 def delete_dataset_by_id(dataset_id: int, user: User) -> None:
     dataset = get_dataset_by_id(dataset_id)
-    if dataset.user_id != user.id:
+    if dataset.user != user:
         log.error('User %s is not authorized to delete dataset %s', user, dataset_id)
         raise Forbidden(f'User {user} is not authorized to delete dataset {dataset_id}')
     db.session.delete(dataset)
@@ -92,7 +92,7 @@ def delete_dataset_by_id(dataset_id: int, user: User) -> None:
 
 def update_unfinished_state(dataset_id: int, unfinished: bool, user: User) -> Dataset:
     dataset = get_dataset_by_id(dataset_id)
-    if dataset.user_id != user.id:
+    if dataset.user != user:
         log.error('User %s is not authorized to update dataset %s', user, dataset_id)
         raise Forbidden(f'User {user} is not authorized to update dataset {dataset_id}')
     dataset.unfinished = unfinished

@@ -98,7 +98,7 @@ class ImageApi(Resource):
     def get(self, current_user: User, image_id: int) -> typing.Any:
         try:
             image = get_image_by_id(image_id)
-            if image.result.user_id != current_user.id:
+            if image.result.user != current_user:
                 log.error("User %s is not authorized to access image %s", current_user.id, image_id)
                 return 'Forbidden', 403
         except NotFound as e:
@@ -157,22 +157,23 @@ class AcceptBackgroundPoints(Resource):
         sam.count_objects(image)
 
         if not skip_classification:
+            # DEPRECATED
             object_grouper.group_objects_by_similarity(image)
             response_dict = serialize_image_as_result(image)
+            if current_user:
+                result = insert_result(current_user, [image], response_dict)
+                response_dict["id"] = result.id
+                response = jsonify(response_dict)
+                response.status_code = 201
+                return response
+            return jsonify(response_dict)
+
         else:
             if not current_user:
                 log.error("User must be logged in")
                 return Response('You must be logged in', 401)
             return jsonify(image.as_dict())
 
-        if current_user:
-            user_id = current_user.id
-            result = insert_result(user_id, image.id, response_dict)
-            response_dict["id"] = result.id
-            response = jsonify(response_dict)
-            response.status_code = 201
-            return response
-        return jsonify(response_dict)
 
 
 @api.route('/images/<int:image_id>/mark-leaders')

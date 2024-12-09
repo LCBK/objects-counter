@@ -6,10 +6,11 @@ from flask_restx import Namespace, Resource
 from werkzeug.exceptions import NotFound, Forbidden
 
 from objects_counter.api.default.views import object_grouper
-from objects_counter.api.utils import authentication_required, get_thumbnails
+from objects_counter.api.results.models import insert_result_model
+from objects_counter.api.utils import authentication_required, get_thumbnails, authentication_optional
 from objects_counter.db.dataops.dataset import get_dataset_by_id
-from objects_counter.db.dataops.image import serialize_image_as_result
-from objects_counter.db.dataops.result import get_result_by_id
+from objects_counter.db.dataops.image import serialize_image_as_result, get_images_by_ids
+from objects_counter.db.dataops.result import get_result_by_id, insert_result
 from objects_counter.db.dataops.result import (get_user_results_serialized, get_user_results,
                                                rename_classification, delete_result_by_id)
 from objects_counter.db.models import User
@@ -24,6 +25,41 @@ class GetResults(Resource):
     @authentication_required
     def get(self, current_user: User) -> typing.Any:
         return jsonify(get_user_results_serialized(current_user))
+
+    @api.expect(insert_result_model)
+    @authentication_optional
+    def post(self, current_user: User | None) -> typing.Any:
+        try:
+            data = request.get_json()
+            automatic = data.get('automatic', None)
+            image_ids = data.get('image_ids', [])
+            leaders = data.get('leaders', [])
+
+            if automatic is None:
+                raise ValueError("Automatic field must be provided")
+            if not image_ids:
+                raise ValueError("Image IDs must be provided")
+            if not automatic:
+                if not leaders:
+                    raise ValueError("Leaders must be provided")
+
+            images = get_images_by_ids(image_ids)
+
+            if automatic:
+                object_grouper.group_objects_by_similarity(images)
+            else:
+                # TODO
+                return Response("Manual classification is not supported yet", 501)
+
+            result = insert_result(current_user, images, {})
+
+            return jsonify(result.as_dict())
+        except ValueError as e:
+            log.exception("Failed to insert result: %s", e)
+            return Response("Invalid data", 400)
+        except Exception as e:
+            log.exception("Failed to insert result: %s", e)
+            return Response("Failed to insert result", 500)
 
 
 @api.route('/thumbnails')
@@ -46,7 +82,7 @@ class Result(Resource):
                 log.error("Invalid result ID: %s", result_id)
                 raise ValueError("ID must be a positive integer")
             result = get_result_by_id(result_id)
-            if result.user_id != current_user.id:
+            if result.user != current_user:
                 return Response('Unauthorized', 403)
             return jsonify(result.as_dict())
         except ValueError as e:
@@ -121,7 +157,7 @@ class CompareResults(Resource):
             result = get_result_by_id(int(result_id))
             image = result.images[0]
             dataset = get_dataset_by_id(int(dataset_id))
-            if result.user_id != dataset.user_id or dataset.user_id != current_user.id:
+            if result.user != dataset.user or dataset.user != current_user:
                 log.error("User %s is not authorized to compare result %s with dataset %s",
                           current_user, result_id, dataset_id)
                 return Response('Unauthorized', 403)

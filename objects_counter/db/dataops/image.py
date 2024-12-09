@@ -28,6 +28,10 @@ def get_images() -> list[Image]:
     return Image.query.all()
 
 
+def get_images_by_ids(image_ids: list[int]) -> list[Image]:
+    return Image.query.filter(Image.id.in_(image_ids)).all()
+
+
 def get_image_by_id(image_id: int) -> Image:
     return Image.query.get_or_404(image_id)
 

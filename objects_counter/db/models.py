@@ -59,7 +59,7 @@ class User(db.Model):
 class Result(db.Model):
     __tablename__ = 'result'
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    user_id = db.Column(db.Integer, db.ForeignKey(User.id), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey(User.id), nullable=True)
     data = db.Column(db.JSON, nullable=False)
     timestamp = db.Column(db.DateTime, nullable=False, default=db.func.now())
     user = db.relationship('User', backref='results')
@@ -68,7 +68,7 @@ class Result(db.Model):
         return {
             'id': self.id,
             'user': self.user.username,
-            'image_id': self.images[0].id,
+            'image_id': [image.as_dict() for image in self.images],
             'data': self.data,
             'timestamp': self.timestamp
         }
