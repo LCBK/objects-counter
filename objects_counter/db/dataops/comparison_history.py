@@ -2,6 +2,7 @@ import logging
 
 from natsort import natsorted
 from sqlalchemy.exc import DatabaseError
+from werkzeug.exceptions import Forbidden, NotFound
 
 from objects_counter.db.models import Comparison, db, User, Dataset, Image
 
@@ -25,3 +26,22 @@ def insert_comparison(user: User, dataset: Dataset, images: list[Image], diff: d
 def get_comparisons_by_user_id(user_id: User) -> list[dict]:
     comparisons = Comparison.query.filter_by(user_id=user_id).all()
     return [comparison.as_dict() for comparison in comparisons]
+
+
+def get_comparison_by_id(comparison_id: int) -> Comparison:
+    return Comparison.query.filter_by(id=comparison_id).one_or_404()
+
+
+def delete_comparison_by_id(comparison_id: int, user: User) -> None:
+    comparison = Comparison.query.get(comparison_id)
+    if comparison is None:
+        raise NotFound('Comparison not found')
+    if comparison.user_id != user.id:
+        raise Forbidden('You are not authorized to delete this comparison')
+    db.session.delete(comparison)
+    try:
+        db.session.commit()
+    except DatabaseError as e:
+        log.exception('Failed to delete comparison: %s', e)
+        db.session.rollback()
+        raise
