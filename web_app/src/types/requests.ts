@@ -14,14 +14,7 @@ export interface SendBackgroundPointsResponse {
 
 export type AcceptBackgroundClassifiedResponse = ImageWithClassifications;
 
-export interface AcceptBackgroundNonClassifiedResponse {
-    id: number,
-    background_points: {
-        data: Array<BackgroundPoint>
-    },
-    elements: Array<ImageElementResponse>,
-    timestamp: string
-}
+export type AcceptBackgroundNonClassifiedResponse = ImageWithAllData;
 
 export type SendLeadersResponse = string;
 
@@ -76,14 +69,22 @@ export interface GetResultsResponse extends Array<GetResultResponse> { }
 
 // Comparisons
 
+export interface GetComparisonResponse {
+    id: number,
+    dataset: GetDatasetResponse,
+    images: Array<ImageWithAllData>,
+    diff: ComparisonDiff,
+    timestamp: string,
+    user: string
+}
+
 export interface ComparisonDiff {
     [key: string]: number
 }
 
-export interface CompareToDatasetResponse {
-    diff: ComparisonDiff,
-    images: Array<ImageWithAllData>
-}
+export type CompareToDatasetResponse = GetComparisonResponse;
+
+export type GetComparisonHistoryResponse = Array<GetComparisonResponse>;
 
 
 // Users

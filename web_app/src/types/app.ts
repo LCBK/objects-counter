@@ -1,5 +1,7 @@
 // Type definitions exclusively for the web application
 
+import type { ImageWithAllData } from "./requests"
+
 export interface ImageDetails {
     id: number,
     dataURL: string,
@@ -37,6 +39,14 @@ export interface ResultHistoryItem {
     timestamp: number,
     classificationCount: number,
     elementCount: number
+}
+
+export interface ComparisonHistoryItem {
+    id: number,
+    images: Array<ImageWithAllData>,
+    thumbnailUri?: string,
+    timestamp: number,
+    diff: { [key: string]: number }
 }
 
 export interface DatasetListItem {

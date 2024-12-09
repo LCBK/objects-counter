@@ -16,7 +16,8 @@ import {
 } from "@/utils";
 import { type DatasetListItem } from "@/types/app";
 import DatasetListItemComponent from "../DatasetListItem.vue";
-import { compareToDataset, getDatasets, getDatasetsThumbnails } from "@/requests/datasets";
+import { getDatasets, getDatasetsThumbnails } from "@/requests/datasets";
+import { compareToDataset } from "@/requests/comparisons";
 import ImageNavigationOverlay from "../ImageNavigationOverlay.vue";
 import { uploadImage } from "@/requests/images";
 

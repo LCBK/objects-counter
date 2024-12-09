@@ -1,0 +1,77 @@
+.history-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 8px;
+    border: 1px solid var(--surface-border);
+    border-radius: 10px;
+    color: var(--primary-color);
+    width: calc(50% - 8px);
+    cursor: pointer;
+}
+
+.item-image {
+    width: 100%;
+    border-radius: 8px;
+    margin-bottom: 12px;
+    max-width: 256px;
+    max-height: 256px;
+    aspect-ratio: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+}
+
+.item-date {
+    font-size: 1rem;
+    font-weight: 500;
+    color: var(--text-color);
+}
+
+.item-time {
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: var(--text-color-secondary);
+    line-height: 16px;
+}
+
+.item-counts {
+    width: 100%;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-around;
+    margin-top: 10px;
+    font-weight: 500;
+    font-size: 1rem;
+}
+
+.item-counts > div {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 8px;
+}
+
+@media screen and (min-width: 400px) {
+    .item-counts,
+    .item-date {
+        font-size: 1.2rem;
+    }
+
+    .item-time {
+        font-size: 1rem;
+    }
+}
+
+@media screen and (min-width: 520px) {
+    .history-item {
+        width: calc(33.33% - 12px);
+    }
+}
+
+.item-counts .pi {
+    margin-right: 0;
+}

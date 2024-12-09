@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import "./HistoryItems.css";
 import { getImageBlob } from "@/requests/images";
 import { getResult } from "@/requests/results";
 import { useImageStateStore } from "@/stores/imageState";
@@ -59,11 +60,11 @@ async function handleResultClick() {
 
 
 <template>
-    <div class="result-history-item" @click="handleResultClick()">
-        <img :src="props.thumbnailUri" alt="No thumbnail" class="result-image" />
-        <div class="result-date">{{ date }}</div>
-        <div class="result-time">{{ time }}</div>
-        <div class="result-counts">
+    <div class="result-history-item history-item" @click="handleResultClick()">
+        <img :src="props.thumbnailUri" alt="No thumbnail" class="item-image" />
+        <div class="item-date">{{ date }}</div>
+        <div class="item-time">{{ time }}</div>
+        <div class="item-counts">
             <div>
                 <i class="pi pi-box"></i>
                 <div>{{ props.elementCount }}</div>
@@ -75,86 +76,3 @@ async function handleResultClick() {
         </div>
     </div>
 </template>
-
-
-<style scoped>
-.result-history-item {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: 8px;
-    border: 1px solid var(--surface-border);
-    border-radius: 10px;
-    color: var(--primary-color);
-    width: calc(50% - 8px);
-    cursor: pointer;
-}
-
-.result-image {
-    width: 100%;
-    border-radius: 8px;
-    margin-bottom: 12px;
-    max-width: 256px;
-    max-height: 256px;
-    aspect-ratio: 1;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    text-align: center;
-}
-
-.result-date {
-    font-size: 1rem;
-    font-weight: 500;
-    color: var(--text-color);
-}
-
-.result-time {
-    font-size: 0.8rem;
-    font-weight: 500;
-    color: var(--text-color-secondary);
-    line-height: 16px;
-}
-
-.result-counts {
-    width: 100%;
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    justify-content: space-around;
-    margin-top: 10px;
-    font-weight: 500;
-    font-size: 1rem;
-}
-
-.result-counts > div {
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    gap: 8px;
-}
-
-@media screen and (min-width: 400px) {
-    .result-counts,
-    .result-date {
-        font-size: 1.2rem;
-    }
-
-    .result-time {
-        font-size: 1rem;
-    }
-}
-
-@media screen and (min-width: 520px) {
-    .result-history-item {
-        width: calc(33.33% - 12px);
-    }
-}
-</style>
-
-<style>
-.result-counts .pi {
-    margin-right: 0;
-}
-</style>

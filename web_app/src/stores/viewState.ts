@@ -13,6 +13,7 @@ import CountingResultViewToolBar from "@/components/toolbars/CountingResultViewT
 import CreateDatasetToolBar from "@/components/toolbars/CreateDatasetToolBar.vue";
 import ConfirmDatasetToolBar from "@/components/toolbars/ConfirmDatasetToolBar.vue";
 import ComparisonToolBar from "@/components/toolbars/ComparisonToolBar.vue";
+import ComparisonHistoryView from "@/components/views/ComparisonHistoryView.vue";
 
 
 // Stores data about current application states and views
@@ -30,6 +31,7 @@ export enum ViewStates {
     ImageViewCompareWithDataset,
     ImageViewComparisonResult,
     BrowseResultHistory,
+    BrowseComparisonHistory,
     BrowseDatasets
 }
 
@@ -103,6 +105,14 @@ export const useViewStateStore = defineStore("viewState", {
                     this.showBackground = false;
                     break;
 
+                case ViewStates.ImageViewComparisonResult:
+                    this.currentView = shallowRef(ImageView);
+                    this.currentImageViewToolBar = shallowRef(ComparisonToolBar);
+                    this.currentNavBarTitle = "Comparison";
+                    this.showPoints = false;
+                    this.showBackground = false;
+                    break;
+
                 case ViewStates.ImageViewCreateDataset:
                     this.currentView = shallowRef(ImageView);
                     this.currentImageViewToolBar = shallowRef(CreateDatasetToolBar);
@@ -138,6 +148,10 @@ export const useViewStateStore = defineStore("viewState", {
 
                 case ViewStates.BrowseResultHistory:
                     this.currentView = shallowRef(ResultHistoryView);
+                    break;
+
+                case ViewStates.BrowseComparisonHistory:
+                    this.currentView = shallowRef(ComparisonHistoryView);
                     break;
 
                 case ViewStates.BrowseDatasets:

@@ -109,11 +109,15 @@ async function submitRegisterForm() {
                     <p class="user-details-name">{{ userState.username }}</p>
                 </div>
                 <div class="user-details-actions">
-                    <VButton class="results-button wide-button" icon="pi pi-calendar" label="Counting history" @click="viewState.setState(ViewStates.BrowseResultHistory)" />
-                    <VButton class="results-button wide-button" icon="pi pi-calendar" label="Comparison history" />
-                    <VButton class="datasets-button wide-button" icon="pi pi-images" label="Datasets" @click="viewState.setState(ViewStates.BrowseDatasets)" />
+                    <VButton class="results-button wide-button" icon="pi pi-calendar" label="Counting history"
+                            @click="viewState.setState(ViewStates.BrowseResultHistory)" />
+                    <VButton class="results-button wide-button" icon="pi pi-calendar" label="Comparison history"
+                            @click="viewState.setState(ViewStates.BrowseComparisonHistory)" />
+                    <VButton class="datasets-button wide-button" icon="pi pi-images" label="Datasets"
+                            @click="viewState.setState(ViewStates.BrowseDatasets)" />
                 </div>
-                <VButton outlined class="logout-button wide-button" icon="pi pi-sign-out" label="Logout" @click="onLogout()" />
+                <VButton outlined class="logout-button wide-button" icon="pi pi-sign-out"
+                        label="Logout" @click="onLogout()" />
             </div>
             <div v-else-if="!isRegistering" class="user-container user-login">
                 <p class="login-label">Login</p>
