@@ -54,7 +54,7 @@ onMounted(() => animateButton());
             <p>Follow instructions given in the next steps for more help.</p>
             <p>You can also sign in to compare different results and track your history.</p>
         </div>
-        <div v-else-if="currentViewState === ViewStates.ImageEditPoints" class="instructions-text">
+        <div v-else-if="currentViewState === ViewStates.ImageViewEditPoints" class="instructions-text">
             <p><b>Select the background</b> in your image that separates objects from one another.</p>
             <p>
                 <b>Place points using the toolbar</b> below to indicate where the background is. <br>
@@ -117,6 +117,20 @@ onMounted(() => animateButton());
             </p>
             <p>
                 When you're done, tap the <b>"Create dataset" button, enter a fitting name and confirm</b>.
+            </p>
+        </div>
+        <div v-else-if="currentViewState === ViewStates.ImageViewCompareWithDataset" class="instructions-text">
+            <p>
+                The elements in this image weren't classified, but only counted. <br>
+                Their <b>classification will be based on the dataset</b> you're comparing with.
+            </p>
+            <p>
+                The comparison will show you the <b>difference in the number of elements</b> (divided by categories)
+                between the image and the dataset.
+            </p>
+            <p>
+                You can <b>add more images</b> to the dataset by tapping the "Add next image" button.
+                You will go through the same process of selecting a background and category representants.
             </p>
         </div>
     </VDialog>

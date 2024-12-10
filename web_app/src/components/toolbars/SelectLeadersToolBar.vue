@@ -23,7 +23,7 @@ function handleReturnClick() {
 
     viewState.showBackground = true;
     viewState.isEditingExistingResult = true;
-    viewState.setState(ViewStates.ImageEditPoints);
+    viewState.setState(ViewStates.ImageViewEditPoints);
 }
 
 function handleSubmitLeadersClick() {
@@ -70,7 +70,7 @@ async function submitClassificationLeaders() {
 <template>
     <div class="image-view-tool-bar bar">
         <div class="bar-content tool-bar-content">
-            <VButton text label="Adjust" icon="pi pi-pencil" @click="handleReturnClick();" />
+            <VButton text label="Adjust background" icon="pi pi-pencil" @click="handleReturnClick" />
             <div class="element-count">
                 <span class="element-count-value">{{ imageState.currentImage.elements.length }}</span>
                 <span class="element-count-label">Elements</span>

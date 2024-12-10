@@ -65,7 +65,7 @@ async function handleConfirmBackground() {
     );
 
     await acceptBackground(imageState.currentImage.id, skipClassification).then(response => {
-        if (viewState.currentState !== ViewStates.ImageEditPoints) return;
+        if (viewState.currentState !== ViewStates.ImageViewEditPoints) return;
 
         if (response.id) imageState.resultId = response.id;
 

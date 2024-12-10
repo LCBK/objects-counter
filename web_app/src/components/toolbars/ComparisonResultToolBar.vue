@@ -6,8 +6,8 @@ import VSidebar from "primevue/sidebar";
 import QuantitiesEntry from "../QuantitiesEntry.vue";
 import MissingQuantitiesEntry from "../MissingQuantitiesEntry.vue";
 import { useImageStateStore } from "@/stores/imageState";
-import { useViewStateStore } from "@/stores/viewState";
-import { computed, ref } from "vue";
+import { useViewStateStore, ViewStates } from "@/stores/viewState";
+import { computed, onMounted, ref } from "vue";
 import { base64ToImageUri, parseMultipleClassificationsFromResponse } from "@/utils";
 import { type DatasetListItem } from "@/types/app";
 import DatasetListItemComponent from "../DatasetListItem.vue";
@@ -88,6 +88,12 @@ async function handleCompareClick(datasetId: number) {
         viewState.isWaitingForResponse = false;
     });
 }
+
+onMounted(() => {
+    if (viewState.previousState === ViewStates.ImageViewCompareWithDataset) {
+        quantitiesVisible.value = true;
+    }
+});
 </script>
 
 

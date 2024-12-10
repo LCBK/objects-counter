@@ -149,7 +149,8 @@ onMounted(() => {
 <template>
     <div class="img-overlay" ref="overlay">
         <div class="inner-overlay" ref="innerOverlay" style="position: absolute" @click="handleOverlayClick">
-            <img id="mask-image" :src="imageState.currentImage.backgroundMaskDataURL">
+            <img v-if="imageState.currentImage.backgroundMaskDataURL" id="mask-image"
+                    :src="imageState.currentImage.backgroundMaskDataURL">
             <div class="bounding-boxes">
                 <BoundingBox v-for="([, box], index) in Object.entries(elements)" :key="index" v-bind="box" />
             </div>
