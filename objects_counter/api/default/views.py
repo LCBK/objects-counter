@@ -159,7 +159,7 @@ class AcceptBackgroundPoints(Resource):
 
         if not skip_classification:
             # DEPRECATED
-            object_grouper.group_objects_by_similarity(image)
+            object_grouper.group_objects_by_similarity([image])
             response_dict = serialize_image_as_result(image)
             if current_user:
                 result = insert_result(current_user, [image], response_dict)
