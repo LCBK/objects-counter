@@ -7,7 +7,7 @@ from werkzeug.exceptions import NotFound, Forbidden
 
 from objects_counter.api.datasets.models import insert_dataset_model, insert_image_model, patch_dataset_model, \
     adjust_classifications_model, images_list_model
-from objects_counter.api.default.views import object_grouper
+from objects_counter.api.common import object_grouper
 from objects_counter.api.utils import authentication_required, get_thumbnails
 from objects_counter.db.dataops.comparison_history import insert_comparison
 from objects_counter.db.dataops.dataset import get_user_datasets_serialized, get_dataset_by_id, delete_dataset_by_id, \
