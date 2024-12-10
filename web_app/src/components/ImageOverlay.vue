@@ -142,6 +142,7 @@ function handleOverlayClick(event: MouseEvent) {
 onMounted(() => {
     scaleOverlay();
     window.addEventListener("resize", scaleOverlay);
+    window.addEventListener("image-changed", scaleOverlay);
 });
 </script>
 

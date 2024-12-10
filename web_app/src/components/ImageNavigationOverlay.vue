@@ -13,12 +13,14 @@ const imageNextDisabled = computed(() => imageState.currentImageIndex === imageS
 function handleImageBack() {
     if (imageState.currentImageIndex > 0) {
         imageState.currentImageIndex--;
+        window.dispatchEvent(new Event("image-changed"));
     }
 }
 
 function handleImageNext() {
     if (imageState.currentImageIndex < imageState.images.length - 1) {
         imageState.currentImageIndex++;
+        window.dispatchEvent(new Event("image-changed"));
     }
 }
 </script>
