@@ -119,7 +119,7 @@ class ColorSimilarity:
     @staticmethod
     def get_histogram(image: PILImage) -> np.ndarray:
         """Computes a color histogram for an image, ignoring white background pixels."""
-
+        image = image.resize((128, 128))
         mask = ColorSimilarity.__get_mask(image)
         image = np.array(image)
 
