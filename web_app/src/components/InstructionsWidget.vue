@@ -62,21 +62,21 @@ onMounted(() => animateButton());
                     <p><b>Count and classify elements</b> in your images. <br></p>
                     <p>
                         Select the <b>background</b> by <b>placing points</b> to indicate where the background is. <br>
-                        The app will then <b>count and classify elements</b> in the image.
+                        The app will then <b>count and classify elements</b> in your images.
                     </p>
                 </VAccordionTab>
                 <VAccordionTab header="Datasets">
                     <p><b>Create datasets</b> from images.</p>
                     <p>The app will <b>classify elements</b> in the images based on the selected category representants.</p>
                     <p>
-                        These dataset <b>can be used as a reference in comparisons</b>. <br>
+                        These datasets <b>can be used as a reference in comparisons</b>. <br>
                         For example: you can make a dataset out of a board game and compare it with a photo of a game in progress.
                     </p>
                 </VAccordionTab>
                 <VAccordionTab header="Element comparison">
                     <p><b>Compare images</b> with datasets.</p>
                     <p>
-                        The app will show you the <b>difference in the number of elements</b> between the image and the dataset.
+                        The app will show you the <b>difference in the number of elements</b> between your images and the dataset.
                     </p>
                 </VAccordionTab>
             </VAccordion>
@@ -85,7 +85,7 @@ onMounted(() => animateButton());
             <p>Here are the <b>guidelines and limitations for taking photos</b>:</p>
             <ul>
                 <li>Make sure the <b>items are separated</b></li>
-                <li>Provide appropriate lightning conditions - <b>flat lightning, no sharp shadows</b></li>
+                <li>Provide appropriate lightning conditions - <b>flat lighting, no sharp shadows</b></li>
                 <li>Make the <b>background as uniform as possible</b></li>
             </ul>
         </div>
