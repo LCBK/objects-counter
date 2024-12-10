@@ -9,11 +9,11 @@ from objects_counter.api.default.views import object_grouper
 from objects_counter.api.results.models import insert_result_model
 from objects_counter.api.utils import authentication_required, get_thumbnails, authentication_optional
 from objects_counter.db.dataops.dataset import get_dataset_by_id
-from objects_counter.db.dataops.image import serialize_image_as_result, get_images_by_ids
+from objects_counter.db.dataops.image import serialize_image_as_result, get_images_by_ids, get_image_element_by_id
 from objects_counter.db.dataops.result import get_result_by_id, insert_result
 from objects_counter.db.dataops.result import (get_user_results_serialized, get_user_results,
                                                rename_classification, delete_result_by_id)
-from objects_counter.db.models import User
+from objects_counter.db.models import User, ImageElement
 
 api = Namespace('results', description='Results related operations')
 log = logging.getLogger(__name__)
@@ -31,32 +31,27 @@ class Results(Resource):
     def post(self, current_user: User | None) -> typing.Any:
         try:
             data = request.get_json()
-            automatic = data.get('automatic', None)
             image_ids = data.get('image_ids', [])
-            leaders = data.get('leaders', [])
+            leaders = data.get('leaders', None)
 
-            if automatic is None:
-                raise ValueError("Automatic field must be provided")
             if not image_ids:
                 raise ValueError("Image IDs must be provided")
-            if not automatic:
-                if not leaders:
-                    raise ValueError("Leaders must be provided")
 
             images = get_images_by_ids(image_ids)
+            leader_objects: list[ImageElement] | None = None
+            if leaders:
+                leader_objects = [get_image_element_by_id(leader) for leader in leaders]
 
-            if automatic:
-                object_grouper.group_objects_by_similarity(images)
-            else:
-                # TODO
-                return Response("Manual classification is not supported yet", 501)
-
+            object_grouper.group_objects_by_similarity(images, leader_objects)
             result = insert_result(current_user, images, {})
 
             return jsonify(result.as_dict())
         except ValueError as e:
             log.exception("Failed to insert result: %s", e)
             return Response("Invalid data", 400)
+        except NotFound as e:
+            log.exception("Failed to insert result: %s", e)
+            return Response("Image or element not found", 404)
         except Exception as e:
             log.exception("Failed to insert result: %s", e)
             return Response("Failed to insert result", 500)

@@ -96,6 +96,10 @@ def insert_element(image: Image, top_left: tuple[int, int], bottom_right: tuple[
             raise
 
 
+def get_image_element_by_id(element_id: int) -> ImageElement:
+    return ImageElement.query.get_or_404(element_id)
+
+
 def get_background_points(image: Image) -> tuple[list[list[int]], list[bool]]:
     """
     :param image: Image object
