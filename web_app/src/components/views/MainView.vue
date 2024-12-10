@@ -102,6 +102,7 @@ onMounted(async () => {
             <MainViewNavBar />
             <ImageInput />
             <InstructionsWidget labeled />
+            <p class="notice">Reading recommended for better understanding</p>
         </div>
     </Transition>
 </template>
@@ -161,6 +162,11 @@ onMounted(async () => {
 
 #main-view.server-offline .wide-button {
     margin: 0 auto 10px auto;
+}
+
+#main-view .notice {
+    max-width: 70%;
+    margin: 10px auto 0 auto;
 }
 
 @media screen and (min-width: 340px) {
