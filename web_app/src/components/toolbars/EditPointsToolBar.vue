@@ -3,16 +3,13 @@ import "./ImageViewToolBar.css";
 import VButton from "primevue/button";
 import { ImageAction, useViewStateStore, ViewStates } from "@/stores/viewState";
 import { useImageStateStore } from "@/stores/imageState";
-import { parseClassificationsFromResponse, parseElementsToImage } from "@/utils";
+import { parseElementsToImage } from "@/utils";
 import { computed, onMounted, ref } from "vue";
-import { useUserStateStore } from "@/stores/userState";
-import { deleteResult } from "@/requests/results";
 import { acceptBackground } from "@/requests/images";
 
 
 const viewState = useViewStateStore();
 const imageState = useImageStateStore();
-const userState = useUserStateStore();
 
 const pointTypePanel = ref<HTMLElement>();
 const positivePointButton = ref<HTMLElement>();
