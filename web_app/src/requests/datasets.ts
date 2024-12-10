@@ -105,10 +105,7 @@ export async function deleteDataset(id: string | number) {
     const requestPromise = sendRequest(requestUri, null, "DELETE");
     const response = await requestPromise;
 
-    if (response.ok) {
-        return;
-    }
-    else {
+    if (!response.ok) {
         throw new Error(`Failed to delete dataset ${id}`);
     }
 }

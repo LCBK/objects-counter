@@ -40,6 +40,19 @@ export async function getComparisonHistory() {
 }
 
 
+export async function deleteComparison(id: string | number) {
+    const requestUri = config.serverUri + endpoints.deleteComparison
+        .replace("{comparison_id}", id.toString());
+
+    const requestPromise = sendRequest(requestUri, null, "DELETE");
+    const response = await requestPromise;
+
+    if (!response.ok) {
+        throw new Error("Failed to delete comparison");
+    }
+}
+
+
 export async function getComparisonHistoryThumbnails() {
     const requestUri = config.serverUri + endpoints.getComparisonHistoryThumbnails;
 

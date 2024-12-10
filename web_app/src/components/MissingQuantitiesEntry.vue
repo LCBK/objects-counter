@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { useImageStateStore } from "@/stores/imageState";
 import { formatClassificationName } from "@/utils";
+import VInputSwitch from "primevue/inputswitch";
 import { computed } from "vue";
 
 const props = defineProps({
@@ -26,7 +27,7 @@ const difference = computed(() => {
         <div class="quantity-classification">
             {{ formatClassificationName(name) }}
         </div>
-        <div class="quantity-switch"></div>
+        <VInputSwitch class="quantity-switch" disabled />
     </div>
 </template>
 

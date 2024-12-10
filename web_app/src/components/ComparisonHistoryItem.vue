@@ -50,13 +50,14 @@ async function handleItemClick() {
     viewState.isWaitingForResponse = true;
 
     for (const image of props.images) {
-        getImageBlob(image.id).then(blob => {
+        await getImageBlob(image.id).then(blob => {
             processImageData(blob, image.id).then(() => {
                 parseElementsToImage(image.id, image.elements);
             });
         });
     }
 
+    imageState.comparisonId = props.id;
     imageState.comparisonDifference = props.diff;
     imageState.comparisonDatasetName = props.datasetName;
 

@@ -12,7 +12,7 @@ import { base64ToImageUri, parseMultipleClassificationsFromResponse } from "@/ut
 import { type DatasetListItem } from "@/types/app";
 import DatasetListItemComponent from "../DatasetListItem.vue";
 import { getDatasets, getDatasetsThumbnails } from "@/requests/datasets";
-import { compareToDataset } from "@/requests/comparisons";
+import { compareToDataset, deleteComparison } from "@/requests/comparisons";
 import ImageNavigationOverlay from "../ImageNavigationOverlay.vue";
 
 
@@ -71,8 +71,13 @@ async function handleCompareClick(datasetId: number) {
     viewState.isWaitingForResponse = true;
     compareDialogVisible.value = false;
 
+    await deleteComparison(imageState.comparisonId).catch(() => {
+        viewState.isWaitingForResponse = false;
+        return;
+    });
+
     await compareToDataset(datasetId, imageIds).then(response => {
-        imageState.clearCurrentResult();
+        imageState.clearAllResults();
 
         parseMultipleClassificationsFromResponse(response.images);
         imageState.comparisonDifference = response.diff;

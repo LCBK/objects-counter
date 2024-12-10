@@ -48,7 +48,8 @@ export const endpoints = {
     adjustDatasetClassifications: "/api/datasets/{dataset_id}/images/{image_id}",
     compareToDataset: "/api/datasets/{dataset_id}/comparison",
     getComparisonHistory: "/api/comparison_history/",
-    getComparisonHistoryThumbnails: "/api/comparison_history/thumbnails"
+    getComparisonHistoryThumbnails: "/api/comparison_history/thumbnails",
+    deleteComparison: "/api/comparison_history/{comparison_id}"
 };
 
 
