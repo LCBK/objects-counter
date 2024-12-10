@@ -109,11 +109,7 @@ export function getClassificationBoxColor(name: string): string {
 
 // TODO: Merge with parseClassificationsFromResponse when implementing multiple images on simple counting
 export function parseMultipleClassificationsFromResponse(images: Array<ImageWithAllData>): void {
-    const imageState = useImageStateStore();
-
     images.forEach(image => parseElementsToImage(image.id, image.elements));
-
-    imageState.classifications.sort((a, b) => a.name.localeCompare(b.name));
 }
 
 
@@ -148,7 +144,7 @@ export function parseClassificationsFromResponse(classifications: Array<Classifi
         });
     });
 
-    imageState.classifications.sort((a, b) => a.name.localeCompare(b.name));
+    imageState.sortClassifications();
 }
 
 
@@ -175,7 +171,7 @@ export function parseElementsToImage(imageId: number, elements: Array<ImageEleme
         });
     });
 
-    imageState.classifications.sort((a, b) => a.name.localeCompare(b.name));
+    imageState.sortClassifications();
 }
 
 
