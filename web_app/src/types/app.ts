@@ -34,11 +34,9 @@ export interface BackgroundPoint {
 
 export interface ResultHistoryItem {
     id: number,
-    imageId: number,
+    images: Array<ImageWithAllData>,
     thumbnailUri?: string,
-    timestamp: number,
-    classificationCount: number,
-    elementCount: number
+    timestamp: number
 }
 
 export interface ComparisonHistoryItem {

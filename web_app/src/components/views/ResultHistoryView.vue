@@ -28,10 +28,8 @@ onMounted(async () => {
         for (const item of response) {
             const historyItem: ResultHistoryItem = {
                 id: item.id,
-                imageId: item.image_id,
-                timestamp: Date.parse(item.timestamp),
-                classificationCount: item.data.classifications.length,
-                elementCount: item.data.count
+                images: item.images,
+                timestamp: Date.parse(item.timestamp)
             };
 
             historyItems.value.push(historyItem);

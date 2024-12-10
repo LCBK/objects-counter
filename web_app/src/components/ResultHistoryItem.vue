@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import "./HistoryItems.css";
 import { getImageBlob } from "@/requests/images";
-import { getResult } from "@/requests/results";
 import { useImageStateStore } from "@/stores/imageState";
-import { useViewStateStore, ViewStates } from "@/stores/viewState";
-import { parseClassificationsFromResponse, processImageData } from "@/utils";
+import { ImageAction, useViewStateStore, ViewStates } from "@/stores/viewState";
+import type { ImageWithAllData } from "@/types/requests";
+import { parseElementsToImage, processImageData } from "@/utils";
 
 
 const props = defineProps({
@@ -12,8 +12,8 @@ const props = defineProps({
         type: Number,
         required: true
     },
-    imageId: {
-        type: Number,
+    images: {
+        type: Array<ImageWithAllData>,
         required: true
     },
     thumbnailUri: {
@@ -23,19 +23,16 @@ const props = defineProps({
     timestamp: {
         type: Number,
         required: true
-    },
-    classificationCount: {
-        type: Number,
-        required: true
-    },
-    elementCount: {
-        type: Number,
-        required: true
-    },
+    }
 });
 
 const imageState = useImageStateStore();
 const viewState = useViewStateStore();
+
+const elementCount = props.images.reduce((acc, image) => acc + image.elements.length, 0);
+const classificationCount = new Set(props.images.flatMap(
+    image => image.elements.map(el => el.classification)
+)).size;
 
 const date = new Date(props.timestamp).toISOString().split("T")[0];
 const time = new Date(props.timestamp).toLocaleTimeString();
@@ -44,17 +41,19 @@ const time = new Date(props.timestamp).toLocaleTimeString();
 async function handleResultClick() {
     viewState.isWaitingForResponse = true;
 
-    await getImageBlob(props.imageId).then(blob => {
-        processImageData(blob, props.imageId);
-    });
+    for (const image of props.images) {
+        await getImageBlob(image.id).then(blob => {
+            processImageData(blob, image.id).then(() => {
+                parseElementsToImage(image.id, image.elements);
+            });
+        });
+    }
 
-    await getResult(props.id).then(response => {
-        parseClassificationsFromResponse(response.data.classifications);
-        imageState.resultId = props.id;
-        viewState.setState(ViewStates.ImageViewCountingResult);
-    }).finally(() => {
-        viewState.isWaitingForResponse = false;
-    });
+    imageState.resultId = props.id;
+
+    viewState.isWaitingForResponse = false;
+    viewState.currentAction = ImageAction.SimpleCounting;
+    viewState.setState(ViewStates.ImageViewCountingResult);
 }
 </script>
 
@@ -65,7 +64,7 @@ async function handleResultClick() {
             <img :src="props.thumbnailUri" alt="No thumbnail" class="item-image" />
             <div class="item-image-count">
                 <i class="pi pi-image"></i>
-                <span>{{ 1 }}</span>
+                <span>{{ images.length }}</span>
             </div>
         </div>
         <div class="item-date">{{ date }}</div>
@@ -73,11 +72,11 @@ async function handleResultClick() {
         <div class="item-counts">
             <div>
                 <i class="pi pi-box"></i>
-                <div>{{ props.elementCount }}</div>
+                <div>{{ elementCount }}</div>
             </div>
             <div>
                 <i class="pi pi-list"></i>
-                <div>{{ props.classificationCount }}</div>
+                <div>{{ classificationCount }}</div>
             </div>
         </div>
     </div>
