@@ -101,6 +101,10 @@
     width: 92.5vw;
 }
 
+.quantities .p-sidebar-content {
+    padding: 0 12px 12px 12px;
+}
+
 .quantities .p-sidebar-header {
     padding-bottom: 12px;
     max-width: 600px;

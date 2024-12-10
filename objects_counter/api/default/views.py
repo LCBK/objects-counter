@@ -14,14 +14,13 @@ from werkzeug.exceptions import NotFound
 from werkzeug.utils import secure_filename
 
 from image_segmentation.object_classification.classifier import ObjectClassifier
-from image_segmentation.object_classification.comparison import find_missing_elements
 from image_segmentation.object_classification.feature_extraction import FeatureSimilarity, ColorSimilarity
 from image_segmentation.object_detection.object_segmentation import ObjectSegmentation
 from objects_counter.api.default.models import points_model, accept_model
 from objects_counter.api.utils import authentication_optional, authentication_required, gzip_compress
 from objects_counter.consts import SAM_CHECKPOINT, SAM_MODEL_TYPE
 from objects_counter.db.dataops.image import insert_image, update_background_points, get_image_by_id, \
-    serialize_image_as_result, mark_leaders_in_image
+    serialize_image_as_result
 from objects_counter.db.dataops.result import insert_result
 from objects_counter.db.models import User
 from objects_counter.utils import create_thumbnail
@@ -98,7 +97,9 @@ class ImageApi(Resource):
     def get(self, current_user: User, image_id: int) -> typing.Any:
         try:
             image = get_image_by_id(image_id)
-            if image.result.user != current_user:
+            # Original: if image.result.user_id != current_user.id:
+            # Workaround, as images from comparisons don't have a result assigned
+            if image.result and image.result.user != current_user:
                 log.error("User %s is not authorized to access image %s", current_user.id, image_id)
                 return 'Forbidden', 403
         except NotFound as e:
@@ -172,66 +173,3 @@ class AcceptBackgroundPoints(Resource):
             log.error("User must be logged in")
             return Response('You must be logged in', 401)
         return jsonify(image.as_dict())
-
-
-
-@api.route('/images/<int:image_id>/mark-leaders')
-class ClassifyByLeaders(Resource):
-    @api.doc(params={'image_id': 'The image ID'})
-    @api.expect({'leaders': [int]})
-    @api.response(200, "Objects classified")
-    @api.response(400, "Invalid leader ID")
-    @api.response(404, "Image not found")
-    @api.response(500, "Error processing image")
-    def post(self, image_id: int) -> typing.Any:
-        data = request.json
-        leaders = data.get("leaders", [])
-        if not leaders:
-            log.error("No leaders provided")
-            return Response('No leaders provided', 400)
-        try:
-            image = get_image_by_id(image_id)
-            mark_leaders_in_image(image, leaders)
-            return Response('Success', 200)
-        except NotFound as e:
-            log.exception("Image %s not found: %s", image_id, e)
-            return Response('Image not found', 404)
-        except (ValueError, TypeError) as e:
-            log.exception("Invalid leader ID: %s", e)
-            return Response('One or more leaders do not belong to the image or are invalid', 400)
-        except Exception as e:  # pylint: disable=broad-except
-            log.exception("Error processing image: %s", e)
-            return Response('Error processing image', 500)
-
-
-# Temporary, to change in the future
-@api.route('/images/compare')
-class CompareImageElements(Resource):
-    @api.doc(params={'image_id': 'The image ID'})
-    @api.response(200, "Elements compared")
-    @api.response(404, "Image not found")
-    def post(self):
-        first_image_id = request.json["first_image_id"]
-        second_image_id = request.json["second_image_id"]
-
-        try:
-            first_image = get_image_by_id(first_image_id)
-        except NotFound as e:
-            log.exception("Image %s not found: %s", first_image_id, e)
-            return 'Image not found', 404
-
-        try:
-            second_image = get_image_by_id(second_image_id)
-        except NotFound as e:
-            log.exception("Image %s not found: %s", second_image_id, e)
-            return 'Image not found', 404
-
-        result = find_missing_elements(first_image, second_image, object_grouper)
-
-        response = {
-            "first_count": len(first_image.elements),
-            "second_count": len(second_image.elements),
-            "result": result
-        }
-
-        return json.dumps(response), 200
