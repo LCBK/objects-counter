@@ -139,7 +139,7 @@ function handleCreatedDataset() {
             <VButton text icon="pi pi-times" @click="viewState.isAssigningClassifications = false" />
             <div>
                 <div class="assignment-notice-label">Currently assigning</div>
-                <div class="assignment-notice-value">{{ assignedClassificationName }}</div>
+                <div class="assignment-notice-value"><span>{{ assignedClassificationName }}</span></div>
             </div>
         </div>
     </Transition>
@@ -148,9 +148,8 @@ function handleCreatedDataset() {
         <VButton text label="Assign categories" icon="pi pi-pencil" class="change-categories"
                 @click="viewState.isSelectingAssignment = true" />
         <div class="quantities-label-notice notice">You can toggle label visibility in the settings</div>
-        <div :class="(imageState.images.length > 1 ? 'quantities-header-multiple ' : '') + 'quantities-header'">
+        <div class="quantities-header">
             <div class="quantities-col">Count</div>
-            <div v-if="imageState.images.length > 1" class="quantities-col">Total</div>
             <div class="quantities-col">Label<span class="rename-notice notice">(tap to rename)</span></div>
             <div v-if="!viewState.isSelectingAssignment" class="quantities-col">Show boxes</div>
         </div>
@@ -207,6 +206,13 @@ function handleCreatedDataset() {
     font-size: 0.8rem;
     color: var(--text-color-secondary);
     line-height: 1.1rem;
+    color: #aaa;
+    mix-blend-mode: difference;
+}
+
+.assignment-notice-value > span {
+    color: #f0f0f0;
+    mix-blend-mode: difference;
 }
 
 .assignment-notice-value::before {
@@ -224,27 +230,6 @@ function handleCreatedDataset() {
     overflow: hidden;
 }
 
-.quantities-header-multiple .quantities-col:nth-child(1) {
-    flex-basis: 12.5%;
-    text-align: center;
-}
-
-.quantities-header-multiple .quantities-col:nth-child(2) {
-    flex-basis: 12.5%;
-    text-align: center;
-    text-indent: 0;
-}
-
-.quantities-header-multiple .quantities-col:nth-child(3) {
-    flex-basis: 50%;
-    text-align: center;
-}
-
-.quantities-header-multiple .quantities-col:nth-child(4) {
-    flex-basis: 25%;
-    text-align: center;
-}
-
 @media screen and (min-width: 340px) {
     .assignment-notice {
         bottom: 160px;
@@ -252,7 +237,6 @@ function handleCreatedDataset() {
 }
 
 @media screen and (min-width: 400px) {
-
     .assignment-notice-label {
         font-size: 1rem;
     }

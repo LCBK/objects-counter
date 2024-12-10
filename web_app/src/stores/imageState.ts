@@ -20,7 +20,9 @@ const defaultState = {
     boundingBoxScale: 1,
     isPanning: false,
     userZoom: 1,
-    comparisonDifference: {} as ComparisonDiff
+    comparisonId: 0,
+    comparisonDifference: {} as ComparisonDiff,
+    comparisonDatasetName: ""
 }
 
 export const useImageStateStore = defineStore("imageState", {
@@ -79,6 +81,11 @@ export const useImageStateStore = defineStore("imageState", {
             this.images.forEach(image => {
                 image.elements = [];
             });
+        },
+
+        clearClassifications() {
+            this.classifications = [];
+            this.classificationRenameMap = [];
         },
 
         clearCurrentResult() {

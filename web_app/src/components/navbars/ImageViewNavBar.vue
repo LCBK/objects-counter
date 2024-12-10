@@ -14,6 +14,9 @@ function onBack() {
     if (viewState.previousState === ViewStates.BrowseResultHistory) {
         viewState.setState(ViewStates.BrowseResultHistory);
     }
+    else if (viewState.previousState === ViewStates.BrowseComparisonHistory) {
+        viewState.setState(ViewStates.BrowseComparisonHistory);
+    }
     else {
         viewState.reset();
     }

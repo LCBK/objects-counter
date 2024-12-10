@@ -93,7 +93,8 @@ async function handleDelete() {
                 </div>
             </div>
         </div>
-        <VButton v-if="viewState.currentState === ViewStates.ImageViewCompareWithDataset"
+        <VButton v-if="viewState.currentState === ViewStates.ImageViewCompareWithDataset
+                || viewState.currentState === ViewStates.ImageViewComparisonResult"
                 label="Compare" class="compare-button" @click="$emit('compareClick', props.id)" />
         <div v-else class="details-controls">
             <VButton label="Rename" outlined @click="showRenameDialog" />

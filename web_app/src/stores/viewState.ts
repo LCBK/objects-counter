@@ -10,9 +10,11 @@ import BrowseDatasetsView from "@/components/views/BrowseDatasetsView.vue";
 import { useImageStateStore } from "./imageState";
 import { shallowRef, type Component } from "vue";
 import CountingResultViewToolBar from "@/components/toolbars/CountingResultViewToolBar.vue";
-import CreateDatasetToolBar from "@/components/toolbars/CreateDatasetToolBar.vue";
+import CreateDatasetToolBar from "@/components/toolbars/SelectLeadersToolBar.vue";
 import ConfirmDatasetToolBar from "@/components/toolbars/ConfirmDatasetToolBar.vue";
-import ComparisonToolBar from "@/components/toolbars/ComparisonToolBar.vue";
+import ComparisonSelectToolBar from "@/components/toolbars/ComparisonSelectToolBar.vue";
+import ComparisonResultToolBar from "@/components/toolbars/ComparisonResultToolBar.vue";
+import ComparisonHistoryView from "@/components/views/ComparisonHistoryView.vue";
 
 
 // Stores data about current application states and views
@@ -30,6 +32,7 @@ export enum ViewStates {
     ImageViewCompareWithDataset,
     ImageViewComparisonResult,
     BrowseResultHistory,
+    BrowseComparisonHistory,
     BrowseDatasets
 }
 
@@ -103,6 +106,14 @@ export const useViewStateStore = defineStore("viewState", {
                     this.showBackground = false;
                     break;
 
+                case ViewStates.ImageViewComparisonResult:
+                    this.currentView = shallowRef(ImageView);
+                    this.currentImageViewToolBar = shallowRef(ComparisonResultToolBar);
+                    this.currentNavBarTitle = "Comparison";
+                    this.showPoints = false;
+                    this.showBackground = false;
+                    break;
+
                 case ViewStates.ImageViewCreateDataset:
                     this.currentView = shallowRef(ImageView);
                     this.currentImageViewToolBar = shallowRef(CreateDatasetToolBar);
@@ -125,7 +136,7 @@ export const useViewStateStore = defineStore("viewState", {
 
                 case ViewStates.ImageViewCompareWithDataset:
                     this.currentView = shallowRef(ImageView);
-                    this.currentImageViewToolBar = shallowRef(ComparisonToolBar);
+                    this.currentImageViewToolBar = shallowRef(ComparisonSelectToolBar);
                     this.currentNavBarTitle = "Comparison";
                     this.showPoints = false;
                     this.showBackground = false;
@@ -138,6 +149,10 @@ export const useViewStateStore = defineStore("viewState", {
 
                 case ViewStates.BrowseResultHistory:
                     this.currentView = shallowRef(ResultHistoryView);
+                    break;
+
+                case ViewStates.BrowseComparisonHistory:
+                    this.currentView = shallowRef(ComparisonHistoryView);
                     break;
 
                 case ViewStates.BrowseDatasets:

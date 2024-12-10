@@ -31,10 +31,7 @@ export async function registerUser(username: string, password: string) {
     const requestPromise = sendRequest(requestUri, requestData, "POST");
     const response = await requestPromise;
 
-    if (response.ok) {
-        return;
-    }
-    else {
+    if (!response.ok) {
         if (response.status === 400) {
             throw new Error("Invalid data or user already exists");
         }

@@ -58,7 +58,7 @@ const difference = computed(() => {
 });
 
 const diffClass = computed(() => {
-    return difference.value > 0 ? "diff-positive" : difference.value < 0 ? "diff-negative" : '';
+    return difference.value > 0 ? "diff-positive" : difference.value < 0 ? "diff-negative" : 'diff-ok';
 });
 
 
@@ -69,6 +69,8 @@ function handleAssignClick() {
 }
 
 function showRenameDialog(oldName: string) {
+    if (viewState.currentAction === ImageAction.CompareWithDataset) return;
+
     renameOldLabel.value = oldName;
     renameNewLabel.value = oldName;
     isRenameDialogVisible.value = true;
@@ -154,7 +156,12 @@ async function confirmRename() {
         <div :class="(viewState.currentAction === ImageAction.CompareWithDataset ? 'diff ' : '') + 'quantity-count'">
             {{ count }}
             <span v-if="viewState.currentAction === ImageAction.CompareWithDataset" :class="'diff-value ' + diffClass">
-                ({{ difference }})
+                <slot v-if="difference !== 0">
+                    (<span v-if="difference > 0">+</span>{{ difference }})
+                </slot>
+                <slot v-else>
+                    <span class="pi pi-check"></span>
+                </slot>
             </span>
         </div>
         <div class="quantity-classification" @click="showRenameDialog(name)">
@@ -192,6 +199,7 @@ async function confirmRename() {
     font-weight: 500;
     text-indent: 0;
     text-align: center;
+    white-space: nowrap;
 }
 
 .quantity-count.diff {
@@ -241,10 +249,16 @@ async function confirmRename() {
 }
 
 .diff-positive {
-    color: var(--color-success);
+    color: var(--primary-color);
 }
 
 .diff-negative {
     color: var(--color-error);
+}
+</style>
+
+<style>
+.diff-ok .pi {
+    color: var(--color-success);
 }
 </style>

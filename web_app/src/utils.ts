@@ -202,14 +202,14 @@ export function getClassificationsFromDataset(dataset: GetDatasetResponse): Arra
 }
 
 
-export function processImageData(source: File | Blob, id: number): void {
+export async function processImageData(source: File | Blob, id: number): Promise<void> {
     const imageState = useImageStateStore();
 
     const url = window.URL.createObjectURL(source);
     const img = new Image;
     img.src = url;
 
-    img.onload = () => {
+    return img.decode().then(() => {
         const imageDetails = {
             id: id,
             dataURL: url,
@@ -221,7 +221,7 @@ export function processImageData(source: File | Blob, id: number): void {
         } as ImageDetails;
 
         imageState.images.push(imageDetails);
-    };
+    });
 }
 
 
