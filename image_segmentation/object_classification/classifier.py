@@ -170,10 +170,10 @@ class ObjectClassifier:
     def assign_categories_based_on_similarity(self, elements: List[ImageElement], representatives: List[ImageElement],
                                               threshold: float, color_weight: float) -> None:
         """Assigns elements to categories based on their similarity scores."""
-        predefined_representatives = False
+        predefined_representatives = True
         if representatives is None:
             representatives = []
-            predefined_representatives = True
+            predefined_representatives = False
         category_id = 1
 
         for element in elements:
