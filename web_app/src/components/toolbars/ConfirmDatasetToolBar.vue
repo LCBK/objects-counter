@@ -254,21 +254,6 @@ function handleCreatedDataset() {
     margin-right: 8px;
 }
 
-.image-dialog .p-dialog-content {
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-    margin-top: 16px;
-}
-
-.image-dialog .p-button {
-    height: 45px;
-}
-
-.image-dialog .p-button-icon {
-    font-size: 1.2rem;
-}
-
 @media screen and (min-width: 400px) {
     .change-categories .p-button-label {
         font-size: 1.1rem;

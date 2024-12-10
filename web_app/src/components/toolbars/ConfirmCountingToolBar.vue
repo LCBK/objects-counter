@@ -4,7 +4,7 @@ import VButton from "primevue/button";
 import VDialog from "primevue/dialog";
 import ImageNavigationOverlay from "../ImageNavigationOverlay.vue";
 import { useImageStateStore } from "@/stores/imageState";
-import { useViewStateStore, ViewStates } from "@/stores/viewState";
+import { ImageAction, useViewStateStore, ViewStates } from "@/stores/viewState";
 import { ref } from "vue";
 import { uploadImage } from "@/requests/images";
 import { isUserAgentMobile, parseMultipleClassificationsFromResponse, processImageData } from "@/utils";
@@ -65,8 +65,13 @@ async function handleConfirmCountingClick() {
     viewState.isWaitingForResponse = true;
 
     const imageIds = imageState.images.map(image => image.id);
+    let leaderIds: number[] | undefined = undefined;
 
-    await createResult(imageIds).then(response => {
+    if (viewState.currentAction === ImageAction.LeaderCounting) {
+        leaderIds = imageState.images.flatMap(image => image.selectedLeaderIds);
+    }
+
+    await createResult(imageIds, leaderIds).then(response => {
         imageState.clearAllResults();
 
         parseMultipleClassificationsFromResponse(response.images);

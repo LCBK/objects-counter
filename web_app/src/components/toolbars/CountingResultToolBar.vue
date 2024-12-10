@@ -30,7 +30,7 @@ function handleReturnClick() {
             <div class="element-count">
                 <span class="element-count-value">
                     <span class="count-current">{{ imageState.currentImage.elements.length }}</span>
-                    <span class="count-total">{{ imageState.allElements.length }}</span>
+                    <span v-if="imageState.images.length > 1" class="count-total">{{ imageState.allElements.length }}</span>
                 </span>
                 <span class="element-count-label">Elements</span>
             </div>

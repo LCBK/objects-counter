@@ -45,7 +45,7 @@ export async function createResult(
     const requestUri = config.serverUri + endpoints.createResult;
     const requestData = JSON.stringify({
         image_ids: imageIds,
-        ...(leaderIds && { leader_ids: leaderIds })
+        ...(leaderIds && { leaders: leaderIds })
     });
 
     const requestPromise = sendRequest(requestUri, requestData, "POST");

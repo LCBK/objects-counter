@@ -54,8 +54,11 @@ async function handleConfirmBackground() {
             case ImageAction.AutomaticCounting:
                 viewState.setState(ViewStates.ImageViewConfirmCounting);
                 break;
+            case ImageAction.LeaderCounting:
+                viewState.setState(ViewStates.ImageViewSelectLeaders);
+                break;
             case ImageAction.CreateDataset:
-                viewState.setState(ViewStates.ImageViewCreateDataset);
+                viewState.setState(ViewStates.ImageViewSelectLeaders);
                 break;
             case ImageAction.CompareWithDataset:
                 viewState.setState(ViewStates.ImageViewCompareWithDataset);

@@ -20,6 +20,7 @@ const isOffline = ref<boolean>(false);          // means that we are sure the se
 const isCheckingStatus = ref<boolean>(false);
 const receivedStatusResponse = ref<boolean>(false);
 const serverAddressDialogVisible = ref<boolean>(false);
+
 const serverAddress = ref<string>("");
 const serverUseHttps = ref<boolean>(false);
 

@@ -29,38 +29,42 @@ function handleSubmitLeadersClick() {
 }
 
 async function submitClassificationLeaders() {
-    viewState.isWaitingForResponse = true;
+    if (viewState.currentAction === ImageAction.CreateDataset) {
+        viewState.isWaitingForResponse = true;
+        if (!viewState.isAddingMoreImages) {
+            await createDataset(`temporary no. ${imageState.currentImage.id}`, true).then((response) => {
+                imageState.datasetId = parseInt(response);
+            }).catch(() => {
+                viewState.isWaitingForResponse = false;
+                return;
+            });
+        }
 
-    if (!viewState.isAddingMoreImages) {
-        await createDataset(`temporary no. ${imageState.currentImage.id}`, true).then((response) => {
-            imageState.datasetId = parseInt(response);
-        }).catch(() => {
+        const classifications = imageState.currentImage.selectedLeaderIds.map(id => {
+            return {
+                name: viewState.lastAssignedLeaderNumber++,
+                leader_id: id
+            }
+        });
+
+        await addImageToDataset(imageState.datasetId, imageState.currentImage.id, classifications).then(response => {
+            imageState.clearCurrentResult();
+
+            const currentImage = response.images.find(image => image.id === imageState.currentImage.id);
+            if (currentImage !== undefined) {
+                parseElementsToImage(imageState.currentImage.id, currentImage.elements);
+
+                if (viewState.currentAction === ImageAction.CreateDataset) {
+                    viewState.setState(ViewStates.ImageViewConfirmDataset);
+                }
+            }
+        }).finally(() => {
             viewState.isWaitingForResponse = false;
-            return;
         });
     }
-
-    const classifications = imageState.currentImage.selectedLeaderIds.map(id => {
-        return {
-            name: viewState.lastAssignedLeaderNumber++,
-            leader_id: id
-        }
-    });
-
-    await addImageToDataset(imageState.datasetId, imageState.currentImage.id, classifications).then(response => {
-        imageState.clearCurrentResult();
-
-        const currentImage = response.images.find(image => image.id === imageState.currentImage.id);
-        if (currentImage !== undefined) {
-            parseElementsToImage(imageState.currentImage.id, currentImage.elements);
-
-            if (viewState.currentAction === ImageAction.CreateDataset) {
-                viewState.setState(ViewStates.ImageViewConfirmDataset);
-            }
-        }
-    }).finally(() => {
-        viewState.isWaitingForResponse = false;
-    });
+    else {
+        viewState.setState(ViewStates.ImageViewConfirmCounting);
+    }
 }
 </script>
 

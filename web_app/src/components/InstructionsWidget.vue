@@ -72,7 +72,7 @@ onMounted(() => animateButton());
                 If there's no improvement, consider retaking the picture.
             </p>
         </div>
-        <div v-else-if="currentViewState == ViewStates.ImageViewCreateDataset" class="instructions-text">
+        <div v-else-if="currentViewState == ViewStates.ImageViewSelectLeaders" class="instructions-text">
             <p>Elements found in your photo are now selected.</p>
             <p>To finish creating a dataset, select one representant of each category by tapping at them.</p>
             <p>When you're done, press the submit button, provide a fitting name for this dataset and confirm.</p>
