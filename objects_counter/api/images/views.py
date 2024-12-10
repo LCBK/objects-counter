@@ -35,10 +35,10 @@ class Process(Resource):
     @api.response(413, "Payload too large")
     @api.response(415, "Unsupported type")
     def post(self) -> typing.Any:
-        if 'images' not in request.files:
-            log.error("No images provided")
-            return 'No images provided', 400
-        image = request.files["images"]
+        if 'image' not in request.files:
+            log.error("No image provided")
+            return 'No image provided', 400
+        image = request.files["image"]
 
         # save the received images to upload directory
         if not os.path.exists(flask.current_app.config["UPLOAD_FOLDER"]):
@@ -63,7 +63,7 @@ class Process(Resource):
 
 @api.route('/<int:image_id>')
 class ImageApi(Resource):
-    @api.doc(params={'image_id': 'The images ID'})
+    @api.doc(params={'image_id': 'The image ID'})
     @api.response(200, "Image found")
     @api.response(401, "Unauthorized")
     @api.response(403, "Forbidden")
