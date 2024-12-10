@@ -62,7 +62,7 @@ class ObjectClassifier:
 
         return (color_weight * color_sim) + ((1 - color_weight) * feature_sim)
 
-    def group_objects_by_similarity(self, images: List[Image], representatives: List[ImageElement] = None,
+    def group_objects_by_similarity(self, images: List[Image], representatives: List[ImageElement] | None = None,
                                     threshold: float = 0.7, color_weight: float = DEFAULT_COLOR_WEIGHT) -> None:
         """Groups objects by their similarity based on a combination of feature and color similarity."""
         elements = []
