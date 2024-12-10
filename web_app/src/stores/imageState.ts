@@ -74,6 +74,10 @@ export const useImageStateStore = defineStore("imageState", {
             });
         },
 
+        sortClassifications() {
+            this.classifications.sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true }));
+        },
+
         clearAllResults() {
             this.classifications = [];
             this.classificationRenameMap = [];

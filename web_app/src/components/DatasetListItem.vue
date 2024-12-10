@@ -50,6 +50,7 @@ function showRenameDialog() {
 async function showDatasetDetails() {
     await getDataset(props.id).then(response => {
         classifications.value = getClassificationsFromDataset(response);
+        classifications.value.sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true }));
         detailsVisible.value = true;
     });
 }
