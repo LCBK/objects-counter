@@ -86,7 +86,7 @@ async function confirmRename() {
         if (mapping.newName === oldName) mapping.newName = newName;
     });
 
-    if (viewState.currentAction === ImageAction.SimpleCounting) {
+    if (viewState.currentAction === ImageAction.AutomaticCounting) {
         // TODO: as results don't support multiple images yet, fix later
         await renameResultClassification(
             imageState.resultId, oldName, newName

@@ -52,7 +52,7 @@ async function handleResultClick() {
     imageState.resultId = props.id;
 
     viewState.isWaitingForResponse = false;
-    viewState.currentAction = ImageAction.SimpleCounting;
+    viewState.currentAction = ImageAction.AutomaticCounting;
     viewState.setState(ViewStates.ImageViewCountingResult);
 }
 </script>

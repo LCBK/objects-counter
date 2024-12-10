@@ -20,9 +20,7 @@ const submitDisabled = computed(() => {
 function handleReturnClick() {
     imageState.clearCurrentResult();
     imageState.currentImage.selectedLeaderIds = [];
-
     viewState.showBackground = true;
-    viewState.isEditingExistingResult = true;
     viewState.setState(ViewStates.ImageEditPoints);
 }
 

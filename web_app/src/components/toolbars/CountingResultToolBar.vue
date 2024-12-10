@@ -18,7 +18,6 @@ const quantitiesVisible = ref<boolean>(false);
 function handleReturnClick() {
     viewState.setState(ViewStates.ImageEditPoints);
     viewState.showBackground = true;
-    viewState.isEditingExistingResult = true;
     imageState.clearAllResults();
 }
 </script>
@@ -29,13 +28,16 @@ function handleReturnClick() {
         <div class="bar-content tool-bar-content">
             <VButton text label="Adjust" icon="pi pi-pencil" @click="handleReturnClick();" />
             <div class="element-count">
-                <span class="element-count-value">{{ imageState.currentImage.elements.length }}</span>
+                <span class="element-count-value">
+                    <span class="count-current">{{ imageState.currentImage.elements.length }}</span>
+                    <span class="count-total">{{ imageState.allElements.length }}</span>
+                </span>
                 <span class="element-count-label">Elements</span>
             </div>
             <VButton text label="Details" icon="pi pi-list" @click="quantitiesVisible = true" />
         </div>
     </div>
-    <ImageNavigationOverlay v-if="imageState.images.length > 1" />
+    <ImageNavigationOverlay v-if="imageState.images.length > 1" class="result-nav" />
     <VSidebar v-model:visible="quantitiesVisible" position="bottom" style="height: auto" class="quantities" header="Counted elements">
         <div class="quantities-label-notice notice">You can toggle label visibility in the settings</div>
         <div class="quantities-header">
@@ -52,3 +54,14 @@ function handleReturnClick() {
         </div>
     </VSidebar>
 </template>
+
+<style scoped>
+.count-total {
+    font-size: 1.2rem;
+}
+
+.count-total::before {
+    content: "/";
+    margin: 0 0.2rem;
+}
+</style>

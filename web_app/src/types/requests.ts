@@ -12,9 +12,7 @@ export interface SendBackgroundPointsResponse {
     mask: Array<Array<boolean>>
 }
 
-export type AcceptBackgroundClassifiedResponse = ImageWithClassifications;
-
-export type AcceptBackgroundNonClassifiedResponse = ImageWithAllData;
+export type AcceptBackgroundResponse = ImageWithAllData;
 
 export type SendLeadersResponse = string;
 
@@ -61,6 +59,8 @@ export interface GetResultResponse {
 }
 
 export interface GetResultsResponse extends Array<GetResultResponse> { }
+
+export type CreateResultResponse = GetResultResponse;
 
 
 // Comparisons

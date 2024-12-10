@@ -135,6 +135,12 @@
     gap: 12px;
 }
 
+.image-inputs input {
+    width: 0px;
+    height: 0px;
+    overflow: hidden;
+}
+
 /***** Animations *****/
 
 .fade-enter-active,

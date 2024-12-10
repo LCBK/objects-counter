@@ -148,7 +148,6 @@ class AcceptBackgroundPoints(Resource):
     @api.response(500, "Error processing image")
     @authentication_optional
     def post(self, current_user: User, image_id: int) -> typing.Any:
-        skip_classification = request.json.get('skip_classification', False)
         try:
             image = get_image_by_id(image_id)
         except NotFound as e:
@@ -156,18 +155,6 @@ class AcceptBackgroundPoints(Resource):
             return 'Image not found', 404
 
         sam.count_objects(image)
-
-        if not skip_classification:
-            # DEPRECATED
-            object_grouper.group_objects_by_similarity([image])
-            response_dict = serialize_image_as_result(image)
-            if current_user:
-                result = insert_result(current_user, [image], response_dict)
-                response_dict["id"] = result.id
-                response = jsonify(response_dict)
-                response.status_code = 201
-                return response
-            return jsonify(response_dict)
 
         if not current_user:
             log.error("User must be logged in")

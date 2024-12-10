@@ -5,7 +5,7 @@ import { useViewStateStore, ViewStates } from "../stores/viewState";
 import { computed, onMounted, ref, watch } from "vue";
 
 
-const props = defineProps({
+defineProps({
     labeled: Boolean                // labeled with "Instruction" string and styled as a wider button
 });
 

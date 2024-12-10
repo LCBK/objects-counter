@@ -24,7 +24,7 @@ function triggerImageInput() {
 
 function handleCountingClick() {
     triggerImageInput();
-    viewState.currentAction = ImageAction.SimpleCounting;
+    viewState.currentAction = ImageAction.AutomaticCounting;
 }
 
 function handleCreateDatasetClick() {
@@ -61,13 +61,14 @@ async function handleImageUpload(event: Event) {
                 :disabled="!userState.isLoggedIn" @click="handleCreateDatasetClick()" />
         <VButton class="wide-button" label="Compare elements" icon="pi pi-arrow-right-arrow-left"
                 :disabled="!userState.isLoggedIn" @click="handleCompareClick()" />
-        <VSelectButton v-if="isUserAgentMobile()" class="mode-select" v-model="currentMode" :options="['Capture', 'Upload']" :allow-empty="false" />
+        <VSelectButton v-if="isUserAgentMobile()" class="mode-select" v-model="currentMode"
+                :options="['Capture', 'Upload']" :allow-empty="false" />
     </div>
-    <div class="image-select-inputs">
+    <div class="image-inputs">
         <input type="file" name="image-capture" ref="captureInput"
-            accept="image/*" capture="environment" @change.stop.prevent="handleImageUpload($event)" />
+                accept="image/*" capture="environment" @change.stop.prevent="handleImageUpload($event)" />
         <input type="file" name="image-upload" ref="uploadInput"
-            accept="image/*" @change.stop.prevent="handleImageUpload($event)" />
+                accept="image/*" @change.stop.prevent="handleImageUpload($event)" />
     </div>
 </template>
 
@@ -78,12 +79,6 @@ async function handleImageUpload(event: Event) {
     flex-direction: column;
     align-items: center;
     gap: 30px;
-}
-
-.image-select-inputs input {
-    width: 0px;
-    height: 0px;
-    overflow: hidden;
 }
 
 .login-notice {

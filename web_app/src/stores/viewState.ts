@@ -9,7 +9,8 @@ import EditPointsToolBar from "@/components/toolbars/EditPointsToolBar.vue";
 import BrowseDatasetsView from "@/components/views/BrowseDatasetsView.vue";
 import { useImageStateStore } from "./imageState";
 import { shallowRef, type Component } from "vue";
-import CountingResultViewToolBar from "@/components/toolbars/CountingResultViewToolBar.vue";
+import CountingResultToolBar from "@/components/toolbars/CountingResultToolBar.vue";
+import ConfirmCountingToolBar from "@/components/toolbars/ConfirmCountingToolBar.vue";
 import CreateDatasetToolBar from "@/components/toolbars/SelectLeadersToolBar.vue";
 import ConfirmDatasetToolBar from "@/components/toolbars/ConfirmDatasetToolBar.vue";
 import ComparisonSelectToolBar from "@/components/toolbars/ComparisonSelectToolBar.vue";
@@ -26,6 +27,7 @@ export enum ViewStates {
     UserView,
     Uploading,
     ImageEditPoints,
+    ImageViewConfirmCounting,
     ImageViewCountingResult,
     ImageViewCreateDataset,
     ImageViewConfirmDataset,
@@ -38,7 +40,7 @@ export enum ViewStates {
 
 // Actions selected by the user in the main view, these determine how certain components behave
 export enum ImageAction {
-    SimpleCounting,         // Default
+    AutomaticCounting,         // Default
     CreateDataset,
     CompareWithDataset
 }
@@ -48,7 +50,6 @@ const defaultState = {
     isRemovingPoint: false,
     isPointTypePositive: true,
     isWaitingForResponse: false,
-    isEditingExistingResult: false,
     isSelectingAssignment: false,
     isAssigningClassifications: false,
     isAddingMoreImages: false,
@@ -59,7 +60,7 @@ const defaultState = {
     currentNavBarTitle: "",
     currentState: ViewStates.MainView,
     previousState: ViewStates.MainView,
-    currentAction: ImageAction.SimpleCounting,
+    currentAction: ImageAction.AutomaticCounting,
     currentView: shallowRef<Component>(MainView),
     currentImageViewToolBar: shallowRef<Component>(EditPointsToolBar)
 }
@@ -98,9 +99,17 @@ export const useViewStateStore = defineStore("viewState", {
                     this.showBackground = true;
                     break;
 
+                case ViewStates.ImageViewConfirmCounting:
+                    this.currentView = shallowRef(ImageView);
+                    this.currentImageViewToolBar = shallowRef(ConfirmCountingToolBar);
+                    this.currentNavBarTitle = "Confirm selection";
+                    this.showPoints = false;
+                    this.showBackground = false;
+                    break;
+
                 case ViewStates.ImageViewCountingResult:
                     this.currentView = shallowRef(ImageView);
-                    this.currentImageViewToolBar = shallowRef(CountingResultViewToolBar);
+                    this.currentImageViewToolBar = shallowRef(CountingResultToolBar);
                     this.currentNavBarTitle = "Counted elements";
                     this.showPoints = false;
                     this.showBackground = false;
@@ -144,7 +153,7 @@ export const useViewStateStore = defineStore("viewState", {
 
                 case ViewStates.UserView:
                     this.currentView = shallowRef(UserView);
-                    this.currentAction = ImageAction.SimpleCounting;
+                    this.currentAction = ImageAction.AutomaticCounting;
                     break;
 
                 case ViewStates.BrowseResultHistory:

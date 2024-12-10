@@ -2,10 +2,8 @@ import { config, endpoints } from "@/config";
 import { sendRequest } from "@/utils";
 import type { BackgroundPoint } from "@/types/app";
 import type {
-    AcceptBackgroundClassifiedResponse,
-    AcceptBackgroundNonClassifiedResponse,
+    AcceptBackgroundResponse,
     SendBackgroundPointsResponse,
-    SendLeadersResponse,
     UploadImageResponse
 } from "@/types/requests";
 
@@ -60,18 +58,15 @@ export async function sendBackgroundPoints(id: string | number, points: Array<Ba
 }
 
 
-export async function acceptBackground(id: string | number, skip_classification: boolean = false) {
+export async function acceptBackground(id: string | number) {
     const requestUri = config.serverUri + endpoints.acceptBackground
         .replace("{image_id}", id.toString());
-    const requestData = JSON.stringify({ skip_classification: skip_classification });
 
-    const requestPromise = sendRequest(requestUri, requestData, "POST");
+    const requestPromise = sendRequest(requestUri, null, "POST");
     const response = await requestPromise;
 
     if (response.ok) {
-        return response.json() as Promise<
-            AcceptBackgroundClassifiedResponse | AcceptBackgroundNonClassifiedResponse
-        >;
+        return response.json() as Promise<AcceptBackgroundResponse>;
     }
     else {
         throw new Error("Failed to accept background");

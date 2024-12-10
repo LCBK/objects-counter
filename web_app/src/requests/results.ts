@@ -1,6 +1,7 @@
 import { config, endpoints } from "@/config";
 import { sendRequest } from "@/utils";
 import type {
+    CreateResultResponse,
     GetResultResponse,
     GetResultsResponse,
     GetThumbnailsResponse
@@ -38,6 +39,27 @@ export async function getResults() {
 }
 
 
+export async function createResult(
+    imageIds: Array<string | number>, leaderIds?: Array<number>
+) {
+    const requestUri = config.serverUri + endpoints.createResult;
+    const requestData = JSON.stringify({
+        image_ids: imageIds,
+        ...(leaderIds && { leader_ids: leaderIds })
+    });
+
+    const requestPromise = sendRequest(requestUri, requestData, "POST");
+    const response = await requestPromise;
+
+    if (response.ok) {
+        return response.json() as Promise<CreateResultResponse>;
+    }
+    else {
+        throw new Error("Failed to create result");
+    }
+}
+
+
 export async function getResultsThumbnails() {
     const requestUri = config.serverUri + endpoints.getResultsThumbnails;
 
@@ -55,7 +77,7 @@ export async function getResultsThumbnails() {
 
 export async function renameResultClassification(
     id: string | number, oldName: string, newName: string
-): Promise<string> {
+) {
     const requestUri = config.serverUri + endpoints.renameClassification
         .replace("{result_id}", id.toString())
         .replace("{classification_name}", oldName);
@@ -65,7 +87,7 @@ export async function renameResultClassification(
     const response = await requestPromise;
 
     if (response.ok) {
-        return response.json();
+        return response.json() as Promise<string>;
     }
     else {
         throw new Error(`Failed to rename classification ${oldName} to ${newName} for id ${id}`);
@@ -80,10 +102,7 @@ export async function deleteResult(id: string | number) {
     const requestPromise = sendRequest(requestUri, null, "DELETE");
     const response = await requestPromise;
 
-    if (response.ok) {
-        return;
-    }
-    else {
+    if (!response.ok) {
         throw new Error(`Failed to delete result ${id}`);
     }
 }

@@ -50,7 +50,7 @@ function handleImageNext() {
     bottom: 90px;
     width: 100%;
     background-color: var(--surface-section-transparent);
-    z-index: 100;
+    z-index: 5;
     color: var(--primary-color);
     font-weight: 600;
     text-shadow: 1px 1px 2px var(--surface-section);
@@ -93,6 +93,14 @@ function handleImageNext() {
 </style>
 
 <style>
+.result-nav .navigation-overlay-content {
+    margin-bottom: 10px;
+}
+
+.navigation-overlay .pi {
+    text-shadow: 1px 1px 2px var(--surface-section);
+}
+
 .navigation-overlay .pi-image {
     bottom: -2px;
     position: relative;

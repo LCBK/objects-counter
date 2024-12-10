@@ -33,9 +33,12 @@
 }
 
 .element-count-value {
-    display: block;
+    display: flex;
     font-weight: 700;
     font-size: 2.25rem;
+    max-width: 70px;
+    justify-content: center;
+    align-items: baseline;
 }
 
 .element-count-label {
