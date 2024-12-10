@@ -70,7 +70,7 @@ class Result(db.Model):
         return {
             'id': self.id,
             'user': self.user.username,
-            'image_id': [image.as_dict() for image in self.images],
+            'images': [image.as_dict() for image in self.images],
             'data': self.data,
             'timestamp': self.timestamp
         }
