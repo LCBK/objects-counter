@@ -5,28 +5,19 @@ import VSidebar from "primevue/sidebar";
 import QuantitiesEntry from "../QuantitiesEntry.vue";
 import ImageNavigationOverlay from "../ImageNavigationOverlay.vue";
 import { useImageStateStore } from "@/stores/imageState";
-import { useViewStateStore, ViewStates } from "@/stores/viewState";
 import { ref } from "vue";
 
 
 const imageState = useImageStateStore();
-const viewState = useViewStateStore();
 
 const quantitiesVisible = ref<boolean>(false);
-
-
-function handleReturnClick() {
-    viewState.setState(ViewStates.ImageEditPoints);
-    viewState.showBackground = true;
-    imageState.clearAllResults();
-}
 </script>
 
 
 <template>
     <div class="image-view-tool-bar bar">
         <div class="bar-content tool-bar-content">
-            <VButton text label="Adjust" icon="pi pi-pencil" @click="handleReturnClick();" />
+            <VButton text label="Adjust background" icon="pi pi-pencil" disabled />
             <div class="element-count">
                 <span class="element-count-value">
                     <span class="count-current">{{ imageState.currentImage.elements.length }}</span>
