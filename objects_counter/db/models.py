@@ -69,7 +69,7 @@ class Result(db.Model):
     def as_dict(self):
         return {
             'id': self.id,
-            'user': self.user.username,
+            'user': self.user.username if self.user else None,
             'images': [image.as_dict() for image in self.images],
             'data': self.data,
             'timestamp': self.timestamp
