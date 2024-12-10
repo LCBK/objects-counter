@@ -117,7 +117,7 @@ async function handleCompareClick(datasetId: number) {
             <div class="quantities-col">Label<span class="rename-notice notice">(tap to rename)</span></div>
             <div class="quantities-col">Show boxes</div>
         </div>
-        <div class="quantities-content">
+        <div class="quantities-content quantities-comparison">
             <QuantitiesEntry v-for="(classification, index) in imageState.classifications"
                     :key="index" :name="classification.name" />
             <MissingQuantitiesEntry v-for="(missing, index) in missingClassifications" :key="index" :name="missing" />
@@ -221,11 +221,11 @@ async function handleCompareClick(datasetId: number) {
     max-width: 600px;
 }
 
-.quantity-count {
+.quantities-comparison .quantity-count {
     flex-basis: 20% !important;
 }
 
-.quantity-classification {
+.quantities-comparison .quantity-classification {
     flex-basis: 55% !important;
 }
 </style>
