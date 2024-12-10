@@ -5,7 +5,7 @@ from flask import Response, jsonify, request
 from flask_restx import Namespace, Resource
 from werkzeug.exceptions import NotFound, Forbidden
 
-from objects_counter.api.default.views import object_grouper
+from objects_counter.api.common import object_grouper
 from objects_counter.api.results.models import insert_result_model
 from objects_counter.api.utils import authentication_required, get_thumbnails, authentication_optional
 from objects_counter.db.dataops.dataset import get_dataset_by_id
