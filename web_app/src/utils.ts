@@ -103,7 +103,7 @@ export function getClassificationBoxColor(name: string): string {
     const classificationIndex = imageState.classifications.findIndex(c => c.name === name);
 
     if (classificationIndex === -1) return boundingBoxColors[0];
-    return boundingBoxColors[classificationIndex];
+    return boundingBoxColors[classificationIndex % boundingBoxColors.length];
 }
 
 
