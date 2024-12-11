@@ -17,6 +17,9 @@ function onBack() {
     else if (viewState.previousState === ViewStates.BrowseComparisonHistory) {
         viewState.setState(ViewStates.BrowseComparisonHistory);
     }
+    else if (viewState.previousState === ViewStates.BrowseDatasets) {
+        viewState.setState(ViewStates.BrowseDatasets);
+    }
     else {
         viewState.reset();
     }

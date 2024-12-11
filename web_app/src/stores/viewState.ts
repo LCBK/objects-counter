@@ -43,7 +43,8 @@ export enum ImageAction {
     AutomaticCounting,
     LeaderCounting,
     CreateDataset,
-    CompareWithDataset
+    CompareWithDataset,
+    PreviewDataset
 }
 
 const defaultState = {
