@@ -13,6 +13,7 @@
     display: inline-block;
     box-sizing: border-box;
     animation: rotation 1s linear infinite;
+    box-sizing: content-box;
 }
 
 @keyframes rotation {

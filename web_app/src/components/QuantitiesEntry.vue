@@ -69,7 +69,9 @@ function handleAssignClick() {
 }
 
 function showRenameDialog(oldName: string) {
-    if (viewState.currentAction === ImageAction.CompareWithDataset) return;
+    if (viewState.currentAction === ImageAction.CompareWithDataset
+        || viewState.currentAction === ImageAction.PreviewDataset
+    ) return;
 
     renameOldLabel.value = oldName;
     renameNewLabel.value = oldName;
@@ -174,7 +176,7 @@ async function confirmRename() {
             <VInputText v-model="renameNewLabel" class="rename-input" :placeholder="renameOldLabel" :autofocus="true" />
             <div class="rename-controls">
                 <VButton outlined label="Cancel" class="rename-cancel" @click="isRenameDialogVisible = false" />
-                <VButton label="Rename" class="rename-rename" @click="confirmRename()" :disabled="isRenameDisabled" />
+                <VButton label="Rename" class="rename-rename" @click="confirmRename" :disabled="isRenameDisabled" />
             </div>
         </VDialog>
     </div>

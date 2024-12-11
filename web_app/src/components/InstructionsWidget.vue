@@ -3,7 +3,7 @@ import VAccordion from "primevue/accordion";
 import VAccordionTab from "primevue/accordiontab";
 import VButton from "primevue/button";
 import VDialog from "primevue/dialog";
-import { useViewStateStore, ViewStates } from "../stores/viewState";
+import { ImageAction, useViewStateStore, ViewStates } from "../stores/viewState";
 import { computed, onMounted, ref, watch } from "vue";
 import { useUserStateStore } from "@/stores/userState";
 
@@ -64,6 +64,16 @@ onMounted(() => animateButton());
                         Select the <b>background</b> by <b>placing points</b> to indicate where the background is. <br>
                         The app will then <b>count and classify elements</b> in your images.
                     </p>
+                    <p>
+                        There are two counting modes:
+                        <ul>
+                            <li><b>Automatic:</b> elements are classified automatically, without your interaction</li>
+                            <li>
+                                <b>Leader selection:</b> you have to select representants of each element category
+                                <u>(will yield better results!)</u>
+                            </li>
+                        </ul>
+                    </p>
                 </VAccordionTab>
                 <VAccordionTab header="Datasets">
                     <p><b>Create datasets</b> from images.</p>
@@ -104,7 +114,32 @@ onMounted(() => animateButton());
                 If the selection is <b>satisfactory, proceed to the next step</b>.
             </p>
         </div>
-        <div v-else-if="currentViewState === ViewStates.ImageViewCountingResult" class="instructions-text">
+        <div v-else-if="currentViewState === ViewStates.ImageViewConfirmCounting" class="instructions-text">
+            <p>
+                Elements found in your photo are now selected. They are <b>not yet classified, only counted.</b><br>
+                <span v-if="viewState.currentAction === ImageAction.AutomaticCounting">
+                    You've selected the automatic counting mode.
+                    The <b>elements will be classified automatically</b> after proceeding to the next step.
+                </span>
+                <span v-else>
+                    You've selected the leader selection counting mode.
+                    You will have to select representants of each category in the next step.
+                </span>
+            </p>
+            <p>
+                To <b>add more images</b> for counting, tap the "Add next image" button. <br>
+                You will go through the same process of
+                <span v-if="viewState.currentAction === ImageAction.LeaderCounting">leader selection and</span>
+                selecting a background for each image.
+            </p>
+        </div>
+        <div v-else-if="currentViewState === ViewStates.ImageViewCountingResult
+                && viewState.currentAction === ImageAction.PreviewDataset" class="instructions-text">
+            <p>You are now <b>previewing a dataset</b>. You can see all the images that are part of it.</p>
+            <p>You <b>can't make any changes to it</b>. To view categories included in the dataset, tap the "Details" button.</p>
+        </div>
+        <div v-else-if="currentViewState === ViewStates.ImageViewCountingResult
+                && viewState.currentAction !== ImageAction.PreviewDataset" class="instructions-text">
             <p>That's it!</p>
             <p>You can see the <b>element count on the bottom</b>.</p>
             <p>To see how many elements of <b>specific types</b> were counted, use the <b>"Details" button.</b></p>
@@ -141,7 +176,7 @@ onMounted(() => animateButton());
             </p>
             <p>
                 You can <b>add more images</b> to the dataset by tapping the "Add next image" button.
-                You will go through the same process of selecting a background and category representants.
+                You will go through the same process of selecting a background and category representants for each image.
             </p>
             <p>
                 <b>If the classification is incorrect, select "Adjust categories"</b>, tap the "Assign categories" button,
@@ -289,6 +324,10 @@ onMounted(() => animateButton());
 #instructions-popup .p-accordion-content {
     padding-left: 0;
     padding-right: 0;
+}
+
+#instructions-popup .p-dialog-header-icons {
+    display: unset;
 }
 
 @media screen and (min-width: 340px) {
