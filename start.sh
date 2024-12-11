@@ -21,7 +21,9 @@ then
     export SAM_MODEL_TYPE=$2
 fi
 cd objects_counter || exit
-flask db init
+echo "Enter the database password: "
+read -s -r db_password
+export DB_PASSWORD=$db_password
 flask db upgrade
 flask run --host=0.0.0.0
 cd ..
