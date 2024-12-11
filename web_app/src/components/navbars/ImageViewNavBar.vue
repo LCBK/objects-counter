@@ -9,18 +9,19 @@ const viewState = useViewStateStore();
 
 
 function onBack() {
-    if (viewState.currentState === ViewStates.ImageViewConfirmDataset) {
-        viewState.setState(ViewStates.ImageViewCreateDataset);
+    useImageStateStore().reset();
+
+    if (viewState.previousState === ViewStates.BrowseResultHistory) {
+        viewState.setState(ViewStates.BrowseResultHistory);
+    }
+    else if (viewState.previousState === ViewStates.BrowseComparisonHistory) {
+        viewState.setState(ViewStates.BrowseComparisonHistory);
+    }
+    else if (viewState.previousState === ViewStates.BrowseDatasets) {
+        viewState.setState(ViewStates.BrowseDatasets);
     }
     else {
-        useImageStateStore().reset();
-
-        if (viewState.previousState === ViewStates.BrowseResultHistory) {
-            viewState.setState(ViewStates.BrowseResultHistory);
-        }
-        else {
-            viewState.reset();
-        }
+        viewState.reset();
     }
 }
 </script>

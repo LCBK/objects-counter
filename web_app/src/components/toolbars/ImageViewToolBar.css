@@ -22,7 +22,7 @@
     color: var(--primary-color);
     text-align: center;
     justify-content: space-between;
-    margin-top: -20px;
+    margin-top: -10px;
     background-color: var(--surface-card);
     border-top-left-radius: 30px;
     border-top-right-radius: 30px;
@@ -33,9 +33,12 @@
 }
 
 .element-count-value {
-    display: block;
+    display: flex;
     font-weight: 700;
     font-size: 2.25rem;
+    max-width: 70px;
+    justify-content: center;
+    align-items: baseline;
 }
 
 .element-count-label {
@@ -101,6 +104,10 @@
     width: 92.5vw;
 }
 
+.quantities .p-sidebar-content {
+    padding: 0 12px 12px 12px;
+}
+
 .quantities .p-sidebar-header {
     padding-bottom: 12px;
     max-width: 600px;
@@ -133,6 +140,15 @@
     .element-count-label {
         font-size: 1rem;
     }
+
+    .image-view-tool-bar {
+        height: 100px !important;
+    }
+
+    .element-count {
+        margin-top: -10px !important;
+        padding: 15px 25px;
+    }
 }
 
 @media screen and (min-width: 400px) {
@@ -147,7 +163,7 @@
 
 @media screen and (min-width: 460px) and (max-width: 767px) {
     .element-count {
-        padding: 10px 8.36vw;
+        padding: 15px 8.36vw;
     }
 }
 
@@ -159,6 +175,6 @@
 
 @media screen and (min-width: 768px) {
     .element-count {
-        padding: 10px 70px;
+        padding: 15px 70px;
     }
 }

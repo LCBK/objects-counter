@@ -1,4 +1,4 @@
-import { themeUrls } from "@/config";
+import { config, themeUrls } from "@/config";
 import { defineStore } from "pinia";
 
 
@@ -78,6 +78,24 @@ export const useSettingsStateStore = defineStore("settingsState", {
             if (showElementIds === null) this.updateElementIdsVisibility(defaultState.showElementIds);
             else if (showElementIds === "true") this.showElementIds = true;
             else this.showElementIds = false;
+        },
+
+        loadSavedServerAddress() {
+            if (localStorage.getItem("serverAddress")) {
+                config.serverAddress = localStorage.getItem("serverAddress") as string;
+            }
+
+            if (localStorage.getItem("serverUseHttps")) {
+                config.serverUseHttps = localStorage.getItem("serverUseHttps") === "true";
+            }
+        },
+
+        resetServerAddress() {
+            config.serverAddress = import.meta.env.VITE_BACKEND_ADDRESS as string;
+            localStorage.removeItem("serverAddress");
+            localStorage.removeItem("serverUseHttps");
+
+            location.reload();
         }
     }
 });

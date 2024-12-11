@@ -135,6 +135,30 @@
     gap: 12px;
 }
 
+.image-inputs input {
+    width: 0px;
+    height: 0px;
+    overflow: hidden;
+}
+
+.image-dialog .p-dialog-content,
+.counting-dialog .p-dialog-content {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    margin-top: 16px;
+}
+
+.image-dialog .p-button,
+.counting-dialog .p-button {
+    height: 45px;
+}
+
+.image-dialog .p-button-icon,
+.counting-dialog .p-button-icon {
+    font-size: 1.2rem;
+}
+
 /***** Animations *****/
 
 .fade-enter-active,

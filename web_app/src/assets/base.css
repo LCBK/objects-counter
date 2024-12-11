@@ -38,6 +38,10 @@
   --color-shadow: rgba(9, 9, 11, 0.4);
 
   --primary-color-hover: #246bdd;
+  --color-error: var(--red-500);
+  --color-success: var(--green-500);
+
+  --surface-section-transparent: rgba(255, 255, 255, 0.6);
 }
 
 :root.dark {
@@ -57,6 +61,10 @@
   --surface-card: #1c1c1f;
 
   --primary-color-hover: #4489dd;
+  --color-error: var(--red-400);
+  --color-success: var(--green-400);
+
+  --surface-section-transparent: rgba(24, 24, 27, 0.6);
 }
 
 *,

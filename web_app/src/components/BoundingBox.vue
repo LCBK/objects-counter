@@ -3,6 +3,7 @@ import { boundingBoxColors } from '@/config';
 import { useImageStateStore } from '@/stores/imageState';
 import { useSettingsStateStore } from '@/stores/settingsState';
 import { useViewStateStore, ViewStates } from '@/stores/viewState';
+import { getClassificationBoxColor } from '@/utils';
 import { computed } from 'vue';
 
 
@@ -27,42 +28,41 @@ const props = defineProps({
         type: Number,
         required: false
     },
-    classificationIndex: {
-        type: Number,
+    classificationName: {
+        type: String,
         required: false
     }
 });
 
+const classification = computed(() => {
+    if (props.classificationName) {
+        return imageState.classifications.find(c => c.name === props.classificationName);
+    }
+    return undefined;
+});
+
 const boxColor = computed(() => {
-    if (viewState.currentState === ViewStates.ImageViewCreateDataset || props.classificationIndex === undefined) {
-        return boundingBoxColors[0];
+    if (props.classificationName) {
+        return getClassificationBoxColor(props.classificationName);
     }
-    else {
-        return imageState.objectClassifications[props.classificationIndex].boxColor;
-    }
+    return boundingBoxColors[0];
 });
 
 const isSelectedAsLeader = computed(() => {
-    return imageState.selectedLeaderIds.includes(props.id)
-        && (viewState.currentState === ViewStates.ImageViewCreateDataset
+    return imageState.currentImage.selectedLeaderIds.includes(props.id)
+        && (viewState.currentState === ViewStates.ImageViewSelectLeaders
             || viewState.currentState === ViewStates.ImageViewConfirmDataset
+            || viewState.currentState === ViewStates.ImageViewConfirmCounting
         );
 });
 
 const selectedBoxColor = computed(() => {
-    if (viewState.currentState === ViewStates.ImageViewCreateDataset) {
+    if (viewState.currentState === ViewStates.ImageViewSelectLeaders) {
         return boundingBoxColors[2];
     }
     else {
         return boxColor.value;
     }
-});
-
-const classification = computed(() => {
-    if (props.classificationIndex === undefined) {
-        return "Unknown";
-    }
-    else return imageState.objectClassifications[props.classificationIndex].classificationName
 });
 
 const scale = computed(() => imageState.boundingBoxScale);
@@ -75,23 +75,22 @@ const height = computed(() => (props.bottomRight[1] - props.topLeft[1]) * scale.
 
 
 function handleBoundingBoxClick() {
-    // If creating dataset, enable leader selection
-    if (viewState.currentState === ViewStates.ImageViewCreateDataset) {
-        if (imageState.selectedLeaderIds.includes(props.id)) {
-            imageState.selectedLeaderIds = imageState.selectedLeaderIds.filter(id => id !== props.id);
+    // If creating dataset or counting with leaders, enable leader selection
+    if (viewState.currentState === ViewStates.ImageViewSelectLeaders) {
+        if (imageState.currentImage.selectedLeaderIds.includes(props.id)) {
+            imageState.currentImage.selectedLeaderIds = imageState.currentImage.selectedLeaderIds.filter(id => id !== props.id);
         }
         else {
-            imageState.selectedLeaderIds.push(props.id);
+            imageState.currentImage.selectedLeaderIds.push(props.id);
         }
     }
     // If assigning classifications, enable assignment
     else if (viewState.currentState === ViewStates.ImageViewConfirmDataset && viewState.isAssigningClassifications) {
         if (!isSelectedAsLeader.value) {
-            const element = imageState.imageElements.find(el => el.id === props.id);
-            if (element && element.classificationIndex !== undefined) {
-                imageState.objectClassifications[element.classificationIndex].count--;
-                element.classificationIndex = viewState.currentlyAssignedClassificationIndex;
-                imageState.objectClassifications[viewState.currentlyAssignedClassificationIndex].count++;
+            const element = imageState.currentImage.elements.find(el => el.id === props.id);
+
+            if (element && element.classificationName !== undefined) {
+                element.classificationName = viewState.currentlyAssignedClassificationName;
             }
         }
     }
@@ -101,19 +100,19 @@ function handleBoundingBoxClick() {
 
 <template>
     <div :class="(isSelectedAsLeader ? 'selected-box ' : '') + 'bounding-box'"
-            v-bind:data-topleft="props.topLeft[0] + ',' + props.topLeft[1]"
-            v-bind:data-bottomright="props.bottomRight[0] + ',' + props.bottomRight[1]"
-            v-bind:data-certainty="props.certainty" v-bind:data-classification="classification"
-            v-if="classificationIndex === undefined || imageState.objectClassifications[classificationIndex].showBoxes"
+            v-bind:data-topleft="topLeft[0] + ',' + topLeft[1]"
+            v-bind:data-bottomright="bottomRight[0] + ',' + bottomRight[1]"
+            v-bind:data-certainty="certainty" v-bind:data-classification="classification"
+            v-if="classification === undefined || classification.showBoxes"
             @click="handleBoundingBoxClick">
         <div>
-            <div v-if="settingsState.showBoxCertainty && viewState.currentState !== ViewStates.ImageViewCreateDataset" class="box-certainty">
-                {{ props.certainty }}
+            <div v-if="settingsState.showBoxCertainty && viewState.currentState !== ViewStates.ImageViewSelectLeaders" class="box-certainty">
+                {{ certainty ? Math.round(certainty * 100) / 100 : "" }}
             </div>
-            <div v-if="settingsState.showBoxLabel && viewState.currentState !== ViewStates.ImageViewCreateDataset" class="box-classification">
-                {{ classification }}
+            <div v-if="settingsState.showBoxLabel && viewState.currentState !== ViewStates.ImageViewSelectLeaders" class="box-classification">
+                {{ classificationName }}
             </div>
-            <div v-if="settingsState.showElementIds" class="box-ids">{{ props.id }}</div>
+            <div v-if="settingsState.showElementIds" class="box-ids">{{ id }}</div>
         </div>
         <div class="selected-box-overlay"></div>
     </div>

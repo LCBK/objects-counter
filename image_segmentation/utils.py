@@ -1,10 +1,9 @@
 import os
 from typing import Tuple
 
-import cv2
 import numpy as np
-from PIL import ImageDraw
 from PIL import Image as PILImage
+from PIL import ImageDraw
 
 from objects_counter.db.dataops.image import get_image_by_id
 from objects_counter.db.models import ImageElement
@@ -17,14 +16,14 @@ def display_element(element: ImageElement):
     cropped_image = crop_element(image_data, element.top_left, element.bottom_right)
 
     draw = ImageDraw.Draw(cropped_image)
-    draw.text((0, 0), "Class: " + str(element.classification))
+    draw.text((0, 0), "ID: " + str(element.id))
 
     cropped_image.show()
 
 
 def crop_element(image: np.ndarray, top_left: Tuple[float, float], bottom_right: Tuple[float, float]) -> PILImage.Image:
     """Crops the image based on bounding box coordinates."""
-    pil_image = PILImage.fromarray(cv2.cvtColor(image, cv2.COLOR_BGR2RGB))
+    pil_image = PILImage.fromarray(image)
     (x_min, y_min), (x_max, y_max) = top_left, bottom_right
     return pil_image.crop((x_min, y_min, x_max, y_max))
 

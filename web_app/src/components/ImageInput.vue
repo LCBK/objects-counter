@@ -1,15 +1,14 @@
 <script setup lang="ts">
 import { ref } from "vue";
 import VButton from "primevue/button";
+import VDialog from "primevue/dialog";
 import VSelectButton from "primevue/selectbutton";
-import { useImageStateStore } from "@/stores/imageState";
 import { ImageAction, useViewStateStore, ViewStates } from "@/stores/viewState";
-import { isUserAgentMobile, sendRequest } from "@/utils";
-import { config, endpoints } from "@/config";
+import { isUserAgentMobile, processImageData } from "@/utils";
 import { useUserStateStore } from "@/stores/userState";
+import { uploadImage } from "@/requests/images";
 
 
-const imageState = useImageStateStore();
 const viewState = useViewStateStore();
 const userState = useUserStateStore();
 
@@ -17,86 +16,77 @@ const captureInput = ref<HTMLInputElement>();
 const uploadInput = ref<HTMLInputElement>();
 const currentMode = ref<string>("Capture");
 
+const isCountingDialogVisible = ref<boolean>(false);
 
-function triggerImageInput() : void {
+
+function triggerImageInput() {
     if (!uploadInput.value || !captureInput.value) return;
     if (currentMode.value === "Capture") captureInput.value.click();
     else uploadInput.value.click();
 }
 
-function handleCountingClick() : void {
-    triggerImageInput();
-    viewState.currentAction = ImageAction.SimpleCounting;
+function handleCountingClick() {
+    isCountingDialogVisible.value = true;
 }
 
-function handleCreateDatasetClick() : void {
+function handleCreateDatasetClick() {
     triggerImageInput();
     viewState.currentAction = ImageAction.CreateDataset;
 }
 
-function handleCompareClick() : void {
+function handleCompareClick() {
     triggerImageInput();
     viewState.currentAction = ImageAction.CompareWithDataset;
 }
 
-function handleImageUpload(event: Event) : void {
+function handleAutomaticCountingClick() {
+    triggerImageInput();
+    viewState.currentAction = ImageAction.AutomaticCounting;
+}
+
+function handleLeaderCountingClick() {
+    triggerImageInput();
+    viewState.currentAction = ImageAction.LeaderCounting;
+}
+
+async function handleImageUpload(event: Event) {
     const imageFile = (event.target as HTMLInputElement)!.files?.[0];
-    if (imageFile !== undefined) {
-        // Set image URL to display it later on
-        const url = window.URL.createObjectURL(imageFile);
-        imageState.url = url;
+    if (imageFile === undefined) return;
 
-        // Get image dimensions
-        const img = new Image;
-        img.src = url;
-        img.onload = () => {
-            imageState.width = img.width;
-            imageState.height = img.height;
-        };
+    viewState.setState(ViewStates.Uploading);
 
-        // Upload image to server
-        const requestUri = config.serverUri + endpoints.uploadImage;
-        const requestData = new FormData();
-        requestData.append("image", imageFile);
-        const responsePromise = sendRequest(requestUri, requestData, "POST", "multipart/form-data");
-
-        viewState.isImageUploading = true;
-        viewState.setState(ViewStates.Uploading);
-
-        responsePromise.then((response) => {
-            viewState.isImageUploading = false;
-            viewState.isImageUploaded = true;
-
-            if (response.status === 201) {
-                imageState.imageId = response.data;
-                viewState.setState(ViewStates.ImageEditPoints);
-            }
-            else {
-                console.error("Failed to upload image");
-                viewState.setState(ViewStates.MainView);
-            }
-        });
-    }
+    await uploadImage(imageFile).then(imageId => {
+        processImageData(imageFile, imageId);
+        viewState.setState(ViewStates.ImageViewEditPoints);
+    }).catch(() => {
+        viewState.setState(ViewStates.MainView);
+    });
 }
 </script>
 
 
 <template>
     <div class="image-select">
-        <VButton class="wide-button" label="Count elements" icon="pi pi-box" @click="handleCountingClick()" />
+        <VButton class="wide-button" label="Count elements" icon="pi pi-box" @click="handleCountingClick" />
         <p v-if="!userState.isLoggedIn" class="login-notice notice">Log in to access functions below</p>
         <VButton class="wide-button" label="Create dataset" icon="pi pi-images"
-                :disabled="!userState.isLoggedIn" @click="handleCreateDatasetClick()" />
+                :disabled="!userState.isLoggedIn" @click="handleCreateDatasetClick" />
         <VButton class="wide-button" label="Compare elements" icon="pi pi-arrow-right-arrow-left"
-                :disabled="!userState.isLoggedIn" @click="handleCompareClick()" />
-        <VSelectButton v-if="isUserAgentMobile()" class="mode-select" v-model="currentMode" :options="['Capture', 'Upload']" :allow-empty="false" />
+                :disabled="!userState.isLoggedIn" @click="handleCompareClick" />
+        <VSelectButton v-if="isUserAgentMobile()" class="mode-select" v-model="currentMode"
+                :options="['Capture', 'Upload']" :allow-empty="false" />
     </div>
-    <div class="image-select-inputs">
+    <div class="image-inputs">
         <input type="file" name="image-capture" ref="captureInput"
-            accept="image/*" capture="environment" @change.stop.prevent="handleImageUpload($event)" />
+                accept="image/*" capture="environment" @change.stop.prevent="handleImageUpload($event)" />
         <input type="file" name="image-upload" ref="uploadInput"
-            accept="image/*" @change.stop.prevent="handleImageUpload($event)" />
+                accept="image/*" @change.stop.prevent="handleImageUpload($event)" />
     </div>
+    <VDialog v-model:visible="isCountingDialogVisible" modal header="Choose method"
+            class="counting-dialog input-dialog" :dismissable-mask="true" :draggable="false">
+        <VButton label="Automatic counting" icon="pi pi-sync" @click="handleAutomaticCountingClick" />
+        <VButton label="Leader selection" icon="pi pi-pencil" @click="handleLeaderCountingClick" />
+    </VDialog>
 </template>
 
 
@@ -106,12 +96,6 @@ function handleImageUpload(event: Event) : void {
     flex-direction: column;
     align-items: center;
     gap: 30px;
-}
-
-.image-select-inputs input {
-    width: 0px;
-    height: 0px;
-    overflow: hidden;
 }
 
 .login-notice {

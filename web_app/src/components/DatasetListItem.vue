@@ -1,12 +1,19 @@
 <script setup lang="ts">
-import { config, endpoints } from "@/config";
-import { type DatasetClassificationListItem } from "@/types";
-import { formatClassificationName, getClassificationsFromDataset, sendRequest } from "@/utils";
+import { type DatasetClassificationListItem } from "@/types/app";
+import {
+    formatClassificationName,
+    getClassificationsFromDataset,
+    parseElementsToImage,
+    processImageData
+} from "@/utils";
 import VDialog from "primevue/dialog";
 import VButton from "primevue/button";
 import VInputText from "primevue/inputtext";
 import { ref } from "vue";
-import { useViewStateStore, ViewStates } from "@/stores/viewState";
+import { ImageAction, useViewStateStore, ViewStates } from "@/stores/viewState";
+import { deleteDataset, getDataset, renameDataset } from "@/requests/datasets";
+import { useImageStateStore } from "@/stores/imageState";
+import { getImageBlob } from "@/requests/images";
 
 
 const props = defineProps({
@@ -31,6 +38,7 @@ const props = defineProps({
 const emit = defineEmits(["compareClick", "dataChanged"]);
 
 const viewState = useViewStateStore();
+const imageState = useImageStateStore();
 
 const detailsVisible = ref<boolean>(false);
 const renameDialogVisible = ref<boolean>(false);
@@ -42,54 +50,57 @@ const date = new Date(props.timestamp).toISOString().split("T")[0];
 const time = new Date(props.timestamp).toLocaleTimeString();
 
 
-function showDatasetDetails() {
-    const requestUri = config.serverUri + endpoints.getDataset.replace("{dataset_id}", props.id.toString());
-    const requestPromise = sendRequest(requestUri, null, "GET");
-    requestPromise.then((response) => {
-        if (response.status === 200) {
-            classifications.value = getClassificationsFromDataset(response.data);
-            detailsVisible.value = true;
-        }
-        else {
-            console.error("Failed to retrieve dataset details");
-            return;
-        }
-    });
-}
-
 function showRenameDialog() {
     renameNewName.value = props.name;
     renameDialogVisible.value = true;
 }
 
-function confirmRename() {
-    const requestUri = config.serverUri + endpoints.renameDataset.replace("{dataset_id}", props.id.toString());
-    const requestData = JSON.stringify({ "name": renameNewName.value });
-    const requestPromise = sendRequest(requestUri, requestData, "PATCH");
-    requestPromise.then((response) => {
-        if (response.status === 200) {
-            emit("dataChanged");
-            detailsVisible.value = false;
-            renameDialogVisible.value = false;
-        }
-        else {
-            console.error("Failed to rename dataset");
-        }
+async function showDatasetDetails() {
+    await getDataset(props.id).then(response => {
+        classifications.value = getClassificationsFromDataset(response);
+        classifications.value.sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true }));
+        detailsVisible.value = true;
     });
 }
 
-function confirmDelete() {
-    const requestUri = config.serverUri + endpoints.deleteDataset.replace("{dataset_id}", props.id.toString());
-    const requestPromise = sendRequest(requestUri, null, "DELETE");
-    requestPromise.then((response) => {
-        if (response.status === 204) {
-            emit("dataChanged");
-            detailsVisible.value = false;
-            deleteDialogVisible.value = false;
+async function handleShowDataset() {
+    viewState.isWaitingForResponse = true;
+
+    await getDataset(props.id).then(response => {
+        imageState.datasetId = props.id;
+
+        const promises = [] as Promise<void>[];
+        for (const image of response.images) {
+            promises.push(getImageBlob(image.id).then(blob => {
+                processImageData(blob, image.id).then(() => {
+                    parseElementsToImage(image.id, image.elements);
+                });
+            }));
         }
-        else {
-            console.error("Failed to delete dataset");
-        }
+
+        Promise.all(promises).then(() => {
+            viewState.currentAction = ImageAction.PreviewDataset;
+            viewState.setState(ViewStates.ImageViewCountingResult);
+            viewState.currentNavBarTitle = "Dataset preview";
+        });
+    }).finally(() => {
+        viewState.isWaitingForResponse = false;
+    });
+}
+
+async function handleRename() {
+    await renameDataset(props.id, renameNewName.value).then(() => {
+        emit("dataChanged");
+        detailsVisible.value = false;
+        renameDialogVisible.value = false;
+    });
+}
+
+async function handleDelete() {
+    deleteDataset(props.id).then(() => {
+        emit("dataChanged");
+        detailsVisible.value = false;
+        deleteDialogVisible.value = false;
     });
 }
 </script>
@@ -116,11 +127,13 @@ function confirmDelete() {
                 </div>
             </div>
         </div>
-        <VButton v-if="viewState.currentState === ViewStates.ImageViewCompareWithDataset"
+        <VButton v-if="viewState.currentState === ViewStates.ImageViewCompareWithDataset
+                || viewState.currentState === ViewStates.ImageViewComparisonResult"
                 label="Compare" class="compare-button" @click="$emit('compareClick', props.id)" />
         <div v-else class="details-controls">
             <VButton label="Rename" outlined @click="showRenameDialog" />
-            <VButton label="Delete" @click="deleteDialogVisible = true" />
+            <VButton label="Delete" outlined @click="deleteDialogVisible = true" />
+            <VButton label="Show" @click="handleShowDataset" />
         </div>
     </VDialog>
     <VDialog v-model:visible="renameDialogVisible" modal :dismissable-mask="true" :draggable="false"
@@ -128,7 +141,7 @@ function confirmDelete() {
         <VInputText v-model="renameNewName" class="rename-input" :placeholder="name" :autofocus="true" />
         <div class="rename-controls">
             <VButton outlined label="Cancel" @click="renameDialogVisible = false" />
-            <VButton label="Rename" @click="confirmRename" />
+            <VButton label="Rename" @click="handleRename" />
         </div>
     </VDialog>
     <VDialog v-model:visible="deleteDialogVisible" modal :dismissable-mask="true" :draggable="false"
@@ -136,7 +149,7 @@ function confirmDelete() {
         <p>Are you sure you want to delete this dataset?</p>
         <div class="delete-controls">
             <VButton outlined label="Cancel" @click="deleteDialogVisible = false" />
-            <VButton label="Delete" @click="confirmDelete" />
+            <VButton label="Delete" @click="handleDelete" />
         </div>
     </VDialog>
 </template>
@@ -233,6 +246,7 @@ function confirmDelete() {
     justify-content: flex-end;
     gap: 12px;
     margin-top: 12px;
+    flex-wrap: wrap;
 }
 
 @media screen and (min-width: 400px) {

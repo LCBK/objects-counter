@@ -7,7 +7,7 @@ import ImageInput from "../ImageInput.vue";
 import InstructionsWidget from "../InstructionsWidget.vue";
 import LoadingSpinner from "../LoadingSpinner.vue";
 import MainViewNavBar from "../navbars/MainViewNavBar.vue";
-import { checkServerStatus } from "@/utils";
+import { checkServerStatus } from "@/requests/other";
 import { onMounted, ref } from "vue";
 import { config } from "@/config";
 
@@ -20,6 +20,7 @@ const isOffline = ref<boolean>(false);          // means that we are sure the se
 const isCheckingStatus = ref<boolean>(false);
 const receivedStatusResponse = ref<boolean>(false);
 const serverAddressDialogVisible = ref<boolean>(false);
+
 const serverAddress = ref<string>("");
 const serverUseHttps = ref<boolean>(false);
 
@@ -27,11 +28,11 @@ const serverUseHttps = ref<boolean>(false);
 function performServerCheck() {
     Promise.race([
         checkServerStatus(),
-        new Promise((resolve) => setTimeout(() => {
+        new Promise(resolve => setTimeout(() => {
             resolve(false);
             receivedStatusResponse.value = true;
         }, config.serverIsAliveTimeout))
-    ]).then((status) => {
+    ]).then(status => {
         if (status) {
             isOffline.value = false;
             isOnline.value = true;
@@ -102,6 +103,7 @@ onMounted(async () => {
             <MainViewNavBar />
             <ImageInput />
             <InstructionsWidget labeled />
+            <p class="notice">Reading recommended for better understanding</p>
         </div>
     </Transition>
 </template>
@@ -161,6 +163,11 @@ onMounted(async () => {
 
 #main-view.server-offline .wide-button {
     margin: 0 auto 10px auto;
+}
+
+#main-view .notice {
+    max-width: 70%;
+    margin: 10px auto 0 auto;
 }
 
 @media screen and (min-width: 340px) {
