@@ -21,7 +21,7 @@ const addImageDialogVisible = ref<boolean>(false);
 
 
 function handleReturnClick() {
-    viewState.setState(ViewStates.ImageEditPoints);
+    viewState.setState(ViewStates.ImageViewEditPoints);
     viewState.showBackground = true;
     imageState.clearAllResults();
 }
@@ -39,7 +39,7 @@ async function handleImageUpload(event: Event) {
         imageState.currentImageIndex = imageState.images.length;
 
         viewState.isAddingMoreImages = true;
-        viewState.setState(ViewStates.ImageEditPoints);
+        viewState.setState(ViewStates.ImageViewEditPoints);
     }).catch(() => {
         viewState.setState(ViewStates.MainView);
     });

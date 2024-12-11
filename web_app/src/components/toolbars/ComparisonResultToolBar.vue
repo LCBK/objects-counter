@@ -6,8 +6,8 @@ import VSidebar from "primevue/sidebar";
 import QuantitiesEntry from "../QuantitiesEntry.vue";
 import MissingQuantitiesEntry from "../MissingQuantitiesEntry.vue";
 import { useImageStateStore } from "@/stores/imageState";
-import { useViewStateStore } from "@/stores/viewState";
-import { computed, ref } from "vue";
+import { useViewStateStore, ViewStates } from "@/stores/viewState";
+import { computed, onMounted, ref } from "vue";
 import { base64ToImageUri, parseMultipleClassificationsFromResponse } from "@/utils";
 import { type DatasetListItem } from "@/types/app";
 import DatasetListItemComponent from "../DatasetListItem.vue";
@@ -88,6 +88,12 @@ async function handleCompareClick(datasetId: number) {
         viewState.isWaitingForResponse = false;
     });
 }
+
+onMounted(() => {
+    if (viewState.previousState === ViewStates.ImageViewCompareWithDataset) {
+        quantitiesVisible.value = true;
+    }
+});
 </script>
 
 
@@ -117,7 +123,7 @@ async function handleCompareClick(datasetId: number) {
             <div class="quantities-col">Label<span class="rename-notice notice">(tap to rename)</span></div>
             <div class="quantities-col">Show boxes</div>
         </div>
-        <div class="quantities-content">
+        <div class="quantities-content quantities-comparison">
             <QuantitiesEntry v-for="(classification, index) in imageState.classifications"
                     :key="index" :name="classification.name" />
             <MissingQuantitiesEntry v-for="(missing, index) in missingClassifications" :key="index" :name="missing" />
@@ -221,11 +227,11 @@ async function handleCompareClick(datasetId: number) {
     max-width: 600px;
 }
 
-.quantity-count {
+.quantities-comparison .quantity-count {
     flex-basis: 20% !important;
 }
 
-.quantity-classification {
+.quantities-comparison .quantity-classification {
     flex-basis: 55% !important;
 }
 </style>

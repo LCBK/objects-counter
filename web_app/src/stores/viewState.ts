@@ -26,7 +26,7 @@ export enum ViewStates {
     MainView,
     UserView,
     Uploading,
-    ImageEditPoints,
+    ImageViewEditPoints,
     ImageViewSelectLeaders,
     ImageViewConfirmCounting,
     ImageViewCountingResult,
@@ -93,7 +93,7 @@ export const useViewStateStore = defineStore("viewState", {
                     this.currentView = shallowRef(LoadingView);
                     break;
 
-                case ViewStates.ImageEditPoints:
+                case ViewStates.ImageViewEditPoints:
                     this.currentView = shallowRef(ImageView);
                     this.currentImageViewToolBar = shallowRef(EditPointsToolBar);
                     this.currentNavBarTitle = "Select background";

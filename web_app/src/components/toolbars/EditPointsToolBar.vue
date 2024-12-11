@@ -46,7 +46,7 @@ async function handleConfirmBackground() {
     viewState.isWaitingForResponse = true;
 
     await acceptBackground(imageState.currentImage.id).then(response => {
-        if (viewState.currentState !== ViewStates.ImageEditPoints) return;
+        if (viewState.currentState !== ViewStates.ImageViewEditPoints) return;
 
         parseElementsToImage(imageState.currentImage.id, response.elements);
 

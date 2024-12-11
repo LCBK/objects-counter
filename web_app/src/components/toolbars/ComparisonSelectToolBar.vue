@@ -32,7 +32,7 @@ const userDatasets = ref<DatasetListItem[]>([]);
 
 
 function handleReturnClick() {
-    viewState.setState(ViewStates.ImageEditPoints);
+    viewState.setState(ViewStates.ImageViewEditPoints);
     viewState.showBackground = true;
     imageState.clearCurrentResult();
 }
@@ -107,7 +107,7 @@ async function handleImageUpload(event: Event) {
         imageState.currentImageIndex = imageState.images.length;
 
         viewState.isAddingMoreImages = true;
-        viewState.setState(ViewStates.ImageEditPoints);
+        viewState.setState(ViewStates.ImageViewEditPoints);
     }).catch(() => {
         viewState.setState(ViewStates.MainView);
     });
@@ -134,7 +134,7 @@ function handleAddImage() {
 <template>
     <div class="image-view-tool-bar bar">
         <div class="bar-content tool-bar-content">
-            <VButton text label="Adjust" icon="pi pi-pencil" @click="handleReturnClick();" />
+            <VButton text label="Adjust background" icon="pi pi-pencil" @click="handleReturnClick" />
             <VButton text label="Add next image" icon="pi pi-plus" @click="handleAddImage" />
             <VButton text label="Select comparison" icon="pi pi-chart-bar" @click="handleDatasetListClick" />
         </div>
