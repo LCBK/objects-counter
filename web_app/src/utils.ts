@@ -1,8 +1,8 @@
 import { boundingBoxColors, config } from "./config";
 import { useUserStateStore } from "./stores/userState";
 import { useImageStateStore } from "./stores/imageState";
-import type { ClassificationWithObjects, GetDatasetResponse, ImageElementResponse, ImageWithAllData } from "./types/requests";
-import type { DatasetClassificationListItem, ImageDetails, ImageElement, ObjectClassification } from "./types/app";
+import type { GetDatasetResponse, ImageElementResponse, ImageWithAllData } from "./types/requests";
+import type { DatasetClassificationListItem, ImageDetails, ObjectClassification } from "./types/app";
 
 
 export async function sendRequest(
@@ -47,7 +47,7 @@ export async function sendRequest(
 
 
 export function distance(x1: number, y1: number, x2: number, y2: number): number {
-    return Math.sqrt(Math.pow(x1 - x2, 2) + Math.pow(y1 - y2, 2))
+    return Math.sqrt(Math.pow(x1 - x2, 2) + Math.pow(y1 - y2, 2));
 }
 
 
@@ -76,28 +76,6 @@ export function createMaskImage(mask: Array<Array<boolean>>): ImageData {
 }
 
 
-export function getImageClassifications(id: number): Array<ObjectClassification> {
-    const imageState = useImageStateStore();
-    const classifications = [] as Array<ObjectClassification>;
-    const image = imageState.images.find(image => image.id === id);
-
-    if (!image) return classifications;
-
-    for (const element of image.elements) {
-        if (element.classificationName) {
-            if (!classifications.find(c => c.name === element.classificationName)) {
-                classifications.push({
-                    name: element.classificationName,
-                    showBoxes: true
-                });
-            }
-        }
-    }
-
-    return classifications;
-}
-
-
 export function getClassificationBoxColor(name: string): string {
     const imageState = useImageStateStore();
     const classificationIndex = imageState.classifications.findIndex(c => c.name === name);
@@ -107,44 +85,8 @@ export function getClassificationBoxColor(name: string): string {
 }
 
 
-// TODO: Merge with parseClassificationsFromResponse when implementing multiple images on simple counting
 export function parseMultipleClassificationsFromResponse(images: Array<ImageWithAllData>): void {
     images.forEach(image => parseElementsToImage(image.id, image.elements));
-}
-
-
-export function parseClassificationsFromResponse(classifications: Array<ClassificationWithObjects>): void {
-    const imageState = useImageStateStore();
-
-    classifications.forEach(classification => {
-        if (!imageState.classifications.find(c => c.name === classification.name)) {
-            // If received classification name is found in the rename map, use the new name
-            const mapping = imageState.classificationRenameMap.find(c => c.originalName === classification.name);
-            if (mapping) classification.name = mapping.newName;
-            else imageState.addClassification(classification.name);
-        }
-
-        classification.objects.forEach(element => {
-            const imageElement = {
-                id: element.id,
-                topLeft: element.top_left,
-                bottomRight: element.bottom_right,
-                certainty: element.certainty,
-                classificationName: classification.name
-            } as ImageElement;
-
-            for (const leaderId of imageState.currentImage.selectedLeaderIds) {
-                if (leaderId === element.id) {
-                    imageElement.isLeader = true;
-                    break;
-                }
-            }
-
-            imageState.currentImage.elements.push(imageElement);
-        });
-    });
-
-    imageState.sortClassifications();
 }
 
 
@@ -195,6 +137,28 @@ export function getClassificationsFromDataset(dataset: GetDatasetResponse): Arra
     });
 
     return classificationItems;
+}
+
+
+export function getImageClassifications(id: number): Array<ObjectClassification> {
+    const imageState = useImageStateStore();
+    const classifications = [] as Array<ObjectClassification>;
+    const image = imageState.images.find(image => image.id === id);
+
+    if (!image) return classifications;
+
+    for (const element of image.elements) {
+        if (element.classificationName) {
+            if (!classifications.find(c => c.name === element.classificationName)) {
+                classifications.push({
+                    name: element.classificationName,
+                    showBoxes: true
+                });
+            }
+        }
+    }
+
+    return classifications;
 }
 
 

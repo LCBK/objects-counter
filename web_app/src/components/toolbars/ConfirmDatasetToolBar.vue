@@ -178,9 +178,9 @@ function handleCreatedDataset() {
     </VDialog>
     <div class="image-inputs">
         <input type="file" name="image-capture" ref="captureInput"
-            accept="image/*" capture="environment" @change.stop.prevent="handleImageUpload($event)" />
+                accept="image/*" capture="environment" @change.stop.prevent="handleImageUpload($event)" />
         <input type="file" name="image-upload" ref="uploadInput"
-            accept="image/*" @change.stop.prevent="handleImageUpload($event)" />
+                accept="image/*" @change.stop.prevent="handleImageUpload($event)" />
     </div>
     <InfoPopup v-model="popupVisible" :text="popupText" :header="popupHeader"
             @close="handleCreatedDataset" :timeout="2500" />
@@ -223,13 +223,6 @@ function handleCreatedDataset() {
     display: inline-block;
     margin-right: 6px;
 }
-
-.image-inputs input {
-    width: 0px;
-    height: 0px;
-    overflow: hidden;
-}
-
 @media screen and (min-width: 340px) {
     .assignment-notice {
         bottom: 160px;
@@ -259,21 +252,6 @@ function handleCreatedDataset() {
 
 .change-categories .pi {
     margin-right: 8px;
-}
-
-.image-dialog .p-dialog-content {
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-    margin-top: 16px;
-}
-
-.image-dialog .p-button {
-    height: 45px;
-}
-
-.image-dialog .p-button-icon {
-    font-size: 1.2rem;
 }
 
 @media screen and (min-width: 400px) {

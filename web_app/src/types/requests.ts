@@ -12,9 +12,7 @@ export interface SendBackgroundPointsResponse {
     mask: Array<Array<boolean>>
 }
 
-export type AcceptBackgroundClassifiedResponse = ImageWithClassifications;
-
-export type AcceptBackgroundNonClassifiedResponse = ImageWithAllData;
+export type AcceptBackgroundResponse = ImageWithAllData;
 
 export type SendLeadersResponse = string;
 
@@ -54,17 +52,15 @@ export type AddImageToDatasetResponse = GetDatasetResponse;
 // Results
 
 export interface GetResultResponse {
-    data: {
-        classifications: Array<ClassificationWithObjects>,
-        count: number
-    },
     id: number,
-    image_id: number,
+    images: Array<ImageWithAllData>,
     timestamp: string,
     user: string
 }
 
 export interface GetResultsResponse extends Array<GetResultResponse> { }
+
+export type CreateResultResponse = GetResultResponse;
 
 
 // Comparisons

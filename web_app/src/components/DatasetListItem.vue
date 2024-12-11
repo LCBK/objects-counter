@@ -1,12 +1,19 @@
 <script setup lang="ts">
 import { type DatasetClassificationListItem } from "@/types/app";
-import { formatClassificationName, getClassificationsFromDataset } from "@/utils";
+import {
+    formatClassificationName,
+    getClassificationsFromDataset,
+    parseElementsToImage,
+    processImageData
+} from "@/utils";
 import VDialog from "primevue/dialog";
 import VButton from "primevue/button";
 import VInputText from "primevue/inputtext";
 import { ref } from "vue";
-import { useViewStateStore, ViewStates } from "@/stores/viewState";
+import { ImageAction, useViewStateStore, ViewStates } from "@/stores/viewState";
 import { deleteDataset, getDataset, renameDataset } from "@/requests/datasets";
+import { useImageStateStore } from "@/stores/imageState";
+import { getImageBlob } from "@/requests/images";
 
 
 const props = defineProps({
@@ -31,6 +38,7 @@ const props = defineProps({
 const emit = defineEmits(["compareClick", "dataChanged"]);
 
 const viewState = useViewStateStore();
+const imageState = useImageStateStore();
 
 const detailsVisible = ref<boolean>(false);
 const renameDialogVisible = ref<boolean>(false);
@@ -52,6 +60,31 @@ async function showDatasetDetails() {
         classifications.value = getClassificationsFromDataset(response);
         classifications.value.sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true }));
         detailsVisible.value = true;
+    });
+}
+
+async function handleShowDataset() {
+    viewState.isWaitingForResponse = true;
+
+    await getDataset(props.id).then(response => {
+        imageState.datasetId = props.id;
+
+        const promises = [] as Promise<void>[];
+        for (const image of response.images) {
+            promises.push(getImageBlob(image.id).then(blob => {
+                processImageData(blob, image.id).then(() => {
+                    parseElementsToImage(image.id, image.elements);
+                });
+            }));
+        }
+
+        Promise.all(promises).then(() => {
+            viewState.currentAction = ImageAction.PreviewDataset;
+            viewState.setState(ViewStates.ImageViewCountingResult);
+            viewState.currentNavBarTitle = "Dataset preview";
+        });
+    }).finally(() => {
+        viewState.isWaitingForResponse = false;
     });
 }
 
@@ -99,7 +132,8 @@ async function handleDelete() {
                 label="Compare" class="compare-button" @click="$emit('compareClick', props.id)" />
         <div v-else class="details-controls">
             <VButton label="Rename" outlined @click="showRenameDialog" />
-            <VButton label="Delete" @click="deleteDialogVisible = true" />
+            <VButton label="Delete" outlined @click="deleteDialogVisible = true" />
+            <VButton label="Show" @click="handleShowDataset" />
         </div>
     </VDialog>
     <VDialog v-model:visible="renameDialogVisible" modal :dismissable-mask="true" :draggable="false"
@@ -212,6 +246,7 @@ async function handleDelete() {
     justify-content: flex-end;
     gap: 12px;
     margin-top: 12px;
+    flex-wrap: wrap;
 }
 
 @media screen and (min-width: 400px) {

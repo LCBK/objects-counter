@@ -121,7 +121,7 @@ onMounted(() => animateButton());
                 You can access it later in the <b>history</b> on your profile.
             </p>
         </div>
-        <div v-else-if="currentViewState === ViewStates.ImageViewCreateDataset" class="instructions-text">
+        <div v-else-if="currentViewState === ViewStates.ImageViewSelectLeaders" class="instructions-text">
             <p>Elements found in your photo are now selected.</p>
             <p>
                 To add the image to the dataset, <b>select one representant</b> of each category by tapping at them. <br>

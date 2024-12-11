@@ -34,7 +34,6 @@ const userDatasets = ref<DatasetListItem[]>([]);
 function handleReturnClick() {
     viewState.setState(ViewStates.ImageViewEditPoints);
     viewState.showBackground = true;
-    viewState.isEditingExistingResult = true;
     imageState.clearCurrentResult();
 }
 
@@ -80,7 +79,7 @@ async function handleCompareClick(datasetId: number) {
     compareDialogVisible.value = false;
 
     await compareToDataset(datasetId, imageIds).then(response => {
-        imageState.clearCurrentResult();
+        imageState.clearAllResults();
 
         parseMultipleClassificationsFromResponse(response.images);
 
@@ -156,9 +155,9 @@ function handleAddImage() {
     </VDialog>
     <div class="image-inputs">
         <input type="file" name="image-capture" ref="captureInput"
-            accept="image/*" capture="environment" @change.stop.prevent="handleImageUpload($event)" />
+                accept="image/*" capture="environment" @change.stop.prevent="handleImageUpload($event)" />
         <input type="file" name="image-upload" ref="uploadInput"
-            accept="image/*" @change.stop.prevent="handleImageUpload($event)" />
+                accept="image/*" @change.stop.prevent="handleImageUpload($event)" />
     </div>
 </template>
 
@@ -182,12 +181,6 @@ function handleAddImage() {
 
 .compare-dialog .compare-dataset-list > div:not(:last-child) {
     border-bottom: 1px solid var(--surface-border);
-}
-
-.image-inputs input {
-    width: 0px;
-    height: 0px;
-    overflow: hidden;
 }
 </style>
 

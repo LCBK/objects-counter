@@ -50,13 +50,14 @@ const boxColor = computed(() => {
 
 const isSelectedAsLeader = computed(() => {
     return imageState.currentImage.selectedLeaderIds.includes(props.id)
-        && (viewState.currentState === ViewStates.ImageViewCreateDataset
+        && (viewState.currentState === ViewStates.ImageViewSelectLeaders
             || viewState.currentState === ViewStates.ImageViewConfirmDataset
+            || viewState.currentState === ViewStates.ImageViewConfirmCounting
         );
 });
 
 const selectedBoxColor = computed(() => {
-    if (viewState.currentState === ViewStates.ImageViewCreateDataset) {
+    if (viewState.currentState === ViewStates.ImageViewSelectLeaders) {
         return boundingBoxColors[2];
     }
     else {
@@ -74,8 +75,8 @@ const height = computed(() => (props.bottomRight[1] - props.topLeft[1]) * scale.
 
 
 function handleBoundingBoxClick() {
-    // If creating dataset, enable leader selection
-    if (viewState.currentState === ViewStates.ImageViewCreateDataset) {
+    // If creating dataset or counting with leaders, enable leader selection
+    if (viewState.currentState === ViewStates.ImageViewSelectLeaders) {
         if (imageState.currentImage.selectedLeaderIds.includes(props.id)) {
             imageState.currentImage.selectedLeaderIds = imageState.currentImage.selectedLeaderIds.filter(id => id !== props.id);
         }
@@ -105,10 +106,10 @@ function handleBoundingBoxClick() {
             v-if="classification === undefined || classification.showBoxes"
             @click="handleBoundingBoxClick">
         <div>
-            <div v-if="settingsState.showBoxCertainty && viewState.currentState !== ViewStates.ImageViewCreateDataset" class="box-certainty">
+            <div v-if="settingsState.showBoxCertainty && viewState.currentState !== ViewStates.ImageViewSelectLeaders" class="box-certainty">
                 {{ certainty ? Math.round(certainty * 100) / 100 : "" }}
             </div>
-            <div v-if="settingsState.showBoxLabel && viewState.currentState !== ViewStates.ImageViewCreateDataset" class="box-classification">
+            <div v-if="settingsState.showBoxLabel && viewState.currentState !== ViewStates.ImageViewSelectLeaders" class="box-classification">
                 {{ classificationName }}
             </div>
             <div v-if="settingsState.showElementIds" class="box-ids">{{ id }}</div>

@@ -3,18 +3,18 @@ import logging
 from sqlalchemy.exc import DatabaseError
 from werkzeug.exceptions import Forbidden
 
-from objects_counter.db.dataops.image import get_image_by_id, serialize_image_as_result
-from objects_counter.db.models import Result, db, User
+from objects_counter.db.dataops.image import serialize_image_as_result
+from objects_counter.db.models import Result, db, User, Image
 
 log = logging.getLogger(__name__)
 
 
-def insert_result(user_id, image_id, response):
-    result = Result(user_id=user_id, data=response)
-    image = get_image_by_id(image_id)
-    image.result = result
+def insert_result(user: User, images: list[Image], response: dict):
+    result = Result(user=user, data=response)
+    for image in images:
+        image.result = result
+        db.session.add(image)
     db.session.add(result)
-    db.session.add(image)
     try:
         db.session.commit()
         return result
@@ -46,7 +46,7 @@ def get_result_by_id(result_id: int) -> Result:
 
 def delete_result_by_id(result_id: int, user: User) -> None:
     result = Result.query.filter_by(id=result_id).one_or_404()
-    if not user or result.user_id != user.id:
+    if not user or result.user != user:
         log.error('User %s is not authorized to delete result %s', user, result_id)
         raise Forbidden(f'User {user} is not authorized to delete result {result_id}')
     db.session.delete(result)
@@ -68,7 +68,7 @@ def rename_classification(user: User, result_id: int, old_classification: str, n
         log.error('New classification is empty')
         raise ValueError('New classification is empty')
     count = 0
-    if not user or result.user_id != user.id:
+    if not user or result.user != user:
         log.error('User %s is not authorized to rename classification in result %s', user, result_id)
         raise Forbidden(f'User {user} is not authorized to rename classification in result {result_id}')
     for image in result.images:

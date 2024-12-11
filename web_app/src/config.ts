@@ -34,6 +34,7 @@ export const endpoints = {
     userLogin: "/api/users/login",
     getResults: "/api/results/",
     getResult: "/api/results/{result_id}",
+    createResult: "/api/results/",
     getResultsThumbnails: "/api/results/thumbnails",
     deleteResult: "/api/results/{result_id}",
     renameClassification: "/api/results/{result_id}/classification/{classification_name}/rename",

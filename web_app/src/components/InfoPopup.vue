@@ -12,7 +12,7 @@ const props = defineProps({
     }
 });
 
-const emits = defineEmits(['close']);
+defineEmits(['close']);
 
 const visible = defineModel<boolean>();
 

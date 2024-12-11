@@ -3,16 +3,13 @@ import "./ImageViewToolBar.css";
 import VButton from "primevue/button";
 import { ImageAction, useViewStateStore, ViewStates } from "@/stores/viewState";
 import { useImageStateStore } from "@/stores/imageState";
-import { parseClassificationsFromResponse, parseElementsToImage } from "@/utils";
+import { parseElementsToImage } from "@/utils";
 import { computed, onMounted, ref } from "vue";
-import { useUserStateStore } from "@/stores/userState";
-import { deleteResult } from "@/requests/results";
 import { acceptBackground } from "@/requests/images";
 
 
 const viewState = useViewStateStore();
 const imageState = useImageStateStore();
-const userState = useUserStateStore();
 
 const pointTypePanel = ref<HTMLElement>();
 const positivePointButton = ref<HTMLElement>();
@@ -48,42 +45,20 @@ function handleRemoveClick() {
 async function handleConfirmBackground() {
     viewState.isWaitingForResponse = true;
 
-    // If the user is editing an existing result, delete the old one before accepting the new one
-    if (viewState.isEditingExistingResult
-        && viewState.currentAction !== ImageAction.CreateDataset
-        && viewState.currentAction !== ImageAction.CompareWithDataset) {
-        if (userState.isLoggedIn) {
-            await deleteResult(imageState.resultId);
-        }
-
-        viewState.isEditingExistingResult = false;
-    }
-
-    const skipClassification = (
-        viewState.currentAction === ImageAction.CreateDataset
-        || viewState.currentAction === ImageAction.CompareWithDataset
-    );
-
-    await acceptBackground(imageState.currentImage.id, skipClassification).then(response => {
+    await acceptBackground(imageState.currentImage.id).then(response => {
         if (viewState.currentState !== ViewStates.ImageViewEditPoints) return;
 
-        if (response.id) imageState.resultId = response.id;
-
-        if ("classifications" in response) {
-            // The response contains classifications (for simple counting)
-            parseClassificationsFromResponse(response.classifications);
-        }
-        else {
-            // Backend responds with elements without classifications, for leader selection or comparison
-            parseElementsToImage(imageState.currentImage.id, response.elements);
-        }
+        parseElementsToImage(imageState.currentImage.id, response.elements);
 
         switch (viewState.currentAction) {
-            case ImageAction.SimpleCounting:
-                viewState.setState(ViewStates.ImageViewCountingResult);
+            case ImageAction.AutomaticCounting:
+                viewState.setState(ViewStates.ImageViewConfirmCounting);
+                break;
+            case ImageAction.LeaderCounting:
+                viewState.setState(ViewStates.ImageViewSelectLeaders);
                 break;
             case ImageAction.CreateDataset:
-                viewState.setState(ViewStates.ImageViewCreateDataset);
+                viewState.setState(ViewStates.ImageViewSelectLeaders);
                 break;
             case ImageAction.CompareWithDataset:
                 viewState.setState(ViewStates.ImageViewCompareWithDataset);

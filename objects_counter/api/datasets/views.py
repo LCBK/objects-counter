@@ -7,7 +7,7 @@ from werkzeug.exceptions import NotFound, Forbidden
 
 from objects_counter.api.datasets.models import insert_dataset_model, insert_image_model, patch_dataset_model, \
     adjust_classifications_model, images_list_model
-from objects_counter.api.default.views import object_grouper
+from objects_counter.api.common import object_grouper
 from objects_counter.api.utils import authentication_required, get_thumbnails
 from objects_counter.db.dataops.comparison_history import insert_comparison
 from objects_counter.db.dataops.dataset import get_user_datasets_serialized, get_dataset_by_id, delete_dataset_by_id, \
@@ -54,7 +54,7 @@ class Dataset(Resource):
                 log.error("Invalid dataset ID: %s", dataset_id)
                 raise ValueError("ID must be a positive integer")
             dataset = get_dataset_by_id(dataset_id)
-            if dataset.user_id != current_user.id:
+            if dataset.user != current_user:
                 log.error("User %s is not authorized to access dataset %s", current_user, dataset_id)
                 return Response('Unauthorized', 403)
             return jsonify(dataset.as_dict())
@@ -130,7 +130,7 @@ class DatasetImages(Resource):
             log.exception("Invalid dataset ID: %s", e)
             return Response("Invalid dataset ID", 400)
         dataset = get_dataset_by_id(dataset_id)
-        if dataset.user_id != current_user.id:
+        if dataset.user != current_user:
             return Response('Unauthorized', 403)
         for image in dataset.images:
             images.append(image.as_dict())
@@ -146,7 +146,7 @@ class DatasetImages(Resource):
                 log.error("Invalid dataset ID: %s", dataset_id)
                 raise ValueError("ID must be a positive integer")
             dataset = get_dataset_by_id(dataset_id)
-            if dataset.user_id != current_user.id:
+            if dataset.user != current_user:
                 log.error("User %s is not authorized to add images to dataset %s", current_user, dataset_id)
                 return Response("You are not authorized to add images to dataset {dataset_id}", 403)
             image_id = int(data.get('image_id'))
@@ -225,7 +225,7 @@ class CompareImageToDataset(Resource):
             return Response("Invalid image or dataset ID", 400)
         try:
             dataset = get_dataset_by_id(dataset_id)
-            if dataset.user_id != current_user.id:
+            if dataset.user != current_user:
                 log.error("User %s is not authorized to access dataset %s", current_user, dataset_id)
                 return Response('You are not authorized to access that dataset', 403)
             images = []

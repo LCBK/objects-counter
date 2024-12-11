@@ -15,6 +15,9 @@ const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
 mediaQuery.addEventListener("change", () => {
     settingsState.setThemeToPreferred();
 });
+
+// Prevent accidental navigation away from the page
+window.onbeforeunload = () => { return true };
 </script>
 
 

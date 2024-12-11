@@ -119,7 +119,7 @@ class ColorSimilarity:
     @staticmethod
     def get_histogram(image: PILImage) -> np.ndarray:
         """Computes a color histogram for an image, ignoring white background pixels."""
-
+        image = image.resize((128, 128))
         mask = ColorSimilarity.__get_mask(image)
         image = np.array(image)
 
@@ -127,9 +127,9 @@ class ColorSimilarity:
         image = cv2.cvtColor(image, cv2.COLOR_RGB2Luv)
 
         histogram = np.zeros(len(ColorSimilarity.ISCC_NBS_CENTROIDS_LUV))
-
+        reshaped_mask = mask.reshape(-1)
         for i, pixel in enumerate(image.reshape(-1, 3)):
-            if mask.reshape(-1)[i]:
+            if reshaped_mask[i]:
                 closest_index = ColorSimilarity.__find_closest_bin_color(pixel)
                 histogram[closest_index] += 1
 
@@ -139,8 +139,9 @@ class ColorSimilarity:
     @staticmethod
     def __get_mask(image: PILImage):
         image = image.convert('RGB')
+        image_array = np.array(image)
         mask = np.array(
-            [not (np.array(image)[x][y] == np.array([255, 255, 255])).all() for x in range(image.height) for y in
+            [not (image_array[x][y] == np.array([255, 255, 255])).all() for x in range(image.height) for y in
              range(image.width)])
         mask.resize(image.height, image.width)
         return mask

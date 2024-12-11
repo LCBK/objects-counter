@@ -26,10 +26,10 @@ const additionalInfoBarClasses = computed(() => {
 <template>
     <div id="image-view" class="view">
         <ImageViewNavBar />
-        <div v-if="viewState.currentState === ViewStates.ImageViewCreateDataset ||
+        <div v-if="viewState.currentState === ViewStates.ImageViewSelectLeaders ||
                 viewState.currentState === ViewStates.ImageViewConfirmDataset"
                 :class="additionalInfoBarClasses" id="additional-info-bar">
-            <p v-if="viewState.currentState === ViewStates.ImageViewCreateDataset">
+            <p v-if="viewState.currentState === ViewStates.ImageViewSelectLeaders">
                 Select one representant of each element category
             </p>
             <p v-else-if="viewState.currentState === ViewStates.ImageViewConfirmDataset">

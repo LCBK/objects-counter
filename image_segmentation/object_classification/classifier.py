@@ -62,11 +62,14 @@ class ObjectClassifier:
 
         return (color_weight * color_sim) + ((1 - color_weight) * feature_sim)
 
-    def group_objects_by_similarity(self, image: Image, threshold: float = 0.7,
-                                    color_weight: float = DEFAULT_COLOR_WEIGHT) -> None:
+    def group_objects_by_similarity(self, images: List[Image], representatives: List[ImageElement] | None = None,
+                                    threshold: float = 0.7, color_weight: float = DEFAULT_COLOR_WEIGHT) -> None:
         """Groups objects by their similarity based on a combination of feature and color similarity."""
-        self.process_image_elements(image)
-        self.assign_categories_based_on_similarity(image, threshold, color_weight)
+        elements = []
+        for image in images:
+            self.process_image_elements(image)
+            elements += image.elements
+        self.assign_categories_based_on_similarity(elements, representatives, threshold, color_weight)
         delete_temp_images(TEMP_IMAGE_DIR)
 
     def preprocess_dataset(self, dataset):
@@ -145,7 +148,6 @@ class ObjectClassifier:
             result[element.classification] -= 1
 
         result = {category: -result[category] for category in dataset.categories}
-        print (result)
         return result
 
     def assign_dataset_categories_to_image(self, image: Image, dataset):
@@ -165,32 +167,38 @@ class ObjectClassifier:
             assert best_category is not None
             self.update_element_category(element.id, best_category, best_certainty)
 
-    def assign_categories_based_on_similarity(self, image: Image, threshold: float, color_weight: float) -> None:
+    def assign_categories_based_on_similarity(self, elements: List[ImageElement], representatives: List[ImageElement],
+                                              threshold: float, color_weight: float) -> None:
         """Assigns elements to categories based on their similarity scores."""
-        elements = image.elements
-        num_elements = len(elements)
-        analyzed_elements = set()
+        predefined_representatives = True
         category_id = 1
 
-        for index_i in range(num_elements):
-            element_i = elements[index_i]
+        if representatives is None:
+            representatives = []
+            predefined_representatives = False
 
-            if element_i.id in analyzed_elements:
-                continue
-
-            if not element_i.classification:
-                self.update_element_category(element_i.id, category_id, certainty=1.0)
-                analyzed_elements.add(element_i.id)
-
-            for index_j in range(index_i + 1, num_elements):
-                element_j = elements[index_j]
-                similarity_score = self.calculate_similarity(element_i, element_j, color_weight)
-
-                if similarity_score >= threshold:
-                    self.assign_element_to_category(element_j, similarity_score, category_id)
-                    analyzed_elements.add(element_j.id)
-
+        for representative in representatives:
+            self.update_element_category(representative.id, category_id, certainty=1.0)
             category_id += 1
+
+        for element in elements:
+            if predefined_representatives and element in representatives:
+                continue
+            best_similar_element = None
+            best_similarity = 0
+            for representative in representatives:
+                similarity_score = self.calculate_similarity(element, representative, color_weight)
+
+                if (similarity_score >= threshold or predefined_representatives) and similarity_score > best_similarity:
+                    best_similar_element = representative
+                    best_similarity = similarity_score
+
+            if best_similar_element is not None:
+                self.assign_element_to_category(element, best_similarity, best_similar_element.classification)
+            else:
+                self.update_element_category(element.id, category_id, certainty=1.0)
+                representatives.append(element)
+                category_id += 1
 
     def assign_element_to_category(self, element: ImageElement, similarity: float, category_id: int) -> None:
         """Assigns an element to a category or updates its similarity score if already classified."""
