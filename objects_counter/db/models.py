@@ -14,11 +14,11 @@ class Image(db.Model):
     thumbnail = db.Column(db.String(255), nullable=True)
     timestamp = db.Column(db.DateTime, nullable=False, default=db.func.now())
     background_points = db.Column(db.JSON, nullable=True)
-    result_id = db.Column(db.Integer, db.ForeignKey('result.id'), nullable=True)
+    result_id = db.Column(db.Integer, db.ForeignKey('result.id', ondelete="CASCADE"), nullable=True)
     result = db.relationship('Result', backref='images')
-    dataset_id = db.Column(db.Integer, db.ForeignKey('dataset.id'), nullable=True)
+    dataset_id = db.Column(db.Integer, db.ForeignKey('dataset.id', ondelete="CASCADE"), nullable=True)
     dataset = db.relationship('Dataset', backref='images')
-    comparison_id = db.Column(db.Integer, db.ForeignKey('comparison.id'), nullable=True)
+    comparison_id = db.Column(db.Integer, db.ForeignKey('comparison.id', ondelete="CASCADE"), nullable=True)
     comparison = db.relationship('Comparison', backref='images')
 
     def as_dict(self):
@@ -33,7 +33,7 @@ class Image(db.Model):
 class ImageElement(db.Model):
     __tablename__ = 'image_element'
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    image_id = db.Column(db.Integer, db.ForeignKey(Image.id), nullable=False)
+    image_id = db.Column(db.Integer, db.ForeignKey(Image.id, ondelete="CASCADE"), nullable=False)
     top_left = db.Column(db.JSON, nullable=False)
     bottom_right = db.Column(db.JSON, nullable=False)
     classification = db.Column(db.String(255), nullable=True)
