@@ -18,6 +18,8 @@ class Image(db.Model):
     result = db.relationship('Result', backref='images')
     dataset_id = db.Column(db.Integer, db.ForeignKey('dataset.id'), nullable=True)
     dataset = db.relationship('Dataset', backref='images')
+    comparison_id = db.Column(db.Integer, db.ForeignKey('comparison.id'), nullable=True)
+    comparison = db.relationship('Comparison', backref='images')
 
     def as_dict(self):
         return {
@@ -59,7 +61,7 @@ class User(db.Model):
 class Result(db.Model):
     __tablename__ = 'result'
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    user_id = db.Column(db.Integer, db.ForeignKey(User.id), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey(User.id), nullable=True)
     data = db.Column(db.JSON, nullable=False)
     timestamp = db.Column(db.DateTime, nullable=False, default=db.func.now())
     user = db.relationship('User', backref='results')
@@ -67,8 +69,8 @@ class Result(db.Model):
     def as_dict(self):
         return {
             'id': self.id,
-            'user': self.user.username,
-            'image_id': self.images[0].id,
+            'user': self.user.username if self.user else None,
+            'images': [image.as_dict() for image in self.images],
             'data': self.data,
             'timestamp': self.timestamp
         }
@@ -92,4 +94,24 @@ class Dataset(db.Model):
             'unfinished': self.unfinished,
             'timestamp': self.timestamp,
             'images': [image.as_dict() for image in self.images]
+        }
+
+
+class Comparison(db.Model):
+    __tablename__ = 'comparison'
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    dataset_id = db.Column(db.Integer, db.ForeignKey('dataset.id', ondelete='CASCADE'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    dataset = db.relationship('Dataset', backref='comparisons')
+    user = db.relationship('User', backref='comparisons')
+    diff = db.Column(db.JSON, nullable=False)
+    timestamp = db.Column(db.DateTime, nullable=False, default=db.func.now())
+
+    def as_dict(self):
+        return {
+            'id': self.id,
+            'dataset_id': self.dataset_id,
+            'user_id': self.user_id,
+            'diff': self.diff,
+            'timestamp': self.timestamp
         }

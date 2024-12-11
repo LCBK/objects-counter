@@ -7,7 +7,7 @@ from PIL import Image as PILImage
 from torch import nn
 from torchvision import transforms as tr
 
-from image_segmentation.constants import TEMP_IMAGE_DIR, ISCC_NBS_CENTROIDS_RGB, BW, A, SIGMA
+from image_segmentation.constants import TEMP_IMAGE_DIR, ISCC_NBS_CENTROIDS_RGB, BW, SIGMA
 from image_segmentation.utils import crop_element
 from objects_counter.db.dataops.image import get_image_by_id
 from objects_counter.db.models import ImageElement
@@ -82,10 +82,7 @@ class ColorSimilarity:
     @staticmethod
     def compute_color_similarity(hist1: np.ndarray, hist2: np.ndarray) -> float:
         """Computes the RGWHI similarity between two histograms."""
-        raw_score = ColorSimilarity.__calculate_histogram_intersection(hist1, hist2)
-        max_score = ColorSimilarity.__calculate_histogram_intersection(hist1, hist1)
-
-        return ColorSimilarity.__normalize_score(raw_score, max_score)
+        return ColorSimilarity.__calculate_histogram_intersection(hist1, hist2)
 
     @staticmethod
     def __calculate_histogram_intersection(hist_model: np.ndarray, hist_target: np.ndarray) -> float:
@@ -95,11 +92,15 @@ class ColorSimilarity:
 
         for i in range(num_bins):
             for j in range(num_bins):
-                distance = ColorSimilarity.__color_distance(ColorSimilarity.ISCC_NBS_CENTROIDS_LUV[i],
-                                                            ColorSimilarity.ISCC_NBS_CENTROIDS_LUV[j])
-                weight = ColorSimilarity.__weight_function(distance)
+                weight = 0.0
+                if i == j:
+                    weight = 1.0
+                elif j > i:
+                    distance = ColorSimilarity.__color_distance(ColorSimilarity.ISCC_NBS_CENTROIDS_LUV[i],
+                                                                ColorSimilarity.ISCC_NBS_CENTROIDS_LUV[j])
+                    weight = ColorSimilarity.__weight_function(distance)
                 if weight > 0:
-                    intersection_score += min(hist_model[i], hist_target[j]) * weight
+                    intersection_score += (min(hist_model[i], hist_target[j]) * weight)
 
         return intersection_score
 
@@ -112,18 +113,13 @@ class ColorSimilarity:
     def __weight_function(distance: float) -> float:
         """Applies a weight based on color distance, using a Gaussian function."""
         if distance <= BW:
-            return (A / (np.sqrt(2 * np.pi) * SIGMA)) * np.exp(-distance ** 2 / (2 * SIGMA ** 2))
+            return (1 / (np.sqrt(2 * np.pi) * SIGMA)) * np.exp(-(distance ** 2) / (2 * SIGMA ** 2))
         return 0.0
-
-    @staticmethod
-    def __normalize_score(raw_score: float, max_score: float) -> float:
-        """Normalizes the raw similarity score to a percentage."""
-        return (raw_score / max_score) if max_score != 0 else 0.0
 
     @staticmethod
     def get_histogram(image: PILImage) -> np.ndarray:
         """Computes a color histogram for an image, ignoring white background pixels."""
-
+        image = image.resize((128, 128))
         mask = ColorSimilarity.__get_mask(image)
         image = np.array(image)
 
@@ -131,9 +127,9 @@ class ColorSimilarity:
         image = cv2.cvtColor(image, cv2.COLOR_RGB2Luv)
 
         histogram = np.zeros(len(ColorSimilarity.ISCC_NBS_CENTROIDS_LUV))
-
+        reshaped_mask = mask.reshape(-1)
         for i, pixel in enumerate(image.reshape(-1, 3)):
-            if mask.reshape(-1)[i]:
+            if reshaped_mask[i]:
                 closest_index = ColorSimilarity.__find_closest_bin_color(pixel)
                 histogram[closest_index] += 1
 
@@ -143,8 +139,9 @@ class ColorSimilarity:
     @staticmethod
     def __get_mask(image: PILImage):
         image = image.convert('RGB')
+        image_array = np.array(image)
         mask = np.array(
-            [not (np.array(image)[x][y] == np.array([255, 255, 255])).all() for x in range(image.height) for y in
+            [not (image_array[x][y] == np.array([255, 255, 255])).all() for x in range(image.height) for y in
              range(image.width)])
         mask.resize(image.height, image.width)
         return mask

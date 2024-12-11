@@ -1,16 +1,14 @@
 <script setup lang="ts">
+import "./HistoryView.css";
 import VButton from "primevue/button";
 import { useViewStateStore, ViewStates } from "@/stores/viewState";
 import { default as ResultHistoryItemComponent } from "../ResultHistoryItem.vue";
-import type { ResultHistoryItem } from "@/types";
-import { config, endpoints } from "@/config";
-import { base64ToImageUri, sendRequest, type Response } from "@/utils";
+import type { ResultHistoryItem } from "@/types/app";
+import { base64ToImageUri } from "@/utils";
 import SettingsWidget from "../SettingsWidget.vue";
 import LoadingSpinner from "../LoadingSpinner.vue";
 import { onMounted, ref } from "vue";
-
-
-// todo: pagination
+import { getResults, getResultsThumbnails } from "@/requests/results";
 
 
 const viewState = useViewStateStore();
@@ -26,44 +24,28 @@ function onBack() {
 onMounted(async () => {
     viewState.isWaitingForResponse = true;
 
-    const resultsRequestUri = config.serverUri + endpoints.getResults;
-    const resultsRequestPromise = sendRequest(resultsRequestUri, null, "GET");
-    resultsRequestPromise.then((response: Response) => {
-        if (response.status === 200) {
-            const responseItems = response.data;
-            for (const item of responseItems) {
-                const historyItem: ResultHistoryItem = {
-                    id: item.id,
-                    imageId: item.image_id,
-                    timestamp: Date.parse(item.timestamp),
-                    classificationCount: item.data.classifications.length,
-                    elementCount: item.data.count
-                };
+    await getResults().then(response => {
+        for (const item of response) {
+            const historyItem: ResultHistoryItem = {
+                id: item.id,
+                images: item.images,
+                timestamp: Date.parse(item.timestamp)
+            };
 
-                historyItems.value.push(historyItem);
-            }
+            historyItems.value.push(historyItem);
         }
-        else {
-            console.error("Failed to load result history items");
-            viewState.setState(ViewStates.UserView);
-        }
+    }).catch(() => {
+        viewState.setState(ViewStates.UserView);
     });
 
-    const thumbnailsRequestUri = config.serverUri + endpoints.getResultsThumbnails;
-    const thumbnailsRequestPromise = sendRequest(thumbnailsRequestUri, null, "GET");
-    thumbnailsRequestPromise.then((response: Response) => {
-        if (response.status === 200) {
-            const responseItems = response.data;
-            for (const item of responseItems) {
-                const historyItem = historyItems.value.find((historyItem) => historyItem.id == item.id);
-                if (historyItem) {
-                    historyItem.thumbnailUri = base64ToImageUri(item.thumbnail);
-                }
+    await getResultsThumbnails().then(response => {
+        for (const item of response) {
+            const historyItem = historyItems.value.find(historyItem => historyItem.id == item.id);
+            if (historyItem) {
+                historyItem.thumbnailUri = base64ToImageUri(item.thumbnail);
             }
         }
-        else {
-            console.error("Failed to load result history thumbnails");
-        }
+    }).finally(() => {
         viewState.isWaitingForResponse = false;
     });
 });
@@ -71,7 +53,7 @@ onMounted(async () => {
 
 
 <template>
-    <div id="result-history-view" class="view">
+    <div id="result-history-view" class="history-view view">
         <div class="history-view-nav-bar nav-bar bar">
             <div class="nav-bar-content bar-content">
                 <VButton text rounded icon="pi pi-chevron-left" @click="onBack()" />
@@ -79,7 +61,7 @@ onMounted(async () => {
                 <SettingsWidget />
             </div>
         </div>
-        <div class="result-history-items">
+        <div class="result-history-items history-items">
             <ResultHistoryItemComponent v-for="(item, index) in historyItems.sort((a, b) => b.timestamp - a.timestamp)"
                     :key="index" v-bind="item" />
         </div>
@@ -91,50 +73,3 @@ onMounted(async () => {
         </Transition>
     </div>
 </template>
-
-
-<style scoped>
-.history-view-nav-bar h2 {
-    color: var(--primary-color);
-    font-size: 1.3rem;
-    line-height: 38px;
-    letter-spacing: 0.4px;
-    font-weight: 600;
-}
-
-.result-history-items {
-    display: flex;
-    flex-direction: row;
-    flex-wrap: wrap;
-    gap: 16px;
-    padding: 16px;
-    user-select: none;
-    max-height: calc(100vh - 55px);
-    max-width: 768px;
-    margin: 55px auto 0 auto;
-}
-
-#result-history-view {
-    overflow: auto;
-}
-
-#result-history-view .notice {
-    text-align: center;
-}
-
-@media screen and (min-width: 340px) {
-    .result-history-items {
-        margin-top: 70px;
-    }
-
-    .history-view-nav-bar h2 {
-        font-size: 1.4rem;
-    }
-}
-
-@media screen and (min-width: 380px) {
-    .history-view-nav-bar h2 {
-        font-size: 1.5rem;
-    }
-}
-</style>

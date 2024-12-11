@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { config } from "./config";
 import { useSettingsStateStore } from "./stores/settingsState";
 import { useUserStateStore } from "./stores/userState";
 import { useViewStateStore } from "./stores/viewState";
@@ -9,6 +8,7 @@ const userState = useUserStateStore();
 const viewState = useViewStateStore();
 
 settingsState.loadFromLocalStorage();
+settingsState.loadSavedServerAddress();
 userState.loadFromCookies();
 
 const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
@@ -16,14 +16,8 @@ mediaQuery.addEventListener("change", () => {
     settingsState.setThemeToPreferred();
 });
 
-// If server address was stored in local storage, use it
-if (localStorage.getItem("serverAddress")) {
-    config.serverAddress = localStorage.getItem("serverAddress") as string;
-}
-
-if (localStorage.getItem("serverUseHttps")) {
-    config.serverUseHttps = localStorage.getItem("serverUseHttps") === "true";
-}
+// Prevent accidental navigation away from the page
+window.onbeforeunload = () => { return true };
 </script>
 
 

@@ -1,67 +1,62 @@
-import { boundingBoxColors, config, endpoints } from "./config";
+import { boundingBoxColors, config } from "./config";
 import { useUserStateStore } from "./stores/userState";
 import { useImageStateStore } from "./stores/imageState";
-import type { DatasetClassificationListItem, DatasetResponseClassification, GetDatasetResponse, ImageElement, ObjectClassification } from "./types";
-
-
-export interface Response {
-    data: any,
-    status: number
-}
+import type { GetDatasetResponse, ImageElementResponse, ImageWithAllData } from "./types/requests";
+import type { DatasetClassificationListItem, ImageDetails, ObjectClassification } from "./types/app";
 
 
 export async function sendRequest(
-    uri: string, data: FormData | string | null, method: string = "POST",
-    requestType: string = "application/json", toJson: boolean = true
-) : Promise<Response> {
+    uri: string, data: FormData | string | null, method: string, type: string = "application/json"
+): Promise<globalThis.Response> {
+    const headers = new Headers();
+
+    if (!(data instanceof FormData)) {
+        headers.append("Content-Type", type);
+    }
+
+    const userState = useUserStateStore();
+    if (userState.isLoggedIn) {
+        headers.append("Authorization", userState.userToken);
+    }
+
+    const request: RequestInit = {
+        method: method,
+        body: data,
+        headers: headers
+    }
+
     try {
-        const userState = useUserStateStore();
-
-        const request: RequestInit = {
-            method: method,
-            body: data
-        }
-
-        const requestHeaders: HeadersInit = new Headers();
-        if (!(data instanceof FormData)) {
-            requestHeaders.append("Content-Type", requestType);
-        }
-        if (userState.isLoggedIn) {
-            requestHeaders.append("Authorization", userState.userToken);
-        }
-        request.headers = requestHeaders;
-
         const response = await fetch(uri, request);
-        let result;
-        if (toJson) {
-            result = await response.clone().json().catch(() => response.text());
-        }
-        else {
-            result = await response;
-        }
 
         if (config.logResponses) {
-            console.log(`Response for request to ${uri} (${response.status}): `, result);
+            // Clone responses to avoid consuming the original one
+            const jsonResponse = response.clone();
+            const textResponse = response.clone();
+            console.log(
+                `Response from ${uri} (${response.status}): `,
+                jsonResponse.json().catch(() => textResponse.text())
+            );
         }
 
-        return { data: result, status: response.status };
-    } catch (error) {
-        return Promise.reject(`Request to ${uri} failed: ${error}`);
+        return response;
+    }
+    catch (error) {
+        return Promise.reject(`Request to ${method} ${uri} failed: ${error}`);
     }
 }
 
 
-export function distance(x1: number, y1: number, x2: number, y2: number) : number {
-    return Math.sqrt(Math.pow(x1 - x2, 2) + Math.pow(y1 - y2, 2))
+export function distance(x1: number, y1: number, x2: number, y2: number): number {
+    return Math.sqrt(Math.pow(x1 - x2, 2) + Math.pow(y1 - y2, 2));
 }
 
 
-export function formatClassificationName(name: string) : string {
+export function formatClassificationName(name: string): string {
     return /^\d*$/.test(name) ? "Type " + name : name;
 }
 
 
-export function createMaskImage(mask: Array<Array<boolean>>) : ImageData {
+export function createMaskImage(mask: Array<Array<boolean>>): ImageData {
     const width = mask[0].length;
     const height = mask.length;
     const buffer = new Uint8ClampedArray(width * height * 4);
@@ -81,136 +76,120 @@ export function createMaskImage(mask: Array<Array<boolean>>) : ImageData {
 }
 
 
-export function parseClassificationsFromResponse(classifications: Array<any>) : void {
+export function getClassificationBoxColor(name: string): string {
     const imageState = useImageStateStore();
+    const classificationIndex = imageState.classifications.findIndex(c => c.name === name);
 
-    classifications.forEach((classification: any, index: number) => {
-        imageState.objectClassifications.push({
-            index: index,
-            classificationName: classification.name,
-            count: classification.objects.length,
-            showBoxes: true,
-            boxColor: boundingBoxColors[index % boundingBoxColors.length]
-        });
-
-        classification.objects.forEach((element: any) => {
-            const imageElement = {
-                id: element.id,
-                topLeft: element.top_left,
-                bottomRight: element.bottom_right,
-                certainty: element.certainty,
-                classificationIndex: index
-            } as ImageElement;
-
-            for (const leaderId of imageState.selectedLeaderIds) {
-                if (leaderId === element.id) {
-                    imageElement.isLeader = true;
-                    break;
-                }
-            }
-
-            imageState.imageElements.push(imageElement);
-        });
-    });
+    if (classificationIndex === -1) return boundingBoxColors[0];
+    return boundingBoxColors[classificationIndex % boundingBoxColors.length];
 }
 
 
-// TODO: rework, cleanup
-export function parseClassificationsFromElementsResponse(elements: Array<any>) : void {
-    const imageState = useImageStateStore();
-    const classifications = [] as Array<string>;
+export function parseMultipleClassificationsFromResponse(images: Array<ImageWithAllData>): void {
+    images.forEach(image => parseElementsToImage(image.id, image.elements));
+}
 
-    elements.forEach((element: any) => {
-        if (!classifications.includes(element.classification)) {
-            classifications.push(element.classification);
+
+export function parseElementsToImage(imageId: number, elements: Array<ImageElementResponse>): void {
+    const imageState = useImageStateStore();
+
+    const image = imageState.images.find(image => image.id === imageId);
+    if (!image) return;
+
+    elements.forEach(element => {
+        if (element.classification && !imageState.classifications.find(c => c.name === element.classification)) {
+            // If received classification name is found in the rename map, use the new name
+            const mapping = imageState.classificationRenameMap.find(c => c.originalName === element.classification);
+            if (mapping) element.classification = mapping.newName;
+            else imageState.addClassification(element.classification);
         }
-    });
 
-    classifications.forEach((classification: string, index: number) => {
-        const classificationElements = elements.filter((element: any) => element.classification === classification);
-        imageState.objectClassifications.push({
-            index: index,
-            classificationName: classification,
-            count: classificationElements.length,
-            showBoxes: true,
-            boxColor: boundingBoxColors[index % boundingBoxColors.length]
-        });
-
-        classificationElements.forEach((element: any) => {
-            imageState.imageElements.push({
-                id: element.id,
-                topLeft: element.top_left,
-                bottomRight: element.bottom_right,
-                certainty: element.certainty,
-                classificationIndex: index
-            });
-        });
-    });
-}
-
-
-export function parseElementsFromResponse(elements: Array<any>) : void {
-    const imageState = useImageStateStore();
-    for (const element of elements) {
-        imageState.imageElements.push({
+        image.elements.push({
             id: element.id,
             topLeft: element.top_left,
-            bottomRight: element.bottom_right
+            bottomRight: element.bottom_right,
+            certainty: element.certainty,
+            classificationName: element.classification
         });
-    }
+    });
+
+    imageState.sortClassifications();
 }
 
 
-export function getClassificationsFromDataset(dataset: GetDatasetResponse) : Array<DatasetClassificationListItem> {
-    const classifications = [] as Array<DatasetResponseClassification>;
+export function getClassificationsFromDataset(dataset: GetDatasetResponse): Array<DatasetClassificationListItem> {
+    const classificationItems = [] as Array<DatasetClassificationListItem>;
 
-    // Merge classifications from all images
     dataset.images.forEach(image => {
-        image.classifications.forEach((classification: DatasetResponseClassification) => {
-            const existingClassification = classifications.find(c => c.name === classification.name);
-            if (existingClassification) {
-                existingClassification.objects.push(...classification.objects);
+        image.elements.forEach(element => {
+            if (!element.classification) return;
+            if (!classificationItems.some(classification => classification.name === element.classification)) {
+                classificationItems.push({
+                    name: element.classification,
+                    count: 1
+                });
             }
             else {
-                classifications.push({ name: classification.name, objects: classification.objects });
+                const classification = classificationItems.find(c => c.name === element.classification);
+                if (classification) classification.count++;
             }
         });
     });
 
-    const classificationList = classifications.map((classification: DatasetResponseClassification) => {
-        return {
-            name: classification.name,
-            count: classification.objects.length
-        } as DatasetClassificationListItem;
-    });
-    return classificationList;
+    return classificationItems;
 }
 
 
-export function checkServerStatus() : Promise<boolean> {
-    return new Promise((resolve) => {
-        sendRequest(config.serverUri + endpoints.isAlive, null, "GET")
-            .then(response => {
-                if (response.status === 200) {
-                    resolve(true);
-                } else if (response.status === 401) {
-                    const userState = useUserStateStore();
-                    userState.logout();
-                    resolve(true);
-                } else {
-                    resolve(false);
-                }
-            })
-            .catch(() => resolve(false));
+export function getImageClassifications(id: number): Array<ObjectClassification> {
+    const imageState = useImageStateStore();
+    const classifications = [] as Array<ObjectClassification>;
+    const image = imageState.images.find(image => image.id === id);
+
+    if (!image) return classifications;
+
+    for (const element of image.elements) {
+        if (element.classificationName) {
+            if (!classifications.find(c => c.name === element.classificationName)) {
+                classifications.push({
+                    name: element.classificationName,
+                    showBoxes: true
+                });
+            }
+        }
+    }
+
+    return classifications;
+}
+
+
+export async function processImageData(source: File | Blob, id: number): Promise<void> {
+    const imageState = useImageStateStore();
+
+    const url = window.URL.createObjectURL(source);
+    const img = new Image;
+    img.src = url;
+
+    return img.decode().then(() => {
+        const imageDetails = {
+            id: id,
+            dataURL: url,
+            width: img.width,
+            height: img.height,
+            elements: [],
+            selectedLeaderIds: [],
+            points: []
+        } as ImageDetails;
+
+        imageState.images.push(imageDetails);
     });
 }
 
 
-export function base64ToImageUri(base64: string) : string {
+export function base64ToImageUri(base64: string): string {
     return "data:image/png;base64," + base64;
 }
 
 
-export function isUserAgentMobile() : boolean {
+export function isUserAgentMobile(): boolean {
     return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 }

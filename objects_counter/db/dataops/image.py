@@ -28,6 +28,10 @@ def get_images() -> list[Image]:
     return Image.query.all()
 
 
+def get_images_by_ids(image_ids: list[int]) -> list[Image]:
+    return Image.query.filter(Image.id.in_(image_ids)).all()
+
+
 def get_image_by_id(image_id: int) -> Image:
     return Image.query.get_or_404(image_id)
 
@@ -90,6 +94,10 @@ def insert_element(image: Image, top_left: tuple[int, int], bottom_right: tuple[
             log.exception('Failed to insert element: %s', e)
             db.session.rollback()
             raise
+
+
+def get_image_element_by_id(element_id: int) -> ImageElement:
+    return ImageElement.query.get_or_404(element_id)
 
 
 def get_background_points(image: Image) -> tuple[list[list[int]], list[bool]]:

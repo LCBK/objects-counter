@@ -2,16 +2,14 @@
 import "./ImageViewToolBar.css";
 import VButton from "primevue/button";
 import { ImageAction, useViewStateStore, ViewStates } from "@/stores/viewState";
-import { config, endpoints } from "@/config";
 import { useImageStateStore } from "@/stores/imageState";
-import { parseClassificationsFromResponse, parseElementsFromResponse, sendRequest } from "@/utils";
+import { parseElementsToImage } from "@/utils";
 import { computed, onMounted, ref } from "vue";
-import { useUserStateStore } from "@/stores/userState";
+import { acceptBackground } from "@/requests/images";
 
 
 const viewState = useViewStateStore();
 const imageState = useImageStateStore();
-const userState = useUserStateStore();
 
 const pointTypePanel = ref<HTMLElement>();
 const positivePointButton = ref<HTMLElement>();
@@ -19,7 +17,7 @@ const negativePointButton = ref<HTMLElement>();
 const displayPointTypes = ref<Boolean>();
 
 const allButtonsDisabled = computed(() => viewState.isWaitingForResponse);
-const confirmButtonDisabled = computed(() => imageState.points.length === 0);
+const confirmButtonDisabled = computed(() => imageState.currentImage.points.length === 0);
 
 
 function setPositivePointType() {
@@ -47,52 +45,27 @@ function handleRemoveClick() {
 async function handleConfirmBackground() {
     viewState.isWaitingForResponse = true;
 
-    if (viewState.isEditingExistingResult
-        && viewState.currentAction !== ImageAction.CreateDataset
-        && viewState.currentAction !== ImageAction.CompareWithDataset) {
-        if (userState.isLoggedIn) {
-            const deleteRequestUri = config.serverUri + endpoints.deleteResult.replace("{result_id}", imageState.resultId.toString());
-            const deleteRequestData = JSON.stringify({});
-            await sendRequest(deleteRequestUri, deleteRequestData, "DELETE");
-        }
+    await acceptBackground(imageState.currentImage.id).then(response => {
+        if (viewState.currentState !== ViewStates.ImageViewEditPoints) return;
 
-        viewState.isEditingExistingResult = false;
-    }
-
-    const requestUri = config.serverUri + endpoints.acceptBackground.replace("{image_id}", imageState.imageId.toString());
-    const requestData = JSON.stringify({
-        skip_classification: viewState.currentAction === ImageAction.CreateDataset || viewState.currentAction === ImageAction.CompareWithDataset
-    });
-    const responsePromise = sendRequest(requestUri, requestData, "POST");
-
-    responsePromise.then((response) => {
-        viewState.isWaitingForResponse = false;
-        if (viewState.currentState !== ViewStates.ImageEditPoints) return;
-
-        if (viewState.currentAction === ImageAction.CreateDataset
-            || viewState.currentAction === ImageAction.CompareWithDataset
-        ) {
-            // Backend responds with elements without classifications, for leader selection or comparison
-            parseElementsFromResponse(response.data.elements);
-            if (response.data.id) imageState.resultId = response.data.id;
-        }
-        else {
-            // Otherwise the response contains classifications (for simple counting)
-            parseClassificationsFromResponse(response.data.classifications);
-            if (response.data.id) imageState.resultId = response.data.id;
-        }
+        parseElementsToImage(imageState.currentImage.id, response.elements);
 
         switch (viewState.currentAction) {
-            case ImageAction.SimpleCounting:
-                viewState.setState(ViewStates.ImageViewCountingResult);
+            case ImageAction.AutomaticCounting:
+                viewState.setState(ViewStates.ImageViewConfirmCounting);
+                break;
+            case ImageAction.LeaderCounting:
+                viewState.setState(ViewStates.ImageViewSelectLeaders);
                 break;
             case ImageAction.CreateDataset:
-                viewState.setState(ViewStates.ImageViewCreateDataset);
+                viewState.setState(ViewStates.ImageViewSelectLeaders);
                 break;
             case ImageAction.CompareWithDataset:
                 viewState.setState(ViewStates.ImageViewCompareWithDataset);
                 break;
         }
+    }).finally(() => {
+        viewState.isWaitingForResponse = false;
     });
 }
 

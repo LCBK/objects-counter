@@ -1,9 +1,10 @@
 <script setup lang="ts">
-import { config, endpoints } from "@/config";
+import "./HistoryItems.css";
+import { getImageBlob } from "@/requests/images";
 import { useImageStateStore } from "@/stores/imageState";
-import { useViewStateStore, ViewStates } from "@/stores/viewState";
-import { parseClassificationsFromResponse, sendRequest } from "@/utils";
-import { type Response } from "@/utils";
+import { ImageAction, useViewStateStore, ViewStates } from "@/stores/viewState";
+import type { ImageWithAllData } from "@/types/requests";
+import { parseElementsToImage, processImageData } from "@/utils";
 
 
 const props = defineProps({
@@ -11,8 +12,8 @@ const props = defineProps({
         type: Number,
         required: true
     },
-    imageId: {
-        type: Number,
+    images: {
+        type: Array<ImageWithAllData>,
         required: true
     },
     thumbnailUri: {
@@ -22,166 +23,61 @@ const props = defineProps({
     timestamp: {
         type: Number,
         required: true
-    },
-    classificationCount: {
-        type: Number,
-        required: true
-    },
-    elementCount: {
-        type: Number,
-        required: true
-    },
+    }
 });
 
 const imageState = useImageStateStore();
 const viewState = useViewStateStore();
 
+const elementCount = props.images.reduce((acc, image) => acc + image.elements.length, 0);
+const classificationCount = new Set(props.images.flatMap(
+    image => image.elements.map(el => el.classification)
+)).size;
+
 const date = new Date(props.timestamp).toISOString().split("T")[0];
 const time = new Date(props.timestamp).toLocaleTimeString();
 
 
-function handleResultClick() {
-    const imageRequestUri = config.serverUri + endpoints.getImage.replace("{image_id}", props.imageId.toString());
-    const imageRequestPromise = sendRequest(imageRequestUri, null, "GET", "application/json", false);
-
+async function handleResultClick() {
     viewState.isWaitingForResponse = true;
-    imageRequestPromise.then((imageResponse: Response) => {
-        if (imageResponse.status != 200) {
-            console.error("Failed to load image for result history item");
-            return;
-        }
 
-        imageResponse.data.blob()
-            .then((blob: Blob) => { return URL.createObjectURL(blob); })
-            .then((url: string) => {
-                imageState.url = url;
-                imageState.imageId = props.imageId;
-
-                const img = new Image;
-                img.src = url;
-                img.onload = () => {
-                    imageState.width = img.width;
-                    imageState.height = img.height;
-                };
+    for (const image of props.images) {
+        await getImageBlob(image.id).then(blob => {
+            processImageData(blob, image.id).then(() => {
+                parseElementsToImage(image.id, image.elements);
             });
-    });
+        });
+    }
 
-    const resultRequestUri = config.serverUri + endpoints.getResult.replace("{result_id}", props.id.toString());
-    const resultRequestPromise = sendRequest(resultRequestUri, null, "GET");
+    imageState.resultId = props.id;
 
-    resultRequestPromise.then((resultResponse: Response) => {
-        if (resultResponse.status != 200) {
-            console.error("Failed to load result for result history item");
-            return;
-        }
-
-        const resultData = resultResponse.data.data;
-        parseClassificationsFromResponse(resultData.classifications);
-        imageState.resultId = props.id;
-        viewState.isWaitingForResponse = false;
-        viewState.setState(ViewStates.ImageViewCountingResult);
-    });
+    viewState.isWaitingForResponse = false;
+    viewState.currentAction = ImageAction.AutomaticCounting;
+    viewState.setState(ViewStates.ImageViewCountingResult);
 }
 </script>
 
 
 <template>
-    <div class="result-history-item" @click="handleResultClick()">
-        <img :src="props.thumbnailUri" alt="No thumbnail" class="result-image" />
-        <div class="result-date">{{ date }}</div>
-        <div class="result-time">{{ time }}</div>
-        <div class="result-counts">
+    <div class="result-history-item history-item" @click="handleResultClick()">
+        <div style="position: relative;">
+            <img :src="props.thumbnailUri" alt="No thumbnail" class="item-image" />
+            <div class="item-image-count">
+                <i class="pi pi-image"></i>
+                <span>{{ images.length }}</span>
+            </div>
+        </div>
+        <div class="item-date">{{ date }}</div>
+        <div class="item-time">{{ time }}</div>
+        <div class="item-counts">
             <div>
                 <i class="pi pi-box"></i>
-                <div>{{ props.elementCount }}</div>
+                <div>{{ elementCount }}</div>
             </div>
             <div>
                 <i class="pi pi-list"></i>
-                <div>{{ props.classificationCount }}</div>
+                <div>{{ classificationCount }}</div>
             </div>
         </div>
     </div>
 </template>
-
-
-<style scoped>
-.result-history-item {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: 8px;
-    border: 1px solid var(--surface-border);
-    border-radius: 10px;
-    color: var(--primary-color);
-    width: calc(50% - 8px);
-    cursor: pointer;
-}
-
-.result-image {
-    width: 100%;
-    border-radius: 8px;
-    margin-bottom: 12px;
-    max-width: 256px;
-    max-height: 256px;
-    aspect-ratio: 1;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    text-align: center;
-}
-
-.result-date {
-    font-size: 1rem;
-    font-weight: 500;
-    color: var(--text-color);
-}
-
-.result-time {
-    font-size: 0.8rem;
-    font-weight: 500;
-    color: var(--text-color-secondary);
-    line-height: 16px;
-}
-
-.result-counts {
-    width: 100%;
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    justify-content: space-around;
-    margin-top: 10px;
-    font-weight: 500;
-    font-size: 1rem;
-}
-
-.result-counts > div {
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    gap: 8px;
-}
-
-@media screen and (min-width: 400px) {
-    .result-counts,
-    .result-date {
-        font-size: 1.2rem;
-    }
-
-    .result-time {
-        font-size: 1rem;
-    }
-}
-
-@media screen and (min-width: 520px) {
-    .result-history-item {
-        width: calc(33.33% - 12px);
-    }
-}
-</style>
-
-<style>
-.result-counts .pi {
-    margin-right: 0;
-}
-</style>

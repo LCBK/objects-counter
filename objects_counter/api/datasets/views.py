@@ -3,13 +3,13 @@ import typing
 
 from flask import jsonify, Response, request
 from flask_restx import Namespace, Resource
-from natsort import natsorted
 from werkzeug.exceptions import NotFound, Forbidden
 
 from objects_counter.api.datasets.models import insert_dataset_model, insert_image_model, patch_dataset_model, \
     adjust_classifications_model, images_list_model
-from objects_counter.api.default.views import object_grouper
+from objects_counter.api.common import object_grouper
 from objects_counter.api.utils import authentication_required, get_thumbnails
+from objects_counter.db.dataops.comparison_history import insert_comparison
 from objects_counter.db.dataops.dataset import get_user_datasets_serialized, get_dataset_by_id, delete_dataset_by_id, \
     insert_dataset, add_image_to_dataset, rename_dataset, get_user_datasets, update_unfinished_state
 from objects_counter.db.dataops.image import serialize_image_as_result, get_image_by_id, \
@@ -54,19 +54,10 @@ class Dataset(Resource):
                 log.error("Invalid dataset ID: %s", dataset_id)
                 raise ValueError("ID must be a positive integer")
             dataset = get_dataset_by_id(dataset_id)
-            if dataset.user_id != current_user.id:
+            if dataset.user != current_user:
                 log.error("User %s is not authorized to access dataset %s", current_user, dataset_id)
                 return Response('Unauthorized', 403)
-            dataset_dict = {
-                "id": dataset.id,
-                "name": dataset.name,
-                "images": []
-            }
-            for image in dataset.images:
-                image_dict = serialize_image_as_result(image)
-                image_dict["id"] = image.id
-                dataset_dict['images'].append(image_dict)
-            return jsonify(dataset_dict)
+            return jsonify(dataset.as_dict())
         except ValueError as e:
             log.exception("Invalid dataset ID: %s", e)
             return Response("Invalid dataset ID", 400)
@@ -139,7 +130,7 @@ class DatasetImages(Resource):
             log.exception("Invalid dataset ID: %s", e)
             return Response("Invalid dataset ID", 400)
         dataset = get_dataset_by_id(dataset_id)
-        if dataset.user_id != current_user.id:
+        if dataset.user != current_user:
             return Response('Unauthorized', 403)
         for image in dataset.images:
             images.append(image.as_dict())
@@ -155,15 +146,13 @@ class DatasetImages(Resource):
                 log.error("Invalid dataset ID: %s", dataset_id)
                 raise ValueError("ID must be a positive integer")
             dataset = get_dataset_by_id(dataset_id)
-            if dataset.user_id != current_user.id:
+            if dataset.user != current_user:
                 log.error("User %s is not authorized to add images to dataset %s", current_user, dataset_id)
                 return Response("You are not authorized to add images to dataset {dataset_id}", 403)
             image_id = int(data.get('image_id'))
             classifications = data.get('classifications', [])
             if not image_id or image_id < 0:
                 raise ValueError("Invalid image ID")
-            if not classifications:
-                raise ValueError("No classifications provided")
             dataset = add_image_to_dataset(dataset, image_id, classifications, object_classifier=object_grouper)
             return jsonify(dataset.as_dict())
         except ValueError as e:
@@ -199,7 +188,7 @@ class AdjustClassifications(Resource):
                 return Response("Image does not belong to dataset", 400)
             classifications = data.get('classifications', [])
             bulk_update_element_classification_by_id(classifications)
-            return Response(serialize_image_as_result(image), 200)
+            return jsonify(serialize_image_as_result(image))
         except ValueError as e:
             log.exception("Invalid dataset ID %s or image ID %s: %s", dataset_id, image_id, e)
             return Response("Invalid dataset ID or image ID", 400)
@@ -212,7 +201,7 @@ class AdjustClassifications(Resource):
 
 
 @api.route('/<int:dataset_id>/comparison')
-class CompareWithImage(Resource):
+class CompareImageToDataset(Resource):
     @api.expect(images_list_model)
     @api.response(200, "Comparison successful")
     @api.response(400, "Invalid image or dataset ID")
@@ -236,19 +225,15 @@ class CompareWithImage(Resource):
             return Response("Invalid image or dataset ID", 400)
         try:
             dataset = get_dataset_by_id(dataset_id)
-            if dataset.user_id != current_user.id:
+            if dataset.user != current_user:
                 log.error("User %s is not authorized to access dataset %s", current_user, dataset_id)
                 return Response('You are not authorized to access that dataset', 403)
             images = []
             for image_id in image_ids:
                 images.append(get_image_by_id(image_id))
             diff = object_grouper.classify_images_based_on_dataset(images, dataset)
-            diff = dict(natsorted(diff.items()))
-            response = {
-                "diff": diff,
-                "images": [image.as_dict() for image in images]
-            }
-            return jsonify(response)
+            comparison = insert_comparison(current_user, dataset, images, diff)
+            return jsonify(comparison.as_dict())
         except NotFound as e:
             log.exception("Image or dataset not found: %s", e)
             return Response("Image or dataset not found", 404)
