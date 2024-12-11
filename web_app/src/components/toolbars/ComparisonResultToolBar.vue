@@ -120,7 +120,7 @@ onMounted(() => {
         <div class="quantities-label-notice notice">You can toggle label visibility in the settings</div>
         <div class="quantities-header">
             <div class="quantities-col quantities-count-diff">Count</div>
-            <div class="quantities-col">Label<span class="rename-notice notice">(tap to rename)</span></div>
+            <div class="quantities-col">Label</div>
             <div class="quantities-col">Show boxes</div>
         </div>
         <div class="quantities-content quantities-comparison">

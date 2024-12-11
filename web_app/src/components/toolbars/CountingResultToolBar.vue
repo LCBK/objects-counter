@@ -6,9 +6,11 @@ import QuantitiesEntry from "../QuantitiesEntry.vue";
 import ImageNavigationOverlay from "../ImageNavigationOverlay.vue";
 import { useImageStateStore } from "@/stores/imageState";
 import { ref } from "vue";
+import { useViewStateStore, ImageAction } from "@/stores/viewState";
 
 
 const imageState = useImageStateStore();
+const viewState = useViewStateStore();
 
 const quantitiesVisible = ref<boolean>(false);
 </script>
@@ -33,7 +35,9 @@ const quantitiesVisible = ref<boolean>(false);
         <div class="quantities-label-notice notice">You can toggle label visibility in the settings</div>
         <div class="quantities-header">
             <div class="quantities-col">Count</div>
-            <div class="quantities-col">Label<span class="rename-notice notice">(tap to rename)</span></div>
+            <div class="quantities-col">Label
+                <span v-if="viewState.currentAction !== ImageAction.PreviewDataset" class="rename-notice notice">(tap to rename)</span>
+            </div>
             <div class="quantities-col">Show boxes</div>
         </div>
         <div class="quantities-content">
