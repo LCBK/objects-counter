@@ -171,15 +171,18 @@ class ObjectClassifier:
                                               threshold: float, color_weight: float) -> None:
         """Assigns elements to categories based on their similarity scores."""
         predefined_representatives = True
+        category_id = 1
+
         if representatives is None:
             representatives = []
             predefined_representatives = False
-        category_id = 1
+
+        for representative in representatives:
+            self.update_element_category(representative.id, category_id, certainty=1.0)
+            category_id += 1
 
         for element in elements:
             if predefined_representatives and element in representatives:
-                self.update_element_category(element.id, category_id, certainty=1.0)
-                category_id += 1
                 continue
             best_similar_element = None
             best_similarity = 0
