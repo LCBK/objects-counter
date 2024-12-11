@@ -100,8 +100,8 @@ class Dataset(db.Model):
 class Comparison(db.Model):
     __tablename__ = 'comparison'
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    dataset_id = db.Column(db.Integer, db.ForeignKey(Dataset.id), nullable=False)
-    user_id = db.Column(db.Integer, db.ForeignKey(User.id), nullable=False)
+    dataset_id = db.Column(db.Integer, db.ForeignKey('dataset.id', ondelete='CASCADE'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     dataset = db.relationship('Dataset', backref='comparisons')
     user = db.relationship('User', backref='comparisons')
     diff = db.Column(db.JSON, nullable=False)
@@ -110,9 +110,8 @@ class Comparison(db.Model):
     def as_dict(self):
         return {
             'id': self.id,
-            'dataset': self.dataset.as_dict(),
-            'images': [image.as_dict() for image in self.images],
-            'user': self.user.username,
+            'dataset_id': self.dataset_id,
+            'user_id': self.user_id,
             'diff': self.diff,
             'timestamp': self.timestamp
         }
