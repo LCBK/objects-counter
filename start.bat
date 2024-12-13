@@ -9,7 +9,6 @@ IF "%SAM_CHECKPOINT%"=="" (
 )
 IF NOT "%~2"=="" SET "SAM_MODEL_TYPE=%~2"
 cd objects_counter
-flask db init
 flask db upgrade
 flask run --host=0.0.0.0
 cd ..

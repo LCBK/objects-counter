@@ -1,13 +1,16 @@
 import logging
+from urllib.parse import quote
 
 from PIL import Image as PILImage, ImageOps
 
-from objects_counter.consts import LOG_LEVEL
+from objects_counter.consts import LOG_LEVEL, DB_USERNAME, DB_PASSWORD, DB_ADDRESS
 from objects_counter.db.models import db
 
 
 def config_db(app, db_name):
-    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + db_name
+    encoded_password = quote(DB_PASSWORD)
+    app.config['SQLALCHEMY_DATABASE_URI'] = (f'postgresql+psycopg2://{DB_USERNAME}:{encoded_password}@{DB_ADDRESS}/'
+                                             + db_name)
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = True
     db.init_app(app)
 
