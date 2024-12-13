@@ -109,9 +109,10 @@ class Comparison(db.Model):
 
     def as_dict(self):
         return {
-            'id': self.id,
-            'dataset_id': self.dataset_id,
-            'user_id': self.user_id,
+            'id': self.id,            
+            'dataset': self.dataset.as_dict(),
+            'images': [image.as_dict() for image in self.images],
+            'user': self.user.username,
             'diff': self.diff,
             'timestamp': self.timestamp
         }
