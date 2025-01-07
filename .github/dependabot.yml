@@ -9,11 +9,11 @@ updates:
     directory: "/" # Location of package manifests
     schedule:
       interval: "weekly"
-    reviewers:
-      - "kobryl"
+    # reviewers:
+    #   - "kobryl"
   - package-ecosystem: "npm"
     directory: "/web_app"
     schedule:
       interval: "weekly"
-    reviewers:
-      - "michalkr52"
+    # reviewers:
+    #   - "michalkr52"
