@@ -12,6 +12,6 @@ alembic==1.14.0
 opencv-python==4.10.0.84
 numpy==1.26.4
 segment_anything==1.0
-scipy==1.14.1
+scipy==1.15.1
 psycopg2-binary==2.9.10
 natsort==8.4.0
