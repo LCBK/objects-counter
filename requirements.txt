@@ -5,7 +5,7 @@ flask-sqlalchemy==3.1.1
 Flask-Migrate==4.0.7
 flask-cors==5.0.0
 flask-bcrypt==1.0.1
-SQLAlchemy==2.0.36
+SQLAlchemy==2.0.38
 pillow==11.0.0
 PyJWT==2.9.0
 alembic==1.14.0
