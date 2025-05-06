@@ -9,7 +9,7 @@ SQLAlchemy==2.0.36
 pillow==11.0.0
 PyJWT==2.9.0
 alembic==1.14.0
-opencv-python==4.10.0.84
+opencv-python==4.11.0.86
 numpy==1.26.4
 segment_anything==1.0
 scipy==1.14.1
