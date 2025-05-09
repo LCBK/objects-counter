@@ -15,7 +15,7 @@
     "@panzoom/panzoom": "^4.5.1",
     "pinia": "^2.2.4",
     "primeicons": "^6.0.1",
-    "primevue": "^3.50.0",
+    "primevue": "^3.53.1",
     "vue": "^3.4.21"
   },
   "devDependencies": {
